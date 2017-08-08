@@ -1,0 +1,410 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>porcupine.tabs — The tab manager and tabs in it &#8212; Porcupine API 0.28.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.28.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="porcupine.dialogs — Native dialogs" href="dialogs.html" />
+    <link rel="prev" title="porcupine — The top level Porcupine package" href="porcupine.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-porcupine.tabs">
+<span id="porcupine-tabs-the-tab-manager-and-tabs-in-it"></span><h1><a class="reference internal" href="#module-porcupine.tabs" title="porcupine.tabs"><code class="xref py py-mod docutils literal"><span class="pre">porcupine.tabs</span></code></a> — The tab manager and tabs in it<a class="headerlink" href="#module-porcupine.tabs" title="Permalink to this headline">¶</a></h1>
+<p>As usual, I recommend reading
+<a class="reference internal" href="plugin-intro.html#plugin-intro"><span class="std std-ref">the plugin writing introduction</span></a> if you haven’t read it
+yet. See <a class="reference external" href="https://github.com/Akuli/porcupine/tree/master/porcupine/tabs.py">porcupine/tabs.py</a> if you’re interested in how the tabs work
+and you’d like to use their code in your own projects.</p>
+<dl class="class">
+<dt id="porcupine.tabs.TabManager">
+<em class="property">class </em><code class="descclassname">porcupine.tabs.</code><code class="descname">TabManager</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/tabs.html#TabManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.tabs.TabManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>A simple but awesome tab widget.</p>
+<p>Virtual events:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">&lt;&lt;NewTab&gt;&gt;</span></code></dt>
+<dd><p class="first">This runs after a new tab has been added to this tab manager
+with <a class="reference internal" href="#porcupine.tabs.TabManager.add_tab" title="porcupine.tabs.TabManager.add_tab"><code class="xref py py-meth docutils literal"><span class="pre">add_tab()</span></code></a>. The tab is always added to the end of
+<a class="reference internal" href="#porcupine.tabs.TabManager.tabs" title="porcupine.tabs.TabManager.tabs"><code class="xref py py-attr docutils literal"><span class="pre">tabs</span></code></a>, so you can access it with
+<code class="docutils literal"><span class="pre">event.widget.tabs[-1]</span></code>.</p>
+<p class="last">Bind to the <code class="docutils literal"><span class="pre">&lt;Destroy&gt;</span></code> event of the tab if you want to clean
+up something when the tab is closed.</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">&lt;&lt;CurrentTabChanged&gt;&gt;</span></code></dt>
+<dd><p class="first">This runs when the user selects another tab or Porcupine does it
+for some reason. Use <code class="docutils literal"><span class="pre">event.widget.current_tab</span></code> to get or set
+the currently selected tab.</p>
+<div class="last admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last">The <a class="reference internal" href="#porcupine.tabs.TabManager.current_tab" title="porcupine.tabs.TabManager.current_tab"><code class="xref py py-attr docutils literal"><span class="pre">current_tab</span></code></a> attribute.</p>
+</div>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="attribute">
+<dt id="porcupine.tabs.TabManager.tabs">
+<code class="descname">tabs</code><a class="headerlink" href="#porcupine.tabs.TabManager.tabs" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of <a class="reference internal" href="#porcupine.tabs.Tab" title="porcupine.tabs.Tab"><code class="xref py py-class docutils literal"><span class="pre">Tab</span></code></a> objects in the tab manager.</p>
+<p>Don’t modify this list yourself, use methods like <a class="reference internal" href="#porcupine.tabs.TabManager.move_left" title="porcupine.tabs.TabManager.move_left"><code class="xref py py-meth docutils literal"><span class="pre">move_left()</span></code></a>,
+<a class="reference internal" href="#porcupine.tabs.TabManager.move_right" title="porcupine.tabs.TabManager.move_right"><code class="xref py py-meth docutils literal"><span class="pre">move_right()</span></code></a>, <a class="reference internal" href="#porcupine.tabs.TabManager.add_tab" title="porcupine.tabs.TabManager.add_tab"><code class="xref py py-meth docutils literal"><span class="pre">add_tab()</span></code></a> and <a class="reference internal" href="#porcupine.tabs.TabManager.close_tab" title="porcupine.tabs.TabManager.close_tab"><code class="xref py py-meth docutils literal"><span class="pre">close_tab()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="porcupine.tabs.TabManager.no_tabs_frame">
+<code class="descname">no_tabs_frame</code><a class="headerlink" href="#porcupine.tabs.TabManager.no_tabs_frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>This widget is displayed when there are no tabs. By default,
+Porcupine adds a welcome message into this. You can remove it and
+replace it with your own thing in a plugin. Setting this to another
+widget like <code class="docutils literal"><span class="pre">tabmanager.no_tabs_frame</span> <span class="pre">=</span> <span class="pre">something</span></code> doesn’t work.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="porcupine.tabs.TabManager.current_tab">
+<code class="descname">current_tab</code><a class="headerlink" href="#porcupine.tabs.TabManager.current_tab" title="Permalink to this definition">¶</a></dt>
+<dd><p>The tab that the user has currently selected.</p>
+<p>This is None when there are no tabs. You can set this to select
+a tab, like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">tabmanager</span><span class="o">.</span><span class="n">current_tab</span> <span class="o">=</span> <span class="n">some_tab</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="porcupine.tabs.TabManager.current_index">
+<code class="descname">current_index</code><a class="headerlink" href="#porcupine.tabs.TabManager.current_index" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Don’t use this attribute, I may remove it later.</p>
+</div>
+<p>The index of <a class="reference internal" href="#porcupine.tabs.TabManager.current_tab" title="porcupine.tabs.TabManager.current_tab"><code class="xref py py-attr docutils literal"><span class="pre">current_tab</span></code></a> in <a class="reference internal" href="#porcupine.tabs.TabManager.tabs" title="porcupine.tabs.TabManager.tabs"><code class="xref py py-attr docutils literal"><span class="pre">tabs</span></code></a>.</p>
+<p>Setting this raises <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#IndexError" title="(in Python v3.6)"><code class="xref py py-exc docutils literal"><span class="pre">IndexError</span></code></a> if the index is too big or
+too small. Negative indexes are not supported.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="porcupine.tabs.TabManager.add_tab">
+<code class="descname">add_tab</code><span class="sig-paren">(</span><em>tab</em>, <em>make_current=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/tabs.html#TabManager.add_tab"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.tabs.TabManager.add_tab" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append a <a class="reference internal" href="#porcupine.tabs.Tab" title="porcupine.tabs.Tab"><code class="xref py py-class docutils literal"><span class="pre">Tab</span></code></a> to this tab manager.</p>
+<p>If <code class="docutils literal"><span class="pre">tab.equivalent(existing_tab)</span></code> returns True for any
+<code class="docutils literal"><span class="pre">existing_tab</span></code> that is already in the tab manager, then that
+existing tab is returned. Otherwise <em>tab</em> is added to the tab
+manager and returned.</p>
+<p>If <em>make_current</em> is True, then <a class="reference internal" href="#porcupine.tabs.TabManager.current_tab" title="porcupine.tabs.TabManager.current_tab"><code class="xref py py-attr docutils literal"><span class="pre">current_tab</span></code></a> is set to
+the tab that is returned.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last">The <a class="reference internal" href="#porcupine.tabs.Tab.equivalent" title="porcupine.tabs.Tab.equivalent"><code class="xref py py-meth docutils literal"><span class="pre">Tab.equivalent()</span></code></a> method.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="porcupine.tabs.TabManager.close_tab">
+<code class="descname">close_tab</code><span class="sig-paren">(</span><em>tab</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/tabs.html#TabManager.close_tab"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.tabs.TabManager.close_tab" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove a tab from the tab manager.</p>
+<p>The tab is also destroyed, so it cannot be added back to the tab
+manager later.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last">The <a class="reference internal" href="#porcupine.tabs.Tab.can_be_closed" title="porcupine.tabs.Tab.can_be_closed"><code class="xref py py-meth docutils literal"><span class="pre">Tab.can_be_closed()</span></code></a> method.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="porcupine.tabs.TabManager.move_left">
+<code class="descname">move_left</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/tabs.html#TabManager.move_left"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.tabs.TabManager.move_left" title="Permalink to this definition">¶</a></dt>
+<dd><p>Move the current tab left if possible.</p>
+<p>Return True if the tab was moved.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="porcupine.tabs.TabManager.move_right">
+<code class="descname">move_right</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/tabs.html#TabManager.move_right"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.tabs.TabManager.move_right" title="Permalink to this definition">¶</a></dt>
+<dd><p>Like <a class="reference internal" href="#porcupine.tabs.TabManager.move_left" title="porcupine.tabs.TabManager.move_left"><code class="xref py py-meth docutils literal"><span class="pre">move_left()</span></code></a>, but moves right.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="porcupine.tabs.TabManager.select_left">
+<code class="descname">select_left</code><span class="sig-paren">(</span><em>roll_over=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/tabs.html#TabManager.select_left"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.tabs.TabManager.select_left" title="Permalink to this definition">¶</a></dt>
+<dd><p>Switch to the tab at left if possible.</p>
+<p>If <em>roll_over</em> is True and the current tab is the first tab in
+this widget, switch to the last tab. Return True if the current
+tab was changed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="porcupine.tabs.TabManager.select_right">
+<code class="descname">select_right</code><span class="sig-paren">(</span><em>roll_over=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/tabs.html#TabManager.select_right"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.tabs.TabManager.select_right" title="Permalink to this definition">¶</a></dt>
+<dd><p>Like <a class="reference internal" href="#porcupine.tabs.TabManager.select_left" title="porcupine.tabs.TabManager.select_left"><code class="xref py py-meth docutils literal"><span class="pre">select_left()</span></code></a>, but switch to the tab at right.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="porcupine.tabs.Tab">
+<em class="property">class </em><code class="descclassname">porcupine.tabs.</code><code class="descname">Tab</code><span class="sig-paren">(</span><em>manager</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/tabs.html#Tab"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.tabs.Tab" title="Permalink to this definition">¶</a></dt>
+<dd><p>A tab widget that can be added to <a class="reference internal" href="#porcupine.tabs.TabManager" title="porcupine.tabs.TabManager"><code class="xref py py-class docutils literal"><span class="pre">TabManager</span></code></a>.</p>
+<p>You can easily create custom kinds of tabs by inheriting from this
+class. Here’s a very minimal but complete example plugin:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tkinter</span> <span class="k">as</span> <span class="nn">tk</span>
+<span class="kn">import</span> <span class="nn">porcupine</span>
+<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">tabs</span>
+
+<span class="k">class</span> <span class="nc">HelloTab</span><span class="p">(</span><span class="n">tabs</span><span class="o">.</span><span class="n">Tab</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">manager</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">manager</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">top_label</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Hello&quot;</span>
+        <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Hello World!&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">new_hello_tab</span><span class="p">():</span>
+    <span class="n">manager</span> <span class="o">=</span> <span class="n">porcupine</span><span class="o">.</span><span class="n">get_tab_manager</span><span class="p">()</span>
+    <span class="n">manager</span><span class="o">.</span><span class="n">add_tab</span><span class="p">(</span><span class="n">HelloTab</span><span class="p">(</span><span class="n">manager</span><span class="p">))</span>
+
+<span class="k">def</span> <span class="nf">setup</span><span class="p">():</span>
+    <span class="n">porcupine</span><span class="o">.</span><span class="n">add_action</span><span class="p">(</span><span class="n">new_hello_tab</span><span class="p">,</span> <span class="s1">&#39;Hello/New Hello Tab&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="attribute">
+<dt id="porcupine.tabs.Tab.master">
+<code class="descname">master</code><a class="headerlink" href="#porcupine.tabs.Tab.master" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tkinter sets this to the parent widget by default. Use this
+attribute to access the TabManager of a tab.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="porcupine.tabs.Tab.top_label">
+<code class="descname">top_label</code><a class="headerlink" href="#porcupine.tabs.Tab.top_label" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the label in the top of the tab manager, next to the red close
+button. For example, <a class="reference internal" href="#porcupine.tabs.FileTab" title="porcupine.tabs.FileTab"><code class="xref py py-class docutils literal"><span class="pre">FileTabs</span></code></a> display the file name
+in this label.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="porcupine.tabs.Tab.can_be_closed">
+<code class="descname">can_be_closed</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/tabs.html#Tab.can_be_closed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.tabs.Tab.can_be_closed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if this tab can be closed.</p>
+<p>By default, this always returns True, but you can override this
+in a subclass to do something more interesting. See
+<a class="reference internal" href="#porcupine.tabs.FileTab.can_be_closed" title="porcupine.tabs.FileTab.can_be_closed"><code class="xref py py-meth docutils literal"><span class="pre">FileTab.can_be_closed()</span></code></a> for an example.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="porcupine.tabs.Tab.equivalent">
+<code class="descname">equivalent</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/tabs.html#Tab.equivalent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.tabs.Tab.equivalent" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is explained in <a class="reference internal" href="#porcupine.tabs.TabManager.add_tab" title="porcupine.tabs.TabManager.add_tab"><code class="xref py py-meth docutils literal"><span class="pre">TabManager.add_tab()</span></code></a>.</p>
+<p>This always returns False by default, but you can override it in
+a subclass. For example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyCoolTab</span><span class="p">(</span><span class="n">tabs</span><span class="o">.</span><span class="n">Tab</span><span class="p">):</span>
+    <span class="o">...</span>
+
+    <span class="k">def</span> <span class="nf">equivalent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">MyCoolTab</span><span class="p">):</span>
+            <span class="c1"># other can be used instead of this tab if its</span>
+            <span class="c1"># thingy is same as this tab&#39;s thingy</span>
+            <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thingy</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">thingy</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># MyCoolTabs are never equivalent to other kinds</span>
+            <span class="c1"># of tabs</span>
+            <span class="k">return</span> <span class="kc">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="porcupine.tabs.Tab.on_focus">
+<code class="descname">on_focus</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/tabs.html#Tab.on_focus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.tabs.Tab.on_focus" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is called when the tab is selected.</p>
+<p>This does nothing by default. You can override this in a
+subclass and make this focus the tab’s main widget if needed.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="porcupine.tabs.FileTab">
+<em class="property">class </em><code class="descclassname">porcupine.tabs.</code><code class="descname">FileTab</code><span class="sig-paren">(</span><em>manager</em>, <em>content=''</em>, <em>*</em>, <em>path=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/tabs.html#FileTab"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.tabs.FileTab" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <a class="reference internal" href="#porcupine.tabs.Tab" title="porcupine.tabs.Tab"><code class="xref py py-class docutils literal"><span class="pre">Tab</span></code></a> subclass that represents an opened file.</p>
+<p>The tab will have <em>content</em> in it by default when it’s opened. If
+<em>path</em> is given, the file will be saved there when the user presses
+Ctrl+S; otherwise the user will be asked to choose a path.</p>
+<p>For example, you can open a file from a path like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">tabs</span><span class="p">,</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">porcupine.settings</span> <span class="k">import</span> <span class="n">config</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">your_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;Files&#39;</span><span class="p">,</span> <span class="s1">&#39;encoding&#39;</span><span class="p">])</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+<span class="n">tabmanager</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_tab_manager</span><span class="p">()</span>
+<span class="n">tab</span> <span class="o">=</span> <span class="n">tabs</span><span class="o">.</span><span class="n">FileTab</span><span class="p">(</span><span class="n">tabmanager</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">your_path</span><span class="p">)</span>
+<span class="n">tabmanager</span><span class="o">.</span><span class="n">add_tab</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Virtual events:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">&lt;&lt;PathChanged&gt;&gt;</span></code></dt>
+<dd>This runs when <a class="reference internal" href="#porcupine.tabs.FileTab.path" title="porcupine.tabs.FileTab.path"><code class="xref py py-attr docutils literal"><span class="pre">path</span></code></a> is set to a new value. Use
+<code class="docutils literal"><span class="pre">event.widget.path</span></code> to get the new path.</dd>
+<dt><code class="docutils literal"><span class="pre">&lt;&lt;FiletypeChanged&gt;&gt;</span></code></dt>
+<dd>Like <code class="docutils literal"><span class="pre">&lt;&lt;PathChanged&gt;&gt;</span></code>, but for <a class="reference internal" href="#porcupine.tabs.FileTab.filetype" title="porcupine.tabs.FileTab.filetype"><code class="xref py py-attr docutils literal"><span class="pre">filetype</span></code></a>.</dd>
+</dl>
+</div></blockquote>
+<dl class="attribute">
+<dt id="porcupine.tabs.FileTab.path">
+<code class="descname">path</code><a class="headerlink" href="#porcupine.tabs.FileTab.path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to where this file is currently saved, as a string.</p>
+<p>This is None if the file has never been saved, and otherwise
+this should be always set to an absolute path.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="porcupine.tabs.FileTab.filetype">
+<code class="descname">filetype</code><a class="headerlink" href="#porcupine.tabs.FileTab.filetype" title="Permalink to this definition">¶</a></dt>
+<dd><p>A value from <a class="reference internal" href="filetypes.html#porcupine.filetypes.filetypes" title="porcupine.filetypes.filetypes"><code class="xref py py-data docutils literal"><span class="pre">porcupine.filetypes.filetypes</span></code></a>.</p>
+<p>Setting this runs the <code class="docutils literal"><span class="pre">&lt;&lt;FiletypeChanged&gt;&gt;</span></code> virtual event.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="porcupine.tabs.FileTab.can_be_closed">
+<code class="descname">can_be_closed</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/tabs.html#FileTab.can_be_closed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.tabs.FileTab.can_be_closed" title="Permalink to this definition">¶</a></dt>
+<dd><p>This overrides <a class="reference internal" href="#porcupine.tabs.Tab.can_be_closed" title="porcupine.tabs.Tab.can_be_closed"><code class="xref py py-meth docutils literal"><span class="pre">Tab.can_be_closed()</span></code></a> in order to display a
+save dialog.</p>
+<p>If the file has been saved, this returns True and the tab is
+closed normally. Otherwise this method asks the user whether the
+file should be saved, and returns False only if the user cancels
+something (and thus wants to keep working on this file).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="porcupine.tabs.FileTab.equivalent">
+<code class="descname">equivalent</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/tabs.html#FileTab.equivalent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.tabs.FileTab.equivalent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if <em>self</em> and <em>other</em> are saved to the same place.</p>
+<p>This method overrides <a class="reference internal" href="#porcupine.tabs.Tab.can_be_closed" title="porcupine.tabs.Tab.can_be_closed"><code class="xref py py-meth docutils literal"><span class="pre">Tab.can_be_closed()</span></code></a> and returns
+False if <em>other</em> is not a FileTab or the <a class="reference internal" href="#porcupine.tabs.FileTab.path" title="porcupine.tabs.FileTab.path"><code class="xref py py-attr docutils literal"><span class="pre">path</span></code></a> of at
+least one of the tabs is None. This way, it’s possible to have
+multiple “New File” tabs.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="porcupine.tabs.FileTab.find">
+<code class="descname">find</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/tabs.html#FileTab.find"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.tabs.FileTab.find" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method will probably be removed soon. Don’t use it.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="porcupine.tabs.FileTab.is_saved">
+<code class="descname">is_saved</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/tabs.html#FileTab.is_saved"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.tabs.FileTab.is_saved" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return False if the text has changed since previous save.</p>
+<p>Use <a class="reference internal" href="#porcupine.tabs.FileTab.mark_saved" title="porcupine.tabs.FileTab.mark_saved"><code class="xref py py-meth docutils literal"><span class="pre">mark_saved()</span></code></a> to set this.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="porcupine.tabs.FileTab.mark_saved">
+<code class="descname">mark_saved</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/tabs.html#FileTab.mark_saved"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.tabs.FileTab.mark_saved" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make the tab look like it’s saved.</p>
+<p>This makes <a class="reference internal" href="#porcupine.tabs.FileTab.is_saved" title="porcupine.tabs.FileTab.is_saved"><code class="xref py py-meth docutils literal"><span class="pre">is_saved()</span></code></a> return True.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="porcupine.tabs.FileTab.save">
+<code class="descname">save</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/tabs.html#FileTab.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.tabs.FileTab.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the file.</p>
+<p>This calls <a class="reference internal" href="#porcupine.tabs.FileTab.save_as" title="porcupine.tabs.FileTab.save_as"><code class="xref py py-meth docutils literal"><span class="pre">save_as()</span></code></a> if <a class="reference internal" href="#porcupine.tabs.FileTab.path" title="porcupine.tabs.FileTab.path"><code class="xref py py-attr docutils literal"><span class="pre">path</span></code></a> is None, and returns
+False if the user cancels the save as dialog. None is returned
+on errors, and True is returned in all other cases.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="porcupine.tabs.FileTab.save_as">
+<code class="descname">save_as</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/tabs.html#FileTab.save_as"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.tabs.FileTab.save_as" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ask the user where to save the file and save it there.</p>
+<p>Returns True if the file was saved, and False if the user
+cancelled the dialog.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="porcupine.html" title="previous chapter"><code class="docutils literal"><span class="pre">porcupine</span></code> — The top level Porcupine package</a></li>
+      <li>Next: <a href="dialogs.html" title="next chapter"><code class="docutils literal"><span class="pre">porcupine.dialogs</span></code> — Native dialogs</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/tabs.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Akuli.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/tabs.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

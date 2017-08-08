@@ -1,0 +1,455 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>porcupine.filetypes &#8212; Porcupine API 0.28.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.28.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for porcupine.filetypes</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Everything related to filetypes.ini.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">configparser</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">platform</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">shlex</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">import</span> <span class="nn">pygments.lexer</span>
+<span class="kn">import</span> <span class="nn">pygments.lexers</span>
+<span class="kn">import</span> <span class="nn">pygments.token</span>
+
+<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">utils</span>
+
+<span class="n">_FILETYPES_DOT_INI</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirs</span><span class="o">.</span><span class="n">configdir</span><span class="p">,</span> <span class="s1">&#39;filetypes.ini&#39;</span><span class="p">)</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="FileType"><a class="viewcode-back" href="../../filetypes.html#porcupine.filetypes.FileType">[docs]</a><span class="k">class</span> <span class="nc">FileType</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;The values of :data:`~filetypes` are FileType objects.</span>
+
+<span class="sd">    Don&#39;t create filetype objects yourself. Porcupine loads all Pygments</span>
+<span class="sd">    lexers into :data:`~filetypes` by default, so you should `create a</span>
+<span class="sd">    Pygments lexer &lt;http://pygments.org/docs/lexerdevelopment/&gt;`_ instead.</span>
+
+<span class="sd">    .. attribute:: name</span>
+
+<span class="sd">        This attribute is always set to the key of :data:`filetypes` so</span>
+<span class="sd">        that ``filetypes[some_file_type.name]`` should be always</span>
+<span class="sd">        ``some_file_type``.</span>
+
+<span class="sd">    .. attribute:: patterns</span>
+
+<span class="sd">        List of :mod:`fnmatch` pattern strings, like ``&#39;*.py&#39;`` or</span>
+<span class="sd">        ``&#39;Makefile&#39;``.</span>
+
+<span class="sd">    .. attribute:: mimetypes</span>
+
+<span class="sd">        List of mimetype strings, e.g.</span>
+<span class="sd">        ``[&#39;application/x-javascript&#39;, &#39;text/x-javascript&#39;]``.</span>
+
+<span class="sd">    .. attribute:: tabs2spaces</span>
+<span class="sd">    .. attribute:: indent_size</span>
+<span class="sd">    .. attribute:: max_line_length</span>
+<span class="sd">    .. attribute:: compile_command</span>
+<span class="sd">    .. attribute:: run_command</span>
+<span class="sd">    .. attribute:: lint_command</span>
+
+<span class="sd">        These attributes correspond to the values defined in</span>
+<span class="sd">        ``filetypes.ini``. ``tabs2spaces`` is True or False, and the</span>
+<span class="sd">        ``indent_size`` and ``max_line_length`` attributes are integers.</span>
+<span class="sd">        The commands are strings and they may be empty.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;patterns&#39;</span><span class="p">,</span> <span class="s1">&#39;mimetypes&#39;</span><span class="p">,</span> <span class="s1">&#39;_lexer_getter&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;tabs2spaces&#39;</span><span class="p">,</span> <span class="s1">&#39;indent_size&#39;</span><span class="p">,</span> <span class="s1">&#39;max_line_length&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;compile_command&#39;</span><span class="p">,</span> <span class="s1">&#39;run_command&#39;</span><span class="p">,</span> <span class="s1">&#39;lint_command&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">lexer_getter</span><span class="p">,</span> <span class="n">patterns</span><span class="p">,</span> <span class="n">mimetypes</span><span class="p">,</span>
+                 <span class="n">config_section</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lexer_getter</span> <span class="o">=</span> <span class="n">lexer_getter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">patterns</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">patterns</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mimetypes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">mimetypes</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tabs2spaces</span> <span class="o">=</span> <span class="n">config_section</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;tabs2spaces&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">indent_size</span> <span class="o">=</span> <span class="n">config_section</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;indent_size&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_line_length</span> <span class="o">=</span> <span class="n">config_section</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;max_line_length&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compile_command</span> <span class="o">=</span> <span class="n">config_section</span><span class="p">[</span><span class="s1">&#39;compile_command&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">run_command</span> <span class="o">=</span> <span class="n">config_section</span><span class="p">[</span><span class="s1">&#39;run_command&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lint_command</span> <span class="o">=</span> <span class="n">config_section</span><span class="p">[</span><span class="s1">&#39;lint_command&#39;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="FileType.get_lexer"><a class="viewcode-back" href="../../filetypes.html#porcupine.filetypes.FileType.get_lexer">[docs]</a>    <span class="k">def</span> <span class="nf">get_lexer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a Pygments lexer object for files of this type.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lexer_getter</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="FileType.substitute_command"><a class="viewcode-back" href="../../filetypes.html#porcupine.filetypes.FileType.substitute_command">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">substitute_command</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create an argument list for e.g. :func:`subprocess.call`.</span>
+
+<span class="sd">        :param str template: A value of :attr:`.compile_command`,</span>
+<span class="sd">                             :attr:`.run_command` or :attr:`.lint_command`.</span>
+<span class="sd">        :param str file: Path to the source file, without quotes.</span>
+<span class="sd">        :return: List of strings.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">format_args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;file&#39;</span><span class="p">:</span> <span class="n">file</span><span class="p">,</span>
+            <span class="s1">&#39;no_ext&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">file</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="s1">&#39;no_exts&#39;</span><span class="p">:</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^\.*[^\.]*&#39;</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+        <span class="p">}</span>
+
+        <span class="c1"># the template must be split into parts so that &#39;{no_ext}.o&#39;</span>
+        <span class="c1"># turns into &#39;&quot;hello world.o&quot;&#39; when no_ext is &#39;hello world&#39;</span>
+        <span class="c1"># shlex.split supports single and double quotes</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">part</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">format_args</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">shlex</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">template</span><span class="p">)]</span></div></div>
+
+
+<span class="n">filetypes</span> <span class="o">=</span> <span class="p">{}</span>      <span class="c1"># this is {filetype.name: filetype}, see init()</span>
+
+
+<span class="k">def</span> <span class="nf">guess_filetype</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return a FileType object based on a file name.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">samefile</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">_FILETYPES_DOT_INI</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">filetypes</span><span class="p">[</span><span class="s1">&#39;Porcupine filetypes.ini&#39;</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+        <span class="c1"># the file doesn&#39;t exist yet</span>
+        <span class="k">pass</span>
+
+    <span class="c1"># sometimes pygments uses python 3 lexer correctly and we must not</span>
+    <span class="c1"># do weird workarounds</span>
+    <span class="n">temp_lexer</span> <span class="o">=</span> <span class="n">pygments</span><span class="o">.</span><span class="n">lexers</span><span class="o">.</span><span class="n">get_lexer_for_filename</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">temp_lexer</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;Python 3&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">filetypes</span><span class="p">[</span><span class="s1">&#39;Python&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">temp_lexer</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;Python 3.0 Traceback&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">filetypes</span><span class="p">[</span><span class="s1">&#39;Python Traceback&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">filetypes</span><span class="p">[</span><span class="n">temp_lexer</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_find_short_python_command</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;Windows&#39;</span><span class="p">:</span>
+        <span class="c1"># windows python uses a py.exe launcher program in system32</span>
+        <span class="n">expected</span> <span class="o">=</span> <span class="s1">&#39;Python </span><span class="si">%d</span><span class="s1">.</span><span class="si">%d</span><span class="s1">.</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">python</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;py&#39;</span><span class="p">,</span> <span class="s1">&#39;py -</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                           <span class="s1">&#39;py -</span><span class="si">%d</span><span class="s1">.</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[:</span><span class="mi">2</span><span class="p">]]:</span>
+                <span class="c1"># command strings aren&#39;t different from lists of</span>
+                <span class="c1"># arguments on windows, the subprocess module just</span>
+                <span class="c1"># quotes lists anyway (see subprocess.list2cmdline)</span>
+                <span class="n">got</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> --version&#39;</span> <span class="o">%</span> <span class="n">python</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">expected</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">got</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+                    <span class="k">return</span> <span class="n">python</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span><span class="p">):</span>
+            <span class="c1"># something&#39;s wrong with py.exe 0_o it probably doesn&#39;t</span>
+            <span class="c1"># exist at all and we got a FileNotFoundError</span>
+            <span class="k">pass</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">python</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;python&#39;</span><span class="p">,</span> <span class="s1">&#39;python</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                       <span class="s1">&#39;python</span><span class="si">%d</span><span class="s1">.</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[:</span><span class="mi">2</span><span class="p">]]:</span>
+            <span class="c1"># os.path.samefile() does the right thing with symlinks</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="n">python</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">samefile</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">utils</span><span class="o">.</span><span class="n">python</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">python</span>
+
+    <span class="c1"># use full path as a fallback</span>
+    <span class="k">return</span> <span class="n">utils</span><span class="o">.</span><span class="n">python</span>
+
+
+<span class="c1"># default values of the DEFAULT section</span>
+<span class="n">_DEFAULT_DEFAULTS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;tabs2spaces&#39;</span><span class="p">:</span> <span class="s1">&#39;yes&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;indent_size&#39;</span><span class="p">:</span> <span class="s1">&#39;4&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;max_line_length&#39;</span><span class="p">:</span> <span class="s1">&#39;0&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;compile_command&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;run_command&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;lint_command&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span> <span class="nf">_set_stupid_defaults</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;DEFAULT&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_DEFAULT_DEFAULTS</span>
+
+    <span class="c1"># TODO: this assumes mingw in %PATH% on windows :D</span>
+    <span class="c1"># FIXME: c99 is probably not a valid c++ standard</span>
+    <span class="n">compiled</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;</span><span class="si">{no_ext}</span><span class="s1">.exe&#39;</span> <span class="k">if</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;Windows&#39;</span>
+                <span class="k">else</span> <span class="s1">&#39;./</span><span class="si">{no_ext}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">template</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">{file}</span><span class="s1"> -Wall -Wextra -std=c99 -o &#39;</span> <span class="o">+</span> <span class="n">compiled</span>
+    <span class="k">for</span> <span class="n">language</span><span class="p">,</span> <span class="n">compiler</span> <span class="ow">in</span> <span class="p">[(</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;cc&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;C++&#39;</span><span class="p">,</span> <span class="s1">&#39;c++&#39;</span><span class="p">)]:</span>
+        <span class="n">config</span><span class="p">[</span><span class="n">language</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;compile_command&#39;</span><span class="p">:</span> <span class="n">template</span> <span class="o">%</span> <span class="n">compiler</span><span class="p">,</span>
+            <span class="s1">&#39;run_command&#39;</span><span class="p">:</span> <span class="n">compiled</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="c1"># TODO: something nicer for finding node</span>
+    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;JavaScript&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;indent_size&#39;</span><span class="p">:</span> <span class="s1">&#39;2&#39;</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="s1">&#39;/etc/debian_version&#39;</span><span class="p">):</span>
+        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;JavaScript&#39;</span><span class="p">][</span><span class="s1">&#39;run_command&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;nodejs </span><span class="si">{file}</span><span class="s1">&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;JavaScript&#39;</span><span class="p">][</span><span class="s1">&#39;run_command&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;node </span><span class="si">{file}</span><span class="s1">&#39;</span>
+
+    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;Makefile&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;tabs2spaces&#39;</span><span class="p">:</span> <span class="s1">&#39;no&#39;</span><span class="p">}</span>
+
+    <span class="n">python</span> <span class="o">=</span> <span class="n">_find_short_python_command</span><span class="p">()</span>
+    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;Python&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;max_line_length&#39;</span><span class="p">:</span> <span class="s1">&#39;79&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;run_command&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">{file}</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">python</span><span class="p">,</span>
+        <span class="s1">&#39;lint_command&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> -m flake8 </span><span class="si">{file}</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">python</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="c1"># 79 comes from documentation-style-guide-sphinx.readthedocs.io</span>
+    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;reStructuredText&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;indent_size&#39;</span><span class="p">:</span> <span class="s1">&#39;3&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;max_line_length&#39;</span><span class="p">:</span> <span class="s1">&#39;79&#39;</span>
+    <span class="p">}</span>
+
+
+<span class="c1"># unlike pygments.lexers.IniLexer, this highlights correct keys and</span>
+<span class="c1"># values in filetypes.ini specially</span>
+<span class="k">class</span> <span class="nc">_FiletypesDotIniLexer</span><span class="p">(</span><span class="n">pygments</span><span class="o">.</span><span class="n">lexer</span><span class="o">.</span><span class="n">RegexLexer</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Porcupine filetypes.ini&#39;</span>
+    <span class="n">aliases</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;porcupine-filetypes&#39;</span><span class="p">]</span>
+    <span class="n">filenames</span> <span class="o">=</span> <span class="p">[]</span>      <span class="c1"># see guess_filetype() above</span>
+
+    <span class="c1"># this is done with a callback to allow creating this class without</span>
+    <span class="c1"># calling init()</span>
+    <span class="k">def</span> <span class="nf">header_callback</span><span class="p">(</span><span class="n">lexer</span><span class="p">,</span> <span class="n">match</span><span class="p">):</span>
+        <span class="c1"># highlight correct filetype names specially</span>
+        <span class="k">if</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="ow">in</span> <span class="n">filetypes</span> <span class="ow">or</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;DEFAULT&#39;</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">start</span><span class="p">(),</span> <span class="n">pygments</span><span class="o">.</span><span class="n">token</span><span class="o">.</span><span class="n">Keyword</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">start</span><span class="p">(),</span> <span class="n">pygments</span><span class="o">.</span><span class="n">token</span><span class="o">.</span><span class="n">Text</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">key_val_pair</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">key_token</span><span class="o">=</span><span class="n">pygments</span><span class="o">.</span><span class="n">token</span><span class="o">.</span><span class="n">Name</span><span class="o">.</span><span class="n">Builtin</span><span class="p">,</span>
+                     <span class="n">value_token</span><span class="o">=</span><span class="n">pygments</span><span class="o">.</span><span class="n">token</span><span class="o">.</span><span class="n">String</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">regex</span><span class="p">,</span> <span class="n">token</span> <span class="ow">in</span> <span class="p">[(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_token</span><span class="p">),</span>
+                             <span class="p">(</span><span class="sa">r</span><span class="s1">&#39;.*?&#39;</span><span class="p">,</span> <span class="n">pygments</span><span class="o">.</span><span class="n">token</span><span class="o">.</span><span class="n">Name</span><span class="p">)]:</span>
+            <span class="k">yield</span> <span class="p">(</span>
+                <span class="sa">r</span><span class="s1">&#39;(</span><span class="si">%s</span><span class="s1">)([^\S\n]*)(=)([^\S\n]*)(</span><span class="si">%s</span><span class="s1">)$&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">regex</span><span class="p">),</span>
+                <span class="n">pygments</span><span class="o">.</span><span class="n">lexer</span><span class="o">.</span><span class="n">bygroups</span><span class="p">(</span>
+                    <span class="n">key_token</span><span class="p">,</span> <span class="n">pygments</span><span class="o">.</span><span class="n">token</span><span class="o">.</span><span class="n">Text</span><span class="p">,</span>
+                    <span class="n">pygments</span><span class="o">.</span><span class="n">token</span><span class="o">.</span><span class="n">Operator</span><span class="p">,</span> <span class="n">pygments</span><span class="o">.</span><span class="n">token</span><span class="o">.</span><span class="n">Text</span><span class="p">,</span> <span class="n">token</span><span class="p">))</span>
+
+    <span class="n">tokens</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;root&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span>
+        <span class="p">[(</span><span class="sa">r</span><span class="s1">&#39;\s*#.*?$&#39;</span><span class="p">,</span> <span class="n">pygments</span><span class="o">.</span><span class="n">token</span><span class="o">.</span><span class="n">Comment</span><span class="p">)],</span>
+        <span class="p">[(</span><span class="sa">r</span><span class="s1">&#39;\[(.*?)\]$&#39;</span><span class="p">,</span> <span class="n">header_callback</span><span class="p">)],</span>
+        <span class="n">key_val_pair</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;tabs2spaces&#39;</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;yes|no&#39;</span><span class="p">),</span>
+        <span class="n">key_val_pair</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;indent_size&#39;</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;[1-9][0-9]*&#39;</span><span class="p">),</span>        <span class="c1"># positive int</span>
+        <span class="n">key_val_pair</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;max_line_length&#39;</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;0|[1-9][0-9]*&#39;</span><span class="p">),</span>  <span class="c1"># non-negative int</span>
+        <span class="n">key_val_pair</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(?:compile|run|lint)_command&#39;</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;.*&#39;</span><span class="p">),</span>
+        <span class="n">key_val_pair</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;.*?&#39;</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;.*?&#39;</span><span class="p">,</span> <span class="n">pygments</span><span class="o">.</span><span class="n">token</span><span class="o">.</span><span class="n">Text</span><span class="p">,</span> <span class="n">pygments</span><span class="o">.</span><span class="n">token</span><span class="o">.</span><span class="n">Text</span><span class="p">),</span>
+        <span class="p">[(</span><span class="sa">r</span><span class="s1">&#39;.+?$&#39;</span><span class="p">,</span> <span class="n">pygments</span><span class="o">.</span><span class="n">token</span><span class="o">.</span><span class="n">Text</span><span class="p">)],</span>       <span class="c1"># less red error tokens</span>
+    <span class="p">))}</span>
+
+
+<span class="c1"># i experimented with using the mimetypes module and the pygments</span>
+<span class="c1"># mimetypes to get even more filename patterns, but that sucked because</span>
+<span class="c1"># &#39;.c&#39; is a &#39;text/plain&#39; extension according to the mimetypes module</span>
+<span class="k">def</span> <span class="nf">_get_pygments_lexers</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">aliases</span><span class="p">,</span> <span class="n">patterns</span><span class="p">,</span> <span class="n">mimetypes</span> <span class="ow">in</span> <span class="n">pygments</span><span class="o">.</span><span class="n">lexers</span><span class="o">.</span><span class="n">get_all_lexers</span><span class="p">():</span>
+        <span class="c1"># pygments hates python 3 :(</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;Python&#39;</span><span class="p">,</span> <span class="s1">&#39;Python Traceback&#39;</span><span class="p">}:</span>     <span class="c1"># these are python 2</span>
+            <span class="k">continue</span>
+
+        <span class="n">lexer_options</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;Python 3&#39;</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Python&#39;</span>
+            <span class="n">aliases</span> <span class="o">+=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">pygments</span><span class="o">.</span><span class="n">lexers</span><span class="o">.</span><span class="n">PythonLexer</span><span class="o">.</span><span class="n">aliases</span><span class="p">)</span>
+            <span class="n">patterns</span> <span class="o">+=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">pygments</span><span class="o">.</span><span class="n">lexers</span><span class="o">.</span><span class="n">PythonLexer</span><span class="o">.</span><span class="n">filenames</span><span class="p">)</span>
+            <span class="n">mimetypes</span> <span class="o">+=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">pygments</span><span class="o">.</span><span class="n">lexers</span><span class="o">.</span><span class="n">PythonLexer</span><span class="o">.</span><span class="n">mimetypes</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;Python 3.0 Traceback&#39;</span><span class="p">:</span>   <span class="c1"># not really specific to 3.0</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Python Traceback&#39;</span>
+            <span class="n">aliases</span> <span class="o">+=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">pygments</span><span class="o">.</span><span class="n">lexers</span><span class="o">.</span><span class="n">PythonTracebackLexer</span><span class="o">.</span><span class="n">aliases</span><span class="p">)</span>
+            <span class="n">patterns</span> <span class="o">+=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">pygments</span><span class="o">.</span><span class="n">lexers</span><span class="o">.</span><span class="n">PythonTracebackLexer</span><span class="o">.</span><span class="n">filenames</span><span class="p">)</span>
+            <span class="n">mimetypes</span> <span class="o">+=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">pygments</span><span class="o">.</span><span class="n">lexers</span><span class="o">.</span><span class="n">PythonTracebackLexer</span><span class="o">.</span><span class="n">mimetypes</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;Python console session&#39;</span><span class="p">:</span>
+            <span class="n">lexer_options</span><span class="p">[</span><span class="s1">&#39;python3&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># longer name aliases are less likely to conflict with each other</span>
+        <span class="n">lexer_name</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">aliases</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">)</span>
+        <span class="n">lexer_getter</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+            <span class="n">pygments</span><span class="o">.</span><span class="n">lexers</span><span class="o">.</span><span class="n">get_lexer_by_name</span><span class="p">,</span> <span class="n">lexer_name</span><span class="p">,</span> <span class="o">**</span><span class="n">lexer_options</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="p">[</span><span class="n">name</span><span class="p">,</span> <span class="n">lexer_getter</span><span class="p">,</span> <span class="n">patterns</span><span class="p">,</span> <span class="n">mimetypes</span><span class="p">]</span>
+
+    <span class="k">yield</span> <span class="p">[</span><span class="s1">&#39;Porcupine filetypes.ini&#39;</span><span class="p">,</span> <span class="n">_FiletypesDotIniLexer</span><span class="p">,</span> <span class="p">(),</span> <span class="p">()]</span>
+
+
+<span class="k">def</span> <span class="nf">_validate_value</span><span class="p">(</span><span class="n">section_name</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">getter</span><span class="p">,</span>
+                    <span class="n">minimum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">getter</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">section</span><span class="p">[</span><span class="n">option</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">getter</span><span class="p">(</span><span class="n">option</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">minimum</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="n">minimum</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span>
+        <span class="k">if</span> <span class="n">command</span><span class="p">:</span>
+            <span class="n">FileType</span><span class="o">.</span><span class="n">substitute_command</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s1">&#39;whatever.tar.gz&#39;</span><span class="p">)</span>
+
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="c1"># the error might come from getter() or substitute_command()</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;invalid </span><span class="si">%r</span><span class="s2"> value </span><span class="si">%r</span><span class="s2"> in [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span>
+                  <span class="n">option</span><span class="p">,</span> <span class="n">section</span><span class="p">[</span><span class="n">option</span><span class="p">],</span> <span class="n">section_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">section_name</span> <span class="o">==</span> <span class="s1">&#39;DEFAULT&#39;</span><span class="p">:</span>
+            <span class="n">section</span><span class="p">[</span><span class="n">option</span><span class="p">]</span> <span class="o">=</span> <span class="n">_DEFAULT_DEFAULTS</span><span class="p">[</span><span class="n">option</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">section</span><span class="p">[</span><span class="n">option</span><span class="p">]</span>        <span class="c1"># use the DEFAULT section&#39;s value</span>
+
+
+<span class="c1"># unknown sections and keys are intentionally ignored, newer porcupines</span>
+<span class="c1"># might have more keys and this way the same config file can be used</span>
+<span class="c1"># painlessly in different porcupine and pygments versions</span>
+<span class="k">def</span> <span class="nf">_config2filetypes</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+    <span class="c1"># make sure that &#39;DEFAULT&#39; is first, its values must be valid when</span>
+    <span class="c1"># _validate_value() is called with other sections</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">([</span><span class="s1">&#39;DEFAULT&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">config</span><span class="o">.</span><span class="n">sections</span><span class="p">()):</span>
+        <span class="n">section</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="n">validate</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">_validate_value</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">section</span><span class="p">)</span>
+        <span class="n">validate</span><span class="p">(</span><span class="s1">&#39;tabs2spaces&#39;</span><span class="p">,</span> <span class="n">section</span><span class="o">.</span><span class="n">getboolean</span><span class="p">)</span>
+        <span class="n">validate</span><span class="p">(</span><span class="s1">&#39;indent_size&#39;</span><span class="p">,</span> <span class="n">section</span><span class="o">.</span><span class="n">getint</span><span class="p">,</span> <span class="n">minimum</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">validate</span><span class="p">(</span><span class="s1">&#39;max_line_length&#39;</span><span class="p">,</span> <span class="n">section</span><span class="o">.</span><span class="n">getint</span><span class="p">,</span> <span class="n">minimum</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">validate</span><span class="p">(</span><span class="s1">&#39;compile_command&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">validate</span><span class="p">(</span><span class="s1">&#39;run_command&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">validate</span><span class="p">(</span><span class="s1">&#39;lint_command&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span> <span class="ow">in</span> <span class="n">_get_pygments_lexers</span><span class="p">():</span>
+        <span class="c1"># setdefault return value is useless, this is a small bug</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="n">all_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">+</span> <span class="n">args</span> <span class="o">+</span> <span class="p">[</span><span class="n">config</span><span class="p">[</span><span class="n">name</span><span class="p">]]</span>
+        <span class="k">yield</span> <span class="n">FileType</span><span class="p">(</span><span class="o">*</span><span class="n">all_args</span><span class="p">)</span>
+
+
+<span class="c1"># TODO: add a link to porcupine&#39;s docs about this file when the docs are</span>
+<span class="c1"># ready for it</span>
+<span class="n">_comments</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span><span class="se">\</span>
+<span class="s1"># This is Porcupine&#39;s filetype configuration file. You can edit this</span>
+<span class="s1"># file freely to suit your needs.</span>
+<span class="s1">#</span>
+<span class="s1"># Valid keys:</span>
+<span class="s1">#   tabs2spaces         yes or no</span>
+<span class="s1">#   indent_size         number of spaces or tab width, positive integer</span>
+<span class="s1">#   max_line_length     positive integer or 0 for no limit</span>
+<span class="s1">#   compile_command     see below</span>
+<span class="s1">#   run_command         see below</span>
+<span class="s1">#   lint_command        see below</span>
+<span class="s1">#</span>
+<span class="s1"># If any of these are not specified, the values in the DEFAULT section</span>
+<span class="s1"># will be used instead.</span>
+<span class="s1">#</span>
+<span class="s1"># The command options will be executed in %(cmd or shell)s. These</span>
+<span class="s1"># substitutions are performed (file paths are quoted correctly):</span>
+<span class="s1">#   </span><span class="si">{file}</span><span class="s1">      path to source file, e.g. &quot;hello world.tar.gz&quot;</span>
+<span class="s1">#   </span><span class="si">{no_ext}</span><span class="s1">    </span><span class="si">{file}</span><span class="s1"> without last extension, e.g. &quot;hello world.tar&quot;</span>
+<span class="s1">#   </span><span class="si">{no_exts}</span><span class="s1">   </span><span class="si">{file}</span><span class="s1"> without any extensions, e.g. &quot;hello world&quot;</span>
+<span class="s1">#</span>
+<span class="s1"># Restart Porcupine to apply your changes to this file.</span>
+<span class="s1">&#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">{</span><span class="s1">&#39;cmd or shell&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;command prompt&#39;</span> <span class="k">if</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;Windows&#39;</span>
+                        <span class="k">else</span> <span class="s1">&#39;bash&#39;</span><span class="p">)}</span>
+
+
+<span class="k">def</span> <span class="nf">init</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Create :class:`FileType` objects and add them to :data:`~filetypes`.&quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="p">(</span><span class="ow">not</span> <span class="n">filetypes</span><span class="p">),</span> <span class="s2">&quot;cannot init() twice&quot;</span>
+
+    <span class="n">config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">(</span><span class="n">interpolation</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">_set_stupid_defaults</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># config.read() suppresses exceptions</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">_FILETYPES_DOT_INI</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+        <span class="c1"># the config has nothing but the stupid defaults in it right now</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;filetypes.ini not found, creating it&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">_FILETYPES_DOT_INI</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">_comments</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">UnicodeError</span><span class="p">,</span> <span class="n">configparser</span><span class="o">.</span><span class="n">Error</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="c1"># full tracebacks are ugly and this is supposed to be visible to users</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> in filetypes.ini: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">err</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;here&#39;s the full traceback&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">filetypes</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">filetype</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">filetype</span>
+                      <span class="k">for</span> <span class="n">filetype</span> <span class="ow">in</span> <span class="n">_config2filetypes</span><span class="p">(</span><span class="n">config</span><span class="p">)})</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Akuli.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

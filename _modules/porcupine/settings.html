@@ -1,0 +1,380 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>porcupine.settings &#8212; Porcupine API 0.28.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.28.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for porcupine.settings</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">codecs</span>
+<span class="kn">import</span> <span class="nn">collections.abc</span>
+<span class="kn">import</span> <span class="nn">configparser</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">tkinter.font</span> <span class="k">as</span> <span class="nn">tkfont</span>
+<span class="kn">import</span> <span class="nn">types</span>
+
+<span class="c1"># the pygments stuff is just for _validate_style_name()</span>
+<span class="kn">import</span> <span class="nn">pygments.styles</span>
+<span class="kn">import</span> <span class="nn">pygments.util</span>
+
+<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">dirs</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="c1"># this is a custom exception because plain ValueError is often raised</span>
+<span class="c1"># when something goes wrong unexpectedly</span>
+<div class="viewcode-block" id="InvalidValue"><a class="viewcode-back" href="../../settings.html#porcupine.settings.InvalidValue">[docs]</a><span class="k">class</span> <span class="nc">InvalidValue</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Validators raise this when attempting to set an invalid value.</span>
+
+<span class="sd">    You can also catch this to check if a value is valid::</span>
+
+<span class="sd">        try:</span>
+<span class="sd">            config[&#39;Editing&#39;, &#39;pygments_style&#39;] = &#39;Zaab&#39;</span>
+<span class="sd">        except InvalidValue:</span>
+<span class="sd">            print(&quot;8banana pygments styles aren&#39;t installed :(&quot;)</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+
+<span class="k">class</span> <span class="nc">_Config</span><span class="p">(</span><span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">MutableMapping</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_filename</span> <span class="o">=</span> <span class="n">filename</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span> <span class="o">=</span> <span class="p">{}</span>     <span class="c1"># see add_key()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span> <span class="o">=</span> <span class="p">{}</span>   <span class="c1"># {(section, configkey): callback_list}</span>
+
+        <span class="c1"># this is stored here to allow keeping unknown settings in the</span>
+        <span class="c1"># setting files, this way if the user enables a plugin, disables</span>
+        <span class="c1"># it and enables it again, the settings will be there</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">run_now</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Schedule ``callback(value)`` to be called when a value changes.</span>
+
+<span class="sd">        If *run_now* is True, ``callback(current_value)`` is also called</span>
+<span class="sd">        immediately when ``connect()`` is called. More than one callback</span>
+<span class="sd">        may be connected to the same ``(section, key)`` pair.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span><span class="p">[</span><span class="n">section</span><span class="p">,</span> <span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">run_now</span><span class="p">:</span>
+            <span class="n">callback</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">section</span><span class="p">,</span> <span class="n">key</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">callback</span>
+
+    <span class="k">def</span> <span class="nf">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Undo a :meth:`~connect` call.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span><span class="p">[</span><span class="n">section</span><span class="p">,</span> <span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">info</span><span class="o">.</span><span class="n">validate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">info</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="c1"># make sure that the configparser isn&#39;t caching an old value</span>
+        <span class="n">section</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="n">item</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span><span class="p">[</span><span class="n">section</span><span class="p">][</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="n">old_value</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="n">old_value</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%r</span><span class="s2"> was set to </span><span class="si">%r</span><span class="s2">, running callbacks&quot;</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">callback</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span><span class="p">[</span><span class="n">item</span><span class="p">]:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">callback</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">func_name</span> <span class="o">=</span> <span class="p">(</span><span class="n">callback</span><span class="o">.</span><span class="vm">__module__</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span>
+                                     <span class="n">callback</span><span class="o">.</span><span class="vm">__qualname__</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                        <span class="n">func_name</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">(</span><span class="si">%r</span><span class="s2">) didn&#39;t work&quot;</span><span class="p">,</span> <span class="n">func_name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="c1"># this raises KeyError</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="c1"># maybe it&#39;s loaded in the configparser, but not converted</span>
+            <span class="c1"># to a non-string yet? this happens when plugins add their</span>
+            <span class="c1"># own config keys after the config is loaded</span>
+            <span class="n">section</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="n">item</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">string_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span><span class="p">[</span><span class="n">section</span><span class="p">][</span><span class="n">key</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>    <span class="c1"># nope</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">default</span>
+            <span class="k">else</span><span class="p">:</span>       <span class="c1"># it&#39;s there :D</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">string_value</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>    <span class="c1"># the abc requires this</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;cannot delete setting keys&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">add_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">configkey</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
+                <span class="n">converters</span><span class="o">=</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="n">validator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reset</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a new valid key to the config.</span>
+
+<span class="sd">        ``config[section, configkey]`` will be *default* unless</span>
+<span class="sd">        something else is specified.</span>
+
+<span class="sd">        The *converters* argument should be a two-tuple of</span>
+<span class="sd">        ``(from_string, to_string)`` functions. They should construct</span>
+<span class="sd">        values from strings and convert them back to strings,</span>
+<span class="sd">        respectively. Both functions are called like ``function(value)``</span>
+<span class="sd">        and they should return the converted value.</span>
+
+<span class="sd">        If a validator is given, it will be called with the new value as</span>
+<span class="sd">        the only argument when setting a value. It may raise an</span>
+<span class="sd">        :exc:`.InvalidValue` exception.</span>
+
+<span class="sd">        If *reset* is False, :meth:`reset` won&#39;t do anything to the</span>
+<span class="sd">        value. The setting dialog has a button that runs :meth:`reset`,</span>
+<span class="sd">        so this is is useful for things that are not controlled with the</span>
+<span class="sd">        setting dialog, like ``pygments_style``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># the font validators require a tkinter root window and this</span>
+        <span class="c1"># needs to run at import time (no root window yet)</span>
+        <span class="k">if</span> <span class="n">validator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">section</span> <span class="o">!=</span> <span class="s1">&#39;Font&#39;</span><span class="p">:</span>
+            <span class="n">validator</span><span class="p">(</span><span class="n">default</span><span class="p">)</span>
+
+        <span class="n">info</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">SimpleNamespace</span><span class="p">(</span>
+            <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="n">validator</span><span class="p">,</span> <span class="n">reset</span><span class="o">=</span><span class="n">reset</span><span class="p">)</span>
+        <span class="n">info</span><span class="o">.</span><span class="n">from_string</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">to_string</span> <span class="o">=</span> <span class="n">converters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">[</span><span class="n">section</span><span class="p">,</span> <span class="n">configkey</span><span class="p">]</span> <span class="o">=</span> <span class="n">info</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span><span class="p">[</span><span class="n">section</span><span class="p">,</span> <span class="n">configkey</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">add_bool_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">configkey</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A convenience method for adding Boolean keys.</span>
+
+<span class="sd">        The value is ``yes`` or ``no`` when converted to a string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">converters</span> <span class="o">=</span> <span class="p">(</span>        <span class="c1"># (from_string, to_string)</span>
+            <span class="k">lambda</span> <span class="n">string</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;yes&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;no&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">default</span><span class="p">),</span>
+            <span class="k">lambda</span> <span class="n">boolean</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;yes&#39;</span> <span class="k">if</span> <span class="n">boolean</span> <span class="k">else</span> <span class="s1">&#39;no&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_key</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="n">configkey</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span>
+                     <span class="n">converters</span><span class="o">=</span><span class="n">converters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">add_int_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">configkey</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
+                    <span class="n">minimum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">maximum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">validator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A convenience method for adding integer keys.</span>
+
+<span class="sd">        The *minimum* and *maximum* arguments can be used to</span>
+<span class="sd">        automatically add a validator that makes sure that the value is</span>
+<span class="sd">        minimum, maximum or something between them. Of course, you can</span>
+<span class="sd">        also use a custom *validator* with or without the</span>
+<span class="sd">        minimum-maximum validator, and only one of *minimum* or *maximum*.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">the_real_validator</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">minimum</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="n">minimum</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InvalidValue</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%r</span><span class="s2"> is too small&quot;</span> <span class="o">%</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">maximum</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="n">maximum</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InvalidValue</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%r</span><span class="s2"> is too big&quot;</span> <span class="o">%</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">validator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">validator</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_key</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="n">configkey</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">converters</span><span class="o">=</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span>
+                     <span class="n">validator</span><span class="o">=</span><span class="n">the_real_validator</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set a settings to the default value.</span>
+
+<span class="sd">        The key can be a ``(section, configkey)`` tuple or None. If it&#39;s</span>
+<span class="sd">        None, all settings will be set to defaults.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">the_key</span><span class="p">,</span> <span class="n">info</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">info</span><span class="o">.</span><span class="n">reset</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="p">[</span><span class="n">the_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">default</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">default</span>
+
+    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Load all settings so other modules can use them.</span>
+
+<span class="sd">        This must be called after creating a tkinter root window.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># the font stuff must be here because validating a font requires the</span>
+        <span class="c1"># tkinter root window</span>
+        <span class="n">fixedfont</span> <span class="o">=</span> <span class="n">tkfont</span><span class="o">.</span><span class="n">Font</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;TkFixedFont&#39;</span><span class="p">,</span> <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">original_family</span> <span class="o">=</span> <span class="n">fixedfont</span><span class="o">.</span><span class="n">actual</span><span class="p">(</span><span class="s1">&#39;family&#39;</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">on_family_changed</span><span class="p">(</span><span class="n">family</span><span class="p">):</span>
+            <span class="n">fixedfont</span><span class="p">[</span><span class="s1">&#39;family&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">original_family</span> <span class="k">if</span> <span class="n">family</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">family</span>
+
+        <span class="k">def</span> <span class="nf">on_size_changed</span><span class="p">(</span><span class="n">size</span><span class="p">):</span>
+            <span class="n">fixedfont</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">size</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;Font&#39;</span><span class="p">,</span> <span class="s1">&#39;family&#39;</span><span class="p">,</span> <span class="n">on_family_changed</span><span class="p">,</span> <span class="n">run_now</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;Font&#39;</span><span class="p">,</span> <span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="n">on_size_changed</span><span class="p">,</span> <span class="n">run_now</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># now the stupid font stuff is done, time to do what this method</span>
+        <span class="c1"># is supposed to be doing</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span><span class="o">.</span><span class="n">read</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_filename</span><span class="p">]):</span>
+            <span class="c1"># the user file can&#39;t be read, no need to do anything</span>
+            <span class="k">return</span>
+
+        <span class="k">for</span> <span class="n">sectionname</span><span class="p">,</span> <span class="n">section</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">configkey</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">section</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">[</span><span class="n">sectionname</span><span class="p">,</span> <span class="n">configkey</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="c1"># see the comments about _configparser in __init__()</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;unknown config key </span><span class="si">%r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">sectionname</span><span class="p">,</span> <span class="n">configkey</span><span class="p">))</span>
+                    <span class="k">continue</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="p">[</span><span class="n">sectionname</span><span class="p">,</span> <span class="n">configkey</span><span class="p">]</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">InvalidValue</span><span class="p">:</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="s2">&quot;cannot set </span><span class="si">%r</span><span class="s2"> to </span><span class="si">%r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">sectionname</span><span class="p">,</span> <span class="n">configkey</span><span class="p">),</span>
+                        <span class="n">value</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Save all non-default settings to the user&#39;s file.&quot;&quot;&quot;</span>
+        <span class="c1"># if the user opens up two porcupines, the other porcupine might</span>
+        <span class="c1"># have saved to the config file while this porcupine was running</span>
+        <span class="c1"># we&#39;ll avoid overwriting its settings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span><span class="o">.</span><span class="n">read</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_filename</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="n">configkey</span><span class="p">),</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">[</span><span class="n">section</span><span class="p">,</span> <span class="n">configkey</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="n">info</span><span class="o">.</span><span class="n">default</span><span class="p">:</span>
+                <span class="c1"># make sure the default will be used</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span><span class="p">[</span><span class="n">section</span><span class="p">][</span><span class="n">configkey</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">string</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span><span class="p">[</span><span class="n">section</span><span class="p">][</span><span class="n">configkey</span><span class="p">]</span> <span class="o">=</span> <span class="n">string</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span><span class="p">[</span><span class="n">section</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">configkey</span><span class="p">:</span> <span class="n">string</span><span class="p">}</span>
+
+        <span class="c1"># delete empty sections</span>
+        <span class="k">for</span> <span class="n">sectionname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span><span class="o">.</span><span class="n">sections</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span><span class="p">[</span><span class="n">sectionname</span><span class="p">]:</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span><span class="p">[</span><span class="n">sectionname</span><span class="p">]</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_validate_encoding</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">codecs</span><span class="o">.</span><span class="n">lookup</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">LookupError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">InvalidValue</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span> <span class="kn">from</span> <span class="nn">None</span>
+
+
+<span class="c1"># this needs a tkinter root window</span>
+<span class="k">def</span> <span class="nf">_validate_font_family</span><span class="p">(</span><span class="n">family</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">family</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">family</span><span class="o">.</span><span class="n">casefold</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="o">.</span><span class="n">casefold</span><span class="p">,</span> <span class="n">tkfont</span><span class="o">.</span><span class="n">families</span><span class="p">()):</span>
+            <span class="k">raise</span> <span class="n">InvalidValue</span><span class="p">(</span><span class="s2">&quot;unknown font family </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">family</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_validate_style_name</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">pygments</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">get_style_by_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">pygments</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">ClassNotFound</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">InvalidValue</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span> <span class="kn">from</span> <span class="nn">None</span>
+
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">_Config</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirs</span><span class="o">.</span><span class="n">configdir</span><span class="p">,</span> <span class="s1">&#39;settings.ini&#39;</span><span class="p">))</span>
+<span class="n">config</span><span class="o">.</span><span class="n">add_key</span><span class="p">(</span><span class="s1">&#39;Font&#39;</span><span class="p">,</span> <span class="s1">&#39;family&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">validator</span><span class="o">=</span><span class="n">_validate_font_family</span><span class="p">)</span>
+<span class="n">config</span><span class="o">.</span><span class="n">add_int_key</span><span class="p">(</span><span class="s1">&#39;Font&#39;</span><span class="p">,</span> <span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">minimum</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">maximum</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+<span class="n">config</span><span class="o">.</span><span class="n">add_key</span><span class="p">(</span><span class="s1">&#39;Files&#39;</span><span class="p">,</span> <span class="s1">&#39;encoding&#39;</span><span class="p">,</span> <span class="s1">&#39;UTF-8&#39;</span><span class="p">,</span> <span class="n">validator</span><span class="o">=</span><span class="n">_validate_encoding</span><span class="p">)</span>
+<span class="n">config</span><span class="o">.</span><span class="n">add_bool_key</span><span class="p">(</span><span class="s1">&#39;Files&#39;</span><span class="p">,</span> <span class="s1">&#39;add_trailing_newline&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">config</span><span class="o">.</span><span class="n">add_key</span><span class="p">(</span><span class="s1">&#39;Editing&#39;</span><span class="p">,</span> <span class="s1">&#39;pygments_style&#39;</span><span class="p">,</span> <span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="n">reset</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+               <span class="n">validator</span><span class="o">=</span><span class="n">_validate_style_name</span><span class="p">)</span>
+<span class="n">config</span><span class="o">.</span><span class="n">add_key</span><span class="p">(</span><span class="s1">&#39;GUI&#39;</span><span class="p">,</span> <span class="s1">&#39;default_size&#39;</span><span class="p">,</span> <span class="s1">&#39;650x500&#39;</span><span class="p">)</span>   <span class="c1"># TODO: fix this</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Akuli.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

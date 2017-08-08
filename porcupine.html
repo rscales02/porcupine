@@ -1,0 +1,234 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>porcupine — The top level Porcupine package &#8212; Porcupine API 0.28.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.28.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="porcupine.tabs — The tab manager and tabs in it" href="tabs.html" />
+    <link rel="prev" title="Introduction to Writing Plugins" href="plugin-intro.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-porcupine">
+<span id="porcupine-the-top-level-porcupine-package"></span><h1><a class="reference internal" href="#module-porcupine" title="porcupine"><code class="xref py py-mod docutils literal"><span class="pre">porcupine</span></code></a> — The top level Porcupine package<a class="headerlink" href="#module-porcupine" title="Permalink to this headline">¶</a></h1>
+<p>Doing <code class="docutils literal"><span class="pre">import</span> <span class="pre">porcupine</span></code> gives you access to the things documented here. It
+<em>may</em> work for other submodules too, but it’s recommended to be more specific
+when importing them, like <code class="docutils literal"><span class="pre">from</span> <span class="pre">porcupine</span> <span class="pre">import</span> <span class="pre">tabs</span></code>.</p>
+<div class="section" id="stuff-that-the-intro-covers-too">
+<h2>Stuff that the intro covers too<a class="headerlink" href="#stuff-that-the-intro-covers-too" title="Permalink to this headline">¶</a></h2>
+<p>If you haven’t read <a class="reference internal" href="plugin-intro.html#plugin-intro"><span class="std std-ref">the plugin writing introduction</span></a> yet
+I recommend reading it first. Then you’ll have a much better idea about what
+these functions do.</p>
+<dl class="function">
+<dt id="porcupine.get_main_window">
+<code class="descclassname">porcupine.</code><code class="descname">get_main_window</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/_session.html#get_main_window"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.get_main_window" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the widget passed to <a class="reference internal" href="#porcupine.init" title="porcupine.init"><code class="xref py py-func docutils literal"><span class="pre">init()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="porcupine.get_tab_manager">
+<code class="descclassname">porcupine.</code><code class="descname">get_tab_manager</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/_session.html#get_tab_manager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.get_tab_manager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the <a class="reference internal" href="tabs.html#porcupine.tabs.TabManager" title="porcupine.tabs.TabManager"><code class="xref py py-class docutils literal"><span class="pre">porcupine.tabs.TabManager</span></code></a> widget in the main window.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="porcupine.add_action">
+<code class="descclassname">porcupine.</code><code class="descname">add_action</code><span class="sig-paren">(</span><em>callback</em>, <em>menupath=None</em>, <em>keyboard_shortcut=(None</em>, <em>None)</em>, <em>tabtypes=(None</em>, <em>&lt;class 'porcupine.tabs.Tab'&gt;)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/_session.html#add_action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.add_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a keyboard binding and/or a menu item.</p>
+<p>If <em>menupath</em> is given, it will be split by the last <code class="docutils literal"><span class="pre">/</span></code>. The
+first part will be used to get a menu with
+<code class="xref py py-meth docutils literal"><span class="pre">porcupine.menubar.get_menu()</span></code>, and the end will be used as the
+text of the menu item.</p>
+<p>Keyboard shortcuts can be added too. If given, <em>keyboard_shortcut</em>
+should be a two-tuple of a user-readable string and a tkinter
+keyboard binding; for example, <code class="docutils literal"><span class="pre">('Ctrl+S',</span> <span class="pre">'&lt;Control-s&gt;')</span></code>.</p>
+<p>If defined, the <em>tabtypes</em> argument should be an iterable of
+<a class="reference internal" href="tabs.html#porcupine.tabs.Tab" title="porcupine.tabs.Tab"><code class="xref py py-class docutils literal"><span class="pre">porcupine.tabs.Tab</span></code></a> subclasses that item can work
+with. If you want to allow no tabs at all, add None to this list.
+The menuitem will be disabled and the binding won’t do anything when
+the current tab is not of a compatible type.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="really-high-level-file-api">
+<h2>Really high-level file API<a class="headerlink" href="#really-high-level-file-api" title="Permalink to this headline">¶</a></h2>
+<p>These functions just create <a class="reference internal" href="tabs.html#porcupine.tabs.FileTab" title="porcupine.tabs.FileTab"><code class="xref py py-class docutils literal"><span class="pre">FileTab</span></code></a> objects
+and add them to the tab manager.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">I may remove these functions later because they really don’t do much (see
+the [source] links at right). Don’t use them.</p>
+</div>
+<dl class="function">
+<dt id="porcupine.new_file">
+<code class="descclassname">porcupine.</code><code class="descname">new_file</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/_session.html#new_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.new_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a “New File” tab to the tab manager.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="porcupine.open_file">
+<code class="descclassname">porcupine.</code><code class="descname">open_file</code><span class="sig-paren">(</span><em>path</em>, <em>content=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/_session.html#open_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.open_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open an existing file in Porcupine.</p>
+<p>If <em>path</em> is None, the content will be inserted to a “New File” tab.</p>
+<p>If <em>content</em> is None, it will be read from the <em>path</em> using
+<a class="reference external" href="https://docs.python.org/3/library/functions.html#open" title="(in Python v3.6)"><code class="xref py py-func docutils literal"><span class="pre">open()</span></code></a>. In that case, <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#UnicodeError" title="(in Python v3.6)"><code class="xref py py-exc docutils literal"><span class="pre">UnicodeError</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#OSError" title="(in Python v3.6)"><code class="xref py py-exc docutils literal"><span class="pre">OSError</span></code></a>
+may be raised.</p>
+<p>At least one of <em>path</em> and <em>content</em> must be non-None.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="session-stuff">
+<h2>Session stuff<a class="headerlink" href="#session-stuff" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="porcupine.quit">
+<code class="descclassname">porcupine.</code><code class="descname">quit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/_session.html#quit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.quit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calling this function is equivalent to clicking the X button in the corner
+of the window.</p>
+<p>This function makes sure that all tabs can be closed by calling their
+<a class="reference internal" href="tabs.html#porcupine.tabs.Tab.can_be_closed" title="porcupine.tabs.Tab.can_be_closed"><code class="xref py py-meth docutils literal"><span class="pre">can_be_closed()</span></code></a> methods. If they
+can, all tabs are <a class="reference internal" href="tabs.html#porcupine.tabs.TabManager.close_tab" title="porcupine.tabs.TabManager.close_tab"><code class="xref py py-meth docutils literal"><span class="pre">closed</span></code></a> and
+the main window is destroyed.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="porcupine.init">
+<code class="descclassname">porcupine.</code><code class="descname">init</code><span class="sig-paren">(</span><em>window</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/_session.html#init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set up Porcupine.</p>
+<p>Usually <a class="reference external" href="https://github.com/Akuli/porcupine/tree/master/porcupine/__main__.py">porcupine/__main__.py</a> calls this function and you
+don’t need to call it yourself. This function can still be useful if you
+want to run Porcupine minimally from another Python program for some
+reason.</p>
+<p>The <em>window</em> argument can be a tkinter root window or a <code class="docutils literal"><span class="pre">Toplevel</span></code>
+widget.</p>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tkinter</span> <span class="k">as</span> <span class="nn">tk</span>
+<span class="kn">import</span> <span class="nn">porcupine</span>
+
+<span class="n">root</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Tk</span><span class="p">()</span>
+<span class="n">root</span><span class="o">.</span><span class="n">protocol</span><span class="p">(</span><span class="s1">&#39;WM_DELETE_WINDOW&#39;</span><span class="p">,</span> <span class="n">porcupine</span><span class="o">.</span><span class="n">quit</span><span class="p">)</span>
+<span class="n">porcupine</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+<span class="n">root</span><span class="o">.</span><span class="n">mainloop</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="version-information">
+<h2>Version Information<a class="headerlink" href="#version-information" title="Permalink to this headline">¶</a></h2>
+<dl class="data">
+<dt id="porcupine.version_info">
+<code class="descclassname">porcupine.</code><code class="descname">version_info</code><a class="headerlink" href="#porcupine.version_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="data">
+<dt id="porcupine.__version__">
+<code class="descclassname">porcupine.</code><code class="descname">__version__</code><a class="headerlink" href="#porcupine.__version__" title="Permalink to this definition">¶</a></dt>
+<dd><p>These variables contains information about the current Porcupine version.
+<code class="docutils literal"><span class="pre">version_info</span></code> is a tuple like <code class="docutils literal"><span class="pre">(0,</span> <span class="pre">28,</span> <span class="pre">1)</span></code>, and <code class="docutils literal"><span class="pre">__version__</span></code> is a
+string such as <code class="docutils literal"><span class="pre">'0.28.1'</span></code>. Use <code class="docutils literal"><span class="pre">version_info</span></code> for checking if Porcupine
+supports a specific feature:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">porcupine</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">28</span><span class="p">):</span>
+    <span class="c1"># use some feature that was added in Porcupine 0.28</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="c1"># display an error message or do things without the new feature</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><code class="docutils literal"><span class="pre">porcupine</span></code> — The top level Porcupine package</a><ul>
+<li><a class="reference internal" href="#stuff-that-the-intro-covers-too">Stuff that the intro covers too</a></li>
+<li><a class="reference internal" href="#really-high-level-file-api">Really high-level file API</a></li>
+<li><a class="reference internal" href="#session-stuff">Session stuff</a></li>
+<li><a class="reference internal" href="#version-information">Version Information</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="plugin-intro.html" title="previous chapter">Introduction to Writing Plugins</a></li>
+      <li>Next: <a href="tabs.html" title="next chapter"><code class="docutils literal"><span class="pre">porcupine.tabs</span></code> — The tab manager and tabs in it</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/porcupine.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Akuli.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/porcupine.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
