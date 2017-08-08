@@ -20,7 +20,6 @@ class StatusBar(tk.Frame):
         self._cursor_label.pack(side='right')
 
     def on_new_tab(self, event):
-        print("new tab:", repr(event.widget.tabs[-1]))
         # do_update() can get called more often than necessary, but it
         # doesn't matter
         tab = event.widget.tabs[-1]
@@ -29,7 +28,6 @@ class StatusBar(tk.Frame):
         tab.textwidget.bind('<<CursorMoved>>', self.do_update, add=True)
 
     def on_tab_changed(self, event):
-        print("tab changed:", repr(event.widget.current_tab))
         self._current_tab = event.widget.current_tab
         self.do_update()
 
