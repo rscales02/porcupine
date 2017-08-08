@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.utils — Handy utility functions and classes &#8212; Porcupine API 0.28.0 documentation</title>
+    <title>porcupine.utils — Handy utility functions and classes &#8212; Porcupine API 0.28.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.28.0',
+        VERSION:     '0.28.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -43,6 +43,10 @@
 <span id="porcupine-utils-handy-utility-functions-and-classes"></span><h1><a class="reference internal" href="#module-porcupine.utils" title="porcupine.utils"><code class="xref py py-mod docutils literal"><span class="pre">porcupine.utils</span></code></a> — Handy utility functions and classes<a class="headerlink" href="#module-porcupine.utils" title="Permalink to this headline">¶</a></h1>
 <p>This module contains handy things that Porcupine uses internally and
 plugins can use freely.</p>
+<div class="section" id="callback-hook-classes">
+<h2>Callback Hook Classes<a class="headerlink" href="#callback-hook-classes" title="Permalink to this headline">¶</a></h2>
+<p>These classes are used for running callbacks in Porcupine:</p>
+</div>
 <div class="section" id="information-about-python">
 <h2>Information about Python<a class="headerlink" href="#information-about-python" title="Permalink to this headline">¶</a></h2>
 <dl class="data">
@@ -65,40 +69,13 @@ when running in pythonw.exe.</p>
 </div>
 <div class="section" id="tkinter-utilities">
 <h2>Tkinter Utilities<a class="headerlink" href="#tkinter-utilities" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="porcupine.utils.bind_mouse_wheel">
-<code class="descclassname">porcupine.utils.</code><code class="descname">bind_mouse_wheel</code><span class="sig-paren">(</span><em>widget</em>, <em>callback</em>, <em>*</em>, <em>prefixes=''</em>, <em>**bind_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/utils.html#bind_mouse_wheel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.utils.bind_mouse_wheel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bind mouse wheel events to callback.</p>
-<p>The callback will be called like <code class="docutils literal"><span class="pre">callback(direction)</span></code> where
-<em>direction</em> is <code class="docutils literal"><span class="pre">'up'</span></code> or <code class="docutils literal"><span class="pre">'down'</span></code>. The <em>prefixes</em> argument can
-be used to change the binding string. For example,
-<code class="docutils literal"><span class="pre">prefixes='Control-'</span></code> means that callback will be ran when the
-user holds down Control and rolls the wheel.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This function has not been tested on OSX. If you have a Mac,
-please try it out and let me know how much it sucked.</p>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="porcupine.utils.bind_tab_key">
-<code class="descclassname">porcupine.utils.</code><code class="descname">bind_tab_key</code><span class="sig-paren">(</span><em>widget</em>, <em>on_tab</em>, <em>**bind_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/utils.html#bind_tab_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.utils.bind_tab_key" title="Permalink to this definition">¶</a></dt>
-<dd><p>A convenience function for binding Tab and Shift+Tab.</p>
-<p>Use this function like this:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">on_tab</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">shifted</span><span class="p">):</span>
-    <span class="c1"># shifted is True if the user held down shift while pressing</span>
-    <span class="c1"># tab, and False otherwise</span>
-    <span class="o">...</span>
-
-<span class="n">utils</span><span class="o">.</span><span class="n">bind_tab_key</span><span class="p">(</span><span class="n">some_widget</span><span class="p">,</span> <span class="n">on_tab</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>The <code class="docutils literal"><span class="pre">event</span></code> argument and <code class="docutils literal"><span class="pre">on_tab()</span></code> return values are treated
-just like with regular bindings.</p>
-<p>Binding <code class="docutils literal"><span class="pre">'&lt;Tab&gt;'</span></code> works just fine everywhere, but binding
-<code class="docutils literal"><span class="pre">'&lt;Shift-Tab&gt;'</span></code> only works on Windows and Mac OSX. This function
-also works on X11.</p>
+<dl class="class">
+<dt id="porcupine.utils.Checkbox">
+<em class="property">class </em><code class="descclassname">porcupine.utils.</code><code class="descname">Checkbox</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/utils.html#Checkbox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.utils.Checkbox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Like <code class="docutils literal"><span class="pre">tkinter.Checkbutton</span></code>, but works with my dark GTK+ theme.</p>
+<p>Tkinter’s Checkbutton displays a white checkmark on a white
+background on my dark GTK+ theme (BlackMATE on Mate 1.8). This class
+fixes that.</p>
 </dd></dl>
 
 <dl class="function">
@@ -113,13 +90,15 @@ some cases returning <code class="docutils literal"><span class="pre">'break'</s
 is in another widget inside the main window.</p>
 </dd></dl>
 
-<dl class="class">
-<dt id="porcupine.utils.Checkbox">
-<em class="property">class </em><code class="descclassname">porcupine.utils.</code><code class="descname">Checkbox</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/utils.html#Checkbox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.utils.Checkbox" title="Permalink to this definition">¶</a></dt>
-<dd><p>Like <code class="docutils literal"><span class="pre">tkinter.Checkbutton</span></code>, but works with my dark GTK+ theme.</p>
-<p>Tkinter’s Checkbutton displays a white checkmark on a white
-background on my dark GTK+ theme (BlackMATE on Mate 1.8). This class
-fixes that.</p>
+<dl class="function">
+<dt id="porcupine.utils.bind_mouse_wheel">
+<code class="descclassname">porcupine.utils.</code><code class="descname">bind_mouse_wheel</code><span class="sig-paren">(</span><em>widget</em>, <em>callback</em>, <em>*</em>, <em>prefixes=''</em>, <em>**bind_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/utils.html#bind_mouse_wheel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.utils.bind_mouse_wheel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bind mouse wheel events to callback.</p>
+<p>The callback will be called like <code class="docutils literal"><span class="pre">callback(direction)</span></code> where
+<em>direction</em> is <code class="docutils literal"><span class="pre">'up'</span></code> or <code class="docutils literal"><span class="pre">'down'</span></code>. The <em>prefixes</em> argument can
+be used to change the binding string. For example,
+<code class="docutils literal"><span class="pre">prefixes='Control-'</span></code> means that callback will be ran when the
+user holds down Control and rolls the wheel.</p>
 </dd></dl>
 
 <dl class="function">
@@ -146,13 +125,22 @@ images.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="porcupine.utils.quote">
-<code class="descclassname">porcupine.utils.</code><code class="descname">quote</code><span class="sig-paren">(</span><em>argument</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/shlex.html#quote"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.utils.quote" title="Permalink to this definition">¶</a></dt>
-<dt>
-<code class="descname">Add quotes around an argument of a command.</code></dt>
-<dd><p>This function is equivalent to <a class="reference external" href="https://docs.python.org/3/library/shlex.html#shlex.quote" title="(in Python v3.6)"><code class="xref py py-func docutils literal"><span class="pre">shlex.quote()</span></code></a> on non-Windows systems,
-and on Windows it adds double quotes in a similar way. This is useful for
-running commands in the Windows command prompt or a POSIX-compatible shell.</p>
+<dt id="porcupine.utils.errordialog">
+<code class="descclassname">porcupine.utils.</code><code class="descname">errordialog</code><span class="sig-paren">(</span><em>title</em>, <em>message</em>, <em>monospace_text=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/utils.html#errordialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.utils.errordialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a lot like <code class="docutils literal"><span class="pre">tkinter.messagebox.showerror</span></code>.</p>
+<p>Don’t rely on this, I’ll probably move this to
+<a class="reference internal" href="dialogs.html#module-porcupine.dialogs" title="porcupine.dialogs"><code class="xref py py-mod docutils literal"><span class="pre">porcupine.dialogs</span></code></a> later.</p>
+<p>This function can be called with or without creating a root window
+first. If <em>monospace_text</em> is not None, it will be displayed below
+the message in a <code class="docutils literal"><span class="pre">tkinter.Text</span></code> widget.</p>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="n">do</span> <span class="n">something</span>
+<span class="k">except</span> <span class="n">SomeError</span><span class="p">:</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">errordialog</span><span class="p">(</span><span class="s2">&quot;Oh no&quot;</span><span class="p">,</span> <span class="s2">&quot;Doing something failed!&quot;</span><span class="p">,</span>
+                      <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </div>
@@ -189,68 +177,6 @@ with Tk).</p>
 </dd></dl>
 
 </div>
-<div class="section" id="don-t-use-this-functions">
-<h2>Don’t-use-this functions<a class="headerlink" href="#don-t-use-this-functions" title="Permalink to this headline">¶</a></h2>
-<p>I might remove these functions later, and they are there because some part of
-Porcupine still uses them or these functions do something that was difficult
-to implement.</p>
-<dl class="function">
-<dt id="porcupine.utils.errordialog">
-<code class="descclassname">porcupine.utils.</code><code class="descname">errordialog</code><span class="sig-paren">(</span><em>title</em>, <em>message</em>, <em>monospace_text=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/utils.html#errordialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.utils.errordialog" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is a lot like <code class="docutils literal"><span class="pre">tkinter.messagebox.showerror</span></code>.</p>
-<p>Don’t rely on this, I’ll probably move this to
-<a class="reference internal" href="dialogs.html#module-porcupine.dialogs" title="porcupine.dialogs"><code class="xref py py-mod docutils literal"><span class="pre">porcupine.dialogs</span></code></a> later.</p>
-<p>This function can be called with or without creating a root window
-first. If <em>monospace_text</em> is not None, it will be displayed below
-the message in a <code class="docutils literal"><span class="pre">tkinter.Text</span></code> widget.</p>
-<p>Example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
-    <span class="n">do</span> <span class="n">something</span>
-<span class="k">except</span> <span class="n">SomeError</span><span class="p">:</span>
-    <span class="n">utils</span><span class="o">.</span><span class="n">errordialog</span><span class="p">(</span><span class="s2">&quot;Oh no&quot;</span><span class="p">,</span> <span class="s2">&quot;Doing something failed!&quot;</span><span class="p">,</span>
-                      <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="porcupine.utils.temporary_bind">
-<code class="descclassname">porcupine.utils.</code><code class="descname">temporary_bind</code><span class="sig-paren">(</span><em>widget</em>, <em>sequence</em>, <em>func</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/utils.html#temporary_bind"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.utils.temporary_bind" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bind and unbind a callback.</p>
-<p>It’s possible (and in Porcupine plugins, highly recommended) to use
-<code class="docutils literal"><span class="pre">add=True</span></code> when binding. This way more than one function can be
-bound to the same key sequence at the same time.</p>
-<p>Unfortunately tkinter provodes no good way to unbind functions bound
-with <code class="docutils literal"><span class="pre">add=True</span></code> one by one, and the <code class="docutils literal"><span class="pre">unbind()</span></code> method always
-unbinds <em>everything</em> (see the source code). This function only
-unbinds the function it bound, and doesn’t touch anything else.</p>
-<p>Use this as a context manager, like this:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">utils</span><span class="o">.</span><span class="n">temporary_bind</span><span class="p">(</span><span class="n">some_widget</span><span class="p">,</span> <span class="s1">&#39;&lt;Button-1&gt;&#39;</span><span class="p">,</span> <span class="n">on_click</span><span class="p">):</span>
-    <span class="c1"># now clicking the widget runs on_click() and whatever was</span>
-    <span class="c1"># bound before (unless on_click() returns &#39;break&#39;)</span>
-    <span class="o">...</span>
-<span class="c1"># now on_click() doesn&#39;t run when the widget is clicked, but</span>
-<span class="c1"># everything else still runs</span>
-</pre></div>
-</div>
-<p>Calls to this function may be nested, and other things can be bound
-inside the <code class="docutils literal"><span class="pre">with</span></code> block.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="porcupine.utils.nice_repr">
-<code class="descclassname">porcupine.utils.</code><code class="descname">nice_repr</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/utils.html#nice_repr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.utils.nice_repr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a nice string representation of an object.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">time</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">nice_repr</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">)</span>
-<span class="go">&#39;time.strftime&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">nice_repr</span><span class="p">(</span><span class="nb">object</span><span class="p">())</span>     
-<span class="go">&#39;&lt;object object at 0x...&gt;&#39;</span>
-</pre></div>
-</div>
-</dd></dl>
-
-</div>
 </div>
 
 
@@ -262,10 +188,10 @@ inside the <code class="docutils literal"><span class="pre">with</span></code> b
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#"><code class="docutils literal"><span class="pre">porcupine.utils</span></code> — Handy utility functions and classes</a><ul>
+<li><a class="reference internal" href="#callback-hook-classes">Callback Hook Classes</a></li>
 <li><a class="reference internal" href="#information-about-python">Information about Python</a></li>
 <li><a class="reference internal" href="#tkinter-utilities">Tkinter Utilities</a></li>
 <li><a class="reference internal" href="#miscellaneous">Miscellaneous</a></li>
-<li><a class="reference internal" href="#don-t-use-this-functions">Don’t-use-this functions</a></li>
 </ul>
 </li>
 </ul>

@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.utils &#8212; Porcupine API 0.28.0 documentation</title>
+    <title>porcupine.utils &#8212; Porcupine API 0.28.1 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.28.0',
+        VERSION:     '0.28.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -148,7 +148,8 @@
 
 <span class="c1"># this is currently not used anywhere, but i spent a while figuring out</span>
 <span class="c1"># how to do this and it might be useful in the future</span>
-<div class="viewcode-block" id="temporary_bind"><a class="viewcode-back" href="../../utils.html#porcupine.utils.temporary_bind">[docs]</a><span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
+<span class="c1"># TODO: document this in docs/utils.rst</span>
+<span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
 <span class="k">def</span> <span class="nf">temporary_bind</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">sequence</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Bind and unbind a callback.</span>
 
@@ -188,11 +189,11 @@
         <span class="n">widget</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="n">bound_and_stuff</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">new_things</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
 
         <span class="c1"># unbind() does this too to avoid memory leaks</span>
-        <span class="n">widget</span><span class="o">.</span><span class="n">deletecommand</span><span class="p">(</span><span class="n">tcl_command</span><span class="p">)</span></div>
+        <span class="n">widget</span><span class="o">.</span><span class="n">deletecommand</span><span class="p">(</span><span class="n">tcl_command</span><span class="p">)</span>
 
 
 <span class="c1"># this is not bind_tab to avoid confusing with tabs.py, as in browser tabs</span>
-<div class="viewcode-block" id="bind_tab_key"><a class="viewcode-back" href="../../utils.html#porcupine.utils.bind_tab_key">[docs]</a><span class="k">def</span> <span class="nf">bind_tab_key</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">on_tab</span><span class="p">,</span> <span class="o">**</span><span class="n">bind_kwargs</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">bind_tab_key</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">on_tab</span><span class="p">,</span> <span class="o">**</span><span class="n">bind_kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A convenience function for binding Tab and Shift+Tab.</span>
 
 <span class="sd">    Use this function like this::</span>
@@ -202,7 +203,7 @@
 <span class="sd">            # tab, and False otherwise</span>
 <span class="sd">            ...</span>
 
-<span class="sd">        utils.bind_tab_key(some_widget, on_tab, add=True)</span>
+<span class="sd">        utils.bind_tab(some_widget, on_tab, add=True)</span>
 
 <span class="sd">    The ``event`` argument and ``on_tab()`` return values are treated</span>
 <span class="sd">    just like with regular bindings.</span>
@@ -224,7 +225,7 @@
         <span class="n">shift_tab</span> <span class="o">=</span> <span class="s1">&#39;&lt;Shift-Tab&gt;&#39;</span>
 
     <span class="n">widget</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Tab&gt;&#39;</span><span class="p">,</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span> <span class="o">**</span><span class="n">bind_kwargs</span><span class="p">)</span>
-    <span class="n">widget</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">shift_tab</span><span class="p">,</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span> <span class="o">**</span><span class="n">bind_kwargs</span><span class="p">)</span></div>
+    <span class="n">widget</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">shift_tab</span><span class="p">,</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span> <span class="o">**</span><span class="n">bind_kwargs</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="copy_bindings"><a class="viewcode-back" href="../../utils.html#porcupine.utils.copy_bindings">[docs]</a><span class="k">def</span> <span class="nf">copy_bindings</span><span class="p">(</span><span class="n">widget1</span><span class="p">,</span> <span class="n">widget2</span><span class="p">):</span>
@@ -252,12 +253,10 @@
 <span class="sd">    be used to change the binding string. For example,</span>
 <span class="sd">    ``prefixes=&#39;Control-&#39;`` means that callback will be ran when the</span>
 <span class="sd">    user holds down Control and rolls the wheel.</span>
-
-<span class="sd">    .. note::</span>
-<span class="sd">        This function has not been tested on OSX. If you have a Mac,</span>
-<span class="sd">        please try it out and let me know how much it sucked.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># i needed to cheat and use stackoverflow for the mac stuff :(</span>
+    <span class="c1"># i needed to cheat and use stackoverflow, the man pages don&#39;t say</span>
+    <span class="c1"># what OSX does with MouseWheel events and i don&#39;t have an</span>
+    <span class="c1"># up-to-date OSX :( the non-x11 code should work on windows and osx</span>
     <span class="c1"># http://stackoverflow.com/a/17457843</span>
     <span class="k">if</span> <span class="n">widget</span><span class="o">.</span><span class="n">tk</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s1">&#39;tk&#39;</span><span class="p">,</span> <span class="s1">&#39;windowingsystem&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;x11&#39;</span><span class="p">:</span>
         <span class="k">def</span> <span class="nf">real_callback</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
@@ -401,8 +400,10 @@
             <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;selectcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;background&#39;</span><span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="nice_repr"><a class="viewcode-back" href="../../utils.html#porcupine.utils.nice_repr">[docs]</a><span class="k">def</span> <span class="nf">nice_repr</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Return a nice string representation of an object.</span>
+<span class="k">def</span> <span class="nf">nice_repr</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Don&#39;t rely on this, this may be removed later.</span>
+
+<span class="sd">    Return a nice string representation of an object.</span>
 
 <span class="sd">    &gt;&gt;&gt; import time</span>
 <span class="sd">    &gt;&gt;&gt; nice_repr(time.strftime)</span>
@@ -413,7 +414,7 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__module__</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__qualname__</span>
     <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="backup_open"><a class="viewcode-back" href="../../utils.html#porcupine.utils.backup_open">[docs]</a><span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>

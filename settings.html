@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.settings — Porcupine’s setting manager &#8212; Porcupine API 0.28.0 documentation</title>
+    <title>porcupine.settings — Porcupine’s setting manager &#8212; Porcupine API 0.28.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.28.0',
+        VERSION:     '0.28.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -42,13 +42,7 @@
             
   <div class="section" id="module-porcupine.settings">
 <span id="porcupine-settings-porcupine-s-setting-manager"></span><h1><a class="reference internal" href="#module-porcupine.settings" title="porcupine.settings"><code class="xref py py-mod docutils literal"><span class="pre">porcupine.settings</span></code></a> — Porcupine’s setting manager<a class="headerlink" href="#module-porcupine.settings" title="Permalink to this headline">¶</a></h1>
-<p>This module managers Porcupine’s settings.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Don’t use this module in plugins. I’ll probably change how the settings
-work later. This module is documented here just because Porcupine’s code
-uses it and you might be reading it.</p>
-</div>
+<p>This module contains Porcupine’s settings and color themes.</p>
 <div class="section" id="the-config">
 <h2>The config<a class="headerlink" href="#the-config" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal"><span class="pre">config</span></code> variable is set to an object that behaves like a
@@ -58,60 +52,17 @@ default values and running callbacks when something changes. Note that
 <code class="docutils literal"><span class="pre">config['section',</span> <span class="pre">'key']</span></code> does the same thing as
 <code class="docutils literal"><span class="pre">config[('section',</span> <span class="pre">'key')]</span></code>, so usually you don’t need to use
 parentheses when setting or getting values.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">If you use threads, don’t set config values from other threads
-than the main thread. Setting values may run callbacks that need
-to do something with tkinter.</p>
-</div>
-<p>Currently the config contains these keys:</p>
-<blockquote>
-<div><dl class="docutils">
-<dt><code class="docutils literal"><span class="pre">config['Font',</span> <span class="pre">'family']</span></code> and <code class="docutils literal"><span class="pre">config['Font',</span> <span class="pre">'size']</span></code></dt>
-<dd><p class="first">The current font family and size as an integer and a string,
-respectively.</p>
-<p>Porcupine also keeps the current font in a special font named
-<code class="docutils literal"><span class="pre">TkFixedFont</span></code> that <code class="docutils literal"><span class="pre">Text</span></code> widgets use by default. If you need to
-access these config values it’s easiest to just use that:</p>
-<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tkinter.font</span> <span class="k">as</span> <span class="nn">tkfont</span>
-
-<span class="n">fixedfont</span> <span class="o">=</span> <span class="n">tkfont</span><span class="o">.</span><span class="n">Font</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;TkFixedFont&#39;</span><span class="p">,</span> <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd>
-<dt><code class="docutils literal"><span class="pre">config['Files',</span> <span class="pre">'encoding']</span></code></dt>
-<dd>This is a string that should be like
-<code class="docutils literal"><span class="pre">open(...,</span> <span class="pre">encoding=config['Files',</span> <span class="pre">'encoding'])</span></code> when opening a file
-for editing.</dd>
-<dt><code class="docutils literal"><span class="pre">config['Files',</span> <span class="pre">'add_trailing_newline']</span></code></dt>
-<dd><p class="first">If this boolean is True, Porcupine makes sure that each file ends with a
-newline before saving.</p>
-<p class="last">This really should be a plugin, not a config option.</p>
-</dd>
-<dt><code class="docutils literal"><span class="pre">config['Editing',</span> <span class="pre">'pygments_style']</span></code></dt>
-<dd><p class="first">Name of a Pygments style, not the style object itself.</p>
-<p>Use this config value like this:</p>
-<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">porcupine.settings</span> <span class="k">import</span> <span class="n">config</span>
-<span class="kn">import</span> <span class="nn">pygments.styles</span>
-
-<span class="n">the_style</span> <span class="o">=</span> <span class="n">pygments</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">get_style_by_name</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;Editing&#39;</span><span class="p">,</span> <span class="s1">&#39;pygments_style&#39;</span><span class="p">])</span>
-</pre></div>
-</div>
-</dd>
-<dt><code class="docutils literal"><span class="pre">config['GUI',</span> <span class="pre">'default_size']</span></code></dt>
-<dd>The default size of the main window as a Tk geometry string,
-e.g. <code class="docutils literal"><span class="pre">'300x400'</span></code>.</dd>
-</dl>
-</div></blockquote>
-<div class="section" id="adding-more-keys">
-<h3>Adding More Keys<a class="headerlink" href="#adding-more-keys" title="Permalink to this headline">¶</a></h3>
-<p>Unlike with dictionaries, you need to add keys to the config
-before you can set them to a value. The config also keeps track of default
-values for you and lets you specify functions that check new values.</p>
+<div class="section" id="adding-keys">
+<h3>Adding Keys<a class="headerlink" href="#adding-keys" title="Permalink to this headline">¶</a></h3>
+<p>Unlike with regular dictionaries, you need to add keys to the config
+before you can set them to a value.</p>
 <dl class="method">
 <dt id="porcupine.settings.config.add_key">
 <code class="descclassname">config.</code><code class="descname">add_key</code><span class="sig-paren">(</span><em>section</em>, <em>configkey</em>, <em>default=None</em>, <em>*</em>, <em>converters=(&lt;class 'str'&gt;</em>, <em>&lt;class 'str'&gt;)</em>, <em>validator=None</em>, <em>reset=True</em><span class="sig-paren">)</span><a class="headerlink" href="#porcupine.settings.config.add_key" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a new valid key to the config.</p>
+<p>Unlike with regular dictionaries, you need to add keys to the
+config before you can set them to a value. This method does
+that.</p>
 <p><code class="docutils literal"><span class="pre">config[section,</span> <span class="pre">configkey]</span></code> will be <em>default</em> unless
 something else is specified.</p>
 <p>The <em>converters</em> argument should be a two-tuple of
@@ -123,9 +74,8 @@ and they should return the converted value.</p>
 the only argument when setting a value. It may raise an
 <a class="reference internal" href="#porcupine.settings.InvalidValue" title="porcupine.settings.InvalidValue"><code class="xref py py-exc docutils literal"><span class="pre">InvalidValue</span></code></a> exception.</p>
 <p>If <em>reset</em> is False, <a class="reference internal" href="#porcupine.settings.config.reset" title="porcupine.settings.config.reset"><code class="xref py py-meth docutils literal"><span class="pre">reset()</span></code></a> won’t do anything to the
-value. The setting dialog has a button that runs <a class="reference internal" href="#porcupine.settings.config.reset" title="porcupine.settings.config.reset"><code class="xref py py-meth docutils literal"><span class="pre">reset()</span></code></a>,
-so this is is useful for things that are not controlled with the
-setting dialog, like <code class="docutils literal"><span class="pre">pygments_style</span></code>.</p>
+value. This is useful for things that are not controlled with
+the setting dialog, like <code class="docutils literal"><span class="pre">pygments_style</span></code>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -143,17 +93,26 @@ setting dialog, like <code class="docutils literal"><span class="pre">pygments_s
 automatically add a validator that makes sure that the value is
 minimum, maximum or something between them. Of course, you can
 also use a custom <em>validator</em> with or without the
-minimum-maximum validator, and only one of <em>minimum</em> or <em>maximum</em>.</p>
+minimum-maximum validator.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="running-callbacks">
-<h3>Running Callbacks<a class="headerlink" href="#running-callbacks" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="callback-hooks">
+<h3>Callback Hooks<a class="headerlink" href="#callback-hooks" title="Permalink to this headline">¶</a></h3>
+<dl class="attribute">
+<dt id="porcupine.settings.hooks">
+<code class="descclassname">porcupine.settings.</code><code class="descname">hooks</code><a class="headerlink" href="#porcupine.settings.hooks" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <code class="docutils literal"><span class="pre">{(section,</span> <span class="pre">key):</span> <span class="pre">hook}</span></code> dictionary where the hooks are
+<code class="xref py py-class docutils literal"><span class="pre">utils.CallbackHook</span></code> objects.
+When a value is set, the matching callback hook is ran with the new
+value as the only argument.</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="porcupine.settings.config.connect">
 <code class="descclassname">config.</code><code class="descname">connect</code><span class="sig-paren">(</span><em>section</em>, <em>key</em>, <em>callback</em>, <em>run_now=False</em><span class="sig-paren">)</span><a class="headerlink" href="#porcupine.settings.config.connect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Schedule <code class="docutils literal"><span class="pre">callback(value)</span></code> to be called when a value changes.</p>
-<p>If <em>run_now</em> is True, <code class="docutils literal"><span class="pre">callback(current_value)</span></code> is also called
+<p>If <em>run_now</em> is True, <code class="docutils literal"><span class="pre">callback(value)</span></code> is also called
 immediately when <code class="docutils literal"><span class="pre">connect()</span></code> is called. More than one callback
 may be connected to the same <code class="docutils literal"><span class="pre">(section,</span> <span class="pre">key)</span></code> pair.</p>
 </dd></dl>
@@ -162,6 +121,15 @@ may be connected to the same <code class="docutils literal"><span class="pre">(s
 <dt id="porcupine.settings.config.disconnect">
 <code class="descclassname">config.</code><code class="descname">disconnect</code><span class="sig-paren">(</span><em>section</em>, <em>key</em>, <em>callback</em><span class="sig-paren">)</span><a class="headerlink" href="#porcupine.settings.config.disconnect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Undo a <a class="reference internal" href="#porcupine.settings.config.connect" title="porcupine.settings.config.connect"><code class="xref py py-meth docutils literal"><span class="pre">connect()</span></code></a> call.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="porcupine.settings.anything_changed_hook">
+<code class="descclassname">porcupine.settings.</code><code class="descname">anything_changed_hook</code><a class="headerlink" href="#porcupine.settings.anything_changed_hook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Callbacks connected to this
+<code class="xref py py-class docutils literal"><span class="pre">CallbackHook</span></code> are ran like
+<code class="docutils literal"><span class="pre">callback(section,</span> <span class="pre">key,</span> <span class="pre">value)</span></code> when anything is set to the
+config.</p>
 </dd></dl>
 
 </div>
@@ -202,8 +170,8 @@ None, all settings will be set to defaults.</p>
   <ul>
 <li><a class="reference internal" href="#"><code class="docutils literal"><span class="pre">porcupine.settings</span></code> — Porcupine’s setting manager</a><ul>
 <li><a class="reference internal" href="#the-config">The config</a><ul>
-<li><a class="reference internal" href="#adding-more-keys">Adding More Keys</a></li>
-<li><a class="reference internal" href="#running-callbacks">Running Callbacks</a></li>
+<li><a class="reference internal" href="#adding-keys">Adding Keys</a></li>
+<li><a class="reference internal" href="#callback-hooks">Callback Hooks</a></li>
 <li><a class="reference internal" href="#other-things">Other things</a></li>
 </ul>
 </li>

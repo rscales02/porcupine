@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.settings &#8212; Porcupine API 0.28.0 documentation</title>
+    <title>porcupine.settings &#8212; Porcupine API 0.28.1 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.28.0',
+        VERSION:     '0.28.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -71,6 +71,20 @@
 
 
 <span class="k">class</span> <span class="nc">_Config</span><span class="p">(</span><span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">MutableMapping</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A dictionary-like object for storing settings.</span>
+
+<span class="sd">    The config object behaves like a ``{(section, configkey): value}``</span>
+<span class="sd">    dictionary where *section* and *configkey* are strings, but it also</span>
+<span class="sd">    supports running callbacks when the values change, validating the</span>
+<span class="sd">    values and default values. Note that ``config[&#39;key&#39;, &#39;value&#39;]`` does</span>
+<span class="sd">    the same thing as ``config[(&#39;key&#39;, &#39;value&#39;)]``, so usually you don&#39;t</span>
+<span class="sd">    need to use parentheses when setting or getting values.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        If you use threads, don&#39;t set config values from other threads</span>
+<span class="sd">        than the main thread. Setting values may run callbacks that need</span>
+<span class="sd">        to do something with tkinter.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_filename</span> <span class="o">=</span> <span class="n">filename</span>
@@ -86,7 +100,7 @@
     <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">run_now</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Schedule ``callback(value)`` to be called when a value changes.</span>
 
-<span class="sd">        If *run_now* is True, ``callback(current_value)`` is also called</span>
+<span class="sd">        If *run_now* is True, ``callback(value)`` is also called</span>
 <span class="sd">        immediately when ``connect()`` is called. More than one callback</span>
 <span class="sd">        may be connected to the same ``(section, key)`` pair.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -150,7 +164,7 @@
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;cannot delete setting keys&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">)</span>
@@ -158,6 +172,10 @@
     <span class="k">def</span> <span class="nf">add_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">configkey</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
                 <span class="n">converters</span><span class="o">=</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="n">validator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reset</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Add a new valid key to the config.</span>
+
+<span class="sd">        Unlike with regular dictionaries, you need to add keys to the</span>
+<span class="sd">        config before you can set them to a value. This method does</span>
+<span class="sd">        that.</span>
 
 <span class="sd">        ``config[section, configkey]`` will be *default* unless</span>
 <span class="sd">        something else is specified.</span>
@@ -173,9 +191,8 @@
 <span class="sd">        :exc:`.InvalidValue` exception.</span>
 
 <span class="sd">        If *reset* is False, :meth:`reset` won&#39;t do anything to the</span>
-<span class="sd">        value. The setting dialog has a button that runs :meth:`reset`,</span>
-<span class="sd">        so this is is useful for things that are not controlled with the</span>
-<span class="sd">        setting dialog, like ``pygments_style``.</span>
+<span class="sd">        value. This is useful for things that are not controlled with</span>
+<span class="sd">        the setting dialog, like ``pygments_style``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># the font validators require a tkinter root window and this</span>
         <span class="c1"># needs to run at import time (no root window yet)</span>
@@ -207,7 +224,7 @@
 <span class="sd">        automatically add a validator that makes sure that the value is</span>
 <span class="sd">        minimum, maximum or something between them. Of course, you can</span>
 <span class="sd">        also use a custom *validator* with or without the</span>
-<span class="sd">        minimum-maximum validator, and only one of *minimum* or *maximum*.</span>
+<span class="sd">        minimum-maximum validator.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">def</span> <span class="nf">the_real_validator</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">minimum</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="n">minimum</span><span class="p">:</span>
