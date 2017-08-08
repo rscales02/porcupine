@@ -183,26 +183,24 @@ read-only, don’t modify this.</p>
 <dd><p>A tab widget that can be added to TabManager.</p>
 <p>You can easily create custom kinds of tabs by inheriting from this
 class. Here’s a very minimal but complete example plugin:</p>
-<blockquote>
-<div><p>import tkinter as tk
-import porcupine
-from porcupine import tabs</p>
-<dl class="docutils">
-<dt>class HelloTab(tabs.Tab):</dt>
-<dd><dl class="first last docutils">
-<dt>def __init__(self, manager):</dt>
-<dd>super().__init__(manager)
-self.top_label[‘text’] = “Hello”
-tk.Label(self, text=”Hello World!”).pack()</dd>
-</dl>
-</dd>
-<dt>def new_hello_tab():</dt>
-<dd>manager = porcupine.get_tab_manager()
-manager.add_tab(HelloTab(manager))</dd>
-<dt>def setup():</dt>
-<dd>porcupine.add_action(new_hello_tab, ‘Hello/New Hello Tab’)</dd>
-</dl>
-</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tkinter</span> <span class="k">as</span> <span class="nn">tk</span>
+<span class="kn">import</span> <span class="nn">porcupine</span>
+<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">tabs</span>
+
+<span class="k">class</span> <span class="nc">HelloTab</span><span class="p">(</span><span class="n">tabs</span><span class="o">.</span><span class="n">Tab</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">manager</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">manager</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">top_label</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Hello&quot;</span>
+        <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Hello World!&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">new_hello_tab</span><span class="p">():</span>
+    <span class="n">manager</span> <span class="o">=</span> <span class="n">porcupine</span><span class="o">.</span><span class="n">get_tab_manager</span><span class="p">()</span>
+    <span class="n">manager</span><span class="o">.</span><span class="n">add_tab</span><span class="p">(</span><span class="n">HelloTab</span><span class="p">(</span><span class="n">manager</span><span class="p">))</span>
+
+<span class="k">def</span> <span class="nf">setup</span><span class="p">():</span>
+    <span class="n">porcupine</span><span class="o">.</span><span class="n">add_action</span><span class="p">(</span><span class="n">new_hello_tab</span><span class="p">,</span> <span class="s1">&#39;Hello/New Hello Tab&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
 <dl class="attribute">
 <dt id="porcupine.tabs.Tab.master">
 <code class="descname">master</code><a class="headerlink" href="#porcupine.tabs.Tab.master" title="Permalink to this definition">¶</a></dt>
