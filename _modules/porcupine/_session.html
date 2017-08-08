@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine._session &#8212; Porcupine API 0.31.0 documentation</title>
+    <title>porcupine._session &#8212; Porcupine API 0.32.0 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.31.0',
+        VERSION:     '0.32.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -50,7 +50,7 @@
 <span class="kn">import</span> <span class="nn">pygments.token</span>
 
 <span class="kn">import</span> <span class="nn">porcupine</span>
-<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="p">(</span><span class="n">dialogs</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">filetypes</span><span class="p">,</span> <span class="n">menubar</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="p">(</span><span class="n">_dialogs</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">filetypes</span><span class="p">,</span> <span class="n">menubar</span><span class="p">,</span>
                        <span class="n">settingdialog</span><span class="p">,</span> <span class="n">tabs</span><span class="p">,</span> <span class="n">utils</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">porcupine.settings</span> <span class="k">import</span> <span class="n">config</span>
 
@@ -170,8 +170,7 @@
 
 <span class="k">def</span> <span class="nf">_setup_actions</span><span class="p">():</span>
     <span class="k">def</span> <span class="nf">open_files</span><span class="p">():</span>
-        <span class="n">defaultdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>      <span class="c1"># FIXME</span>
-        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">dialogs</span><span class="o">.</span><span class="n">open_files</span><span class="p">(</span><span class="n">defaultdir</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">open_files</span><span class="p">():</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">open_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
             <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">UnicodeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
