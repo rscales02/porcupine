@@ -1,0 +1,467 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>porcupine.textwidget &#8212; Porcupine API 0.31.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.31.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for porcupine.textwidget</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">tkinter</span> <span class="k">as</span> <span class="nn">tk</span>
+<span class="kn">import</span> <span class="nn">tkinter.font</span> <span class="k">as</span> <span class="nn">tkfont</span>
+
+<span class="kn">import</span> <span class="nn">pygments.styles</span>
+
+<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">porcupine.settings</span> <span class="k">import</span> <span class="n">config</span><span class="p">,</span> <span class="n">InvalidValue</span>
+
+
+<div class="viewcode-block" id="HandyText"><a class="viewcode-back" href="../../textwidget.html#porcupine.textwidget.HandyText">[docs]</a><span class="k">class</span> <span class="nc">HandyText</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">Text</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Like ``tkinter.Text``, but with some handy features.</span>
+
+<span class="sd">    All arguments are passed to ``tkinter.Text``.</span>
+
+<span class="sd">    .. virtualevent:: &lt;&lt;ContentChanged&gt;&gt;</span>
+
+<span class="sd">        This event is generated when the text in the widget is modified</span>
+<span class="sd">        in any way, and it&#39;s implemented with ``&lt;&lt;Modified&gt;&gt;``. Unlike</span>
+<span class="sd">        ``&lt;&lt;Modified&gt;&gt;``, this event is simply generated every time the</span>
+<span class="sd">        content changes, and there&#39;s no need to unset a flag like</span>
+<span class="sd">        ``textwidget.edit_modified(False)`` or anything like that.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            Don&#39;t use ``&lt;&lt;Modified&gt;&gt;`` or ``edit_modified()`` with</span>
+<span class="sd">            HandyText. They would conflict with the</span>
+<span class="sd">            ``&lt;&lt;ContentChanged&gt;&gt;`` implementation, and</span>
+<span class="sd">            ``&lt;&lt;ContentChanged&gt;&gt;`` is easier to use in general.</span>
+
+<span class="sd">    .. virtualevent:: &lt;&lt;CursorMoved&gt;&gt;</span>
+
+<span class="sd">        This event is generated every time the user moves the cursor or</span>
+<span class="sd">        it&#39;s moved with a method of the text widget. Use</span>
+<span class="sd">        ``textwidget.index(&#39;insert&#39;)`` to find the current cursor</span>
+<span class="sd">        position.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">cursor_move</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">after_idle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor_has_moved</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cursorpos</span> <span class="o">=</span> <span class="s1">&#39;1.0&#39;</span>
+        <span class="k">for</span> <span class="n">keysym</span> <span class="ow">in</span> <span class="p">[</span>
+                <span class="s1">&#39;&lt;Button-1&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;Key&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;&lt;Undo&gt;&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;&lt;Redo&gt;&gt;&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;&lt;&lt;Cut&gt;&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;&lt;Copy&gt;&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;&lt;Paste&gt;&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;&lt;Selection&gt;&gt;&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">keysym</span><span class="p">,</span> <span class="n">cursor_move</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_modified_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;Modified&gt;&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_do_modified</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_do_modified</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="c1"># this runs recursively if we don&#39;t unbind</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unbind</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;Modified&gt;&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modified_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edit_modified</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_modified_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;Modified&gt;&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_do_modified</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">event_generate</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;ContentChanged&gt;&gt;&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursor_has_moved</span><span class="p">()</span>
+
+<div class="viewcode-block" id="HandyText.cursor_has_moved"><a class="viewcode-back" href="../../textwidget.html#porcupine.textwidget.HandyText.cursor_has_moved">[docs]</a>    <span class="k">def</span> <span class="nf">cursor_has_moved</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Call this when the cursor may have moved and the text widget</span>
+<span class="sd">        hasn&#39;t noticed it for some reason.</span>
+
+<span class="sd">        This does nothing if the cursor hasn&#39;t actually moved, so you</span>
+<span class="sd">        don&#39;t need to worry about calling this too often.</span>
+
+<span class="sd">        You may need to use ``after_idle`` if you are calling this from</span>
+<span class="sd">        an event handler::</span>
+
+<span class="sd">            def the_bind_callback(event):</span>
+<span class="sd">                ...</span>
+<span class="sd">                handytext.after_idle(handytext.cursor_has_moved)</span>
+
+<span class="sd">        Event handlers are ran before anything happens, and this way</span>
+<span class="sd">        ``handytext.cursor_has_moved()`` runs *after* the event has been</span>
+<span class="sd">        processed and the cursor has actually moved.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;insert&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cursorpos</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cursorpos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;insert&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">event_generate</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;CursorMoved&gt;&gt;&#39;</span><span class="p">)</span></div>
+
+    <span class="c1"># TODO: override more movy methods</span>
+    <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">insert</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursor_has_moved</span><span class="p">()</span>
+
+    <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">delete</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursor_has_moved</span><span class="p">()</span>
+
+    <span class="c1"># setting a mark moves the cursor if the mark is &#39;insert&#39;</span>
+    <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">mark_set</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">mark_set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">mark_set</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursor_has_moved</span><span class="p">()</span>
+
+<div class="viewcode-block" id="HandyText.iter_chunks"><a class="viewcode-back" href="../../textwidget.html#porcupine.textwidget.HandyText.iter_chunks">[docs]</a>    <span class="k">def</span> <span class="nf">iter_chunks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Iterate over the content as chunks of *n* lines.</span>
+
+<span class="sd">        Each yielded line ends with a ``\n`` character. Lines are not</span>
+<span class="sd">        broken down the middle, and ``&#39;&#39;`` is never yielded.</span>
+
+<span class="sd">        Note that the last chunk is less than *n* lines long unless the</span>
+<span class="sd">        total number of lines is divisible by *n*.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="mi">1</span>     <span class="c1"># this is not a mistake, line numbers start at 1</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">n</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">.0&#39;</span> <span class="o">%</span> <span class="n">end</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;end&#39;</span><span class="p">):</span>
+                <span class="c1"># &#39;%d.0&#39; % start can be &#39;end - 1 char&#39; in a corner</span>
+                <span class="c1"># case, let&#39;s not yield an empty string</span>
+                <span class="n">last_chunk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">.0&#39;</span> <span class="o">%</span> <span class="n">start</span><span class="p">,</span> <span class="s1">&#39;end - 1 char&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">last_chunk</span><span class="p">:</span>
+                    <span class="k">yield</span> <span class="n">last_chunk</span>
+                <span class="k">break</span>
+
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">.0&#39;</span> <span class="o">%</span> <span class="n">start</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">.0&#39;</span> <span class="o">%</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">end</span></div>
+
+<div class="viewcode-block" id="HandyText.iter_lines"><a class="viewcode-back" href="../../textwidget.html#porcupine.textwidget.HandyText.iter_lines">[docs]</a>    <span class="k">def</span> <span class="nf">iter_lines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Iterate over the content as lines.</span>
+
+<span class="sd">        The trailing ``\n`` characters of each line are included.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_chunks</span><span class="p">():</span>
+            <span class="k">yield from</span> <span class="n">chunk</span><span class="o">.</span><span class="n">splitlines</span><span class="p">(</span><span class="n">keepends</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div></div>
+
+
+<span class="c1"># this can be used for implementing other themed things too, e.g. the</span>
+<span class="c1"># line number plugin</span>
+<div class="viewcode-block" id="ThemedText"><a class="viewcode-back" href="../../textwidget.html#porcupine.textwidget.ThemedText">[docs]</a><span class="k">class</span> <span class="nc">ThemedText</span><span class="p">(</span><span class="n">HandyText</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A :class:`.HandyText` subclass that uses the Pygments style&#39;s colors.</span>
+
+<span class="sd">    You can use this class just like :class:`.HandyText`, it takes care</span>
+<span class="sd">    of switching the colors by itself. This is useful for things like</span>
+<span class="sd">    :source:`porcupine/plugins/linenumbers.py`.</span>
+
+<span class="sd">    .. seealso::</span>
+<span class="sd">        Syntax highlighting is implemented with Pygments in</span>
+<span class="sd">        :source:`porcupine/plugins/highlight.py`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;Editing&#39;</span><span class="p">,</span> <span class="s1">&#39;pygments_style&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_style</span><span class="p">,</span>
+                       <span class="n">run_now</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">on_destroy</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="s1">&#39;Editing&#39;</span><span class="p">,</span> <span class="s1">&#39;pygments_style&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_style</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Destroy&gt;&#39;</span><span class="p">,</span> <span class="n">on_destroy</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_style</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="n">pygments</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">get_style_by_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">bg</span> <span class="o">=</span> <span class="n">style</span><span class="o">.</span><span class="n">background_color</span>
+
+        <span class="c1"># yes, style.default_style can be &#39;#rrggbb&#39;, &#39;&#39; or nonexistent</span>
+        <span class="c1"># this is undocumented</span>
+        <span class="c1">#</span>
+        <span class="c1">#   &gt;&gt;&gt; from pygments.styles import *</span>
+        <span class="c1">#   &gt;&gt;&gt; [getattr(get_style_by_name(name), &#39;default_style&#39;, &#39;???&#39;)</span>
+        <span class="c1">#   ...  for name in get_all_styles()]</span>
+        <span class="c1">#   [&#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;???&#39;, &#39;???&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;,</span>
+        <span class="c1">#    &#39;???&#39;, &#39;???&#39;, &#39;&#39;, &#39;#cccccc&#39;, &#39;&#39;, &#39;&#39;, &#39;???&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;,</span>
+        <span class="c1">#    &#39;#222222&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;???&#39;, &#39;&#39;]</span>
+        <span class="n">fg</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">style</span><span class="p">,</span> <span class="s1">&#39;default_style&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">utils</span><span class="o">.</span><span class="n">invert_color</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;fg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fg</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;bg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bg</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;insertbackground&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fg</span>  <span class="c1"># cursor color</span>
+
+        <span class="c1"># this is actually not too bad :D</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;selectforeground&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bg</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;selectbackground&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fg</span></div>
+
+
+<span class="c1"># TODO: remove useless cursor_has_moved() calls</span>
+<div class="viewcode-block" id="MainText"><a class="viewcode-back" href="../../textwidget.html#porcupine.textwidget.MainText">[docs]</a><span class="k">class</span> <span class="nc">MainText</span><span class="p">(</span><span class="n">ThemedText</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Don&#39;t use this. It may be changed later.&quot;&quot;&quot;</span>
+
+    <span class="c1"># the filetype is needed for setting the tab width and indenting</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">filetype</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_filetype</span><span class="p">(</span><span class="n">filetype</span><span class="p">)</span>
+
+        <span class="c1"># FIXME: lots of things have been turned into plugins, but</span>
+        <span class="c1"># there&#39;s still wayyyy too much stuff in here...</span>
+        <span class="n">partial</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span>     <span class="c1"># pep8 line length</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;BackSpace&gt;&#39;</span><span class="p">,</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_delete</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Control-BackSpace&gt;&#39;</span><span class="p">,</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_delete</span><span class="p">,</span> <span class="kc">True</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Control-Delete&gt;&#39;</span><span class="p">,</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_delete</span><span class="p">,</span> <span class="kc">True</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Shift-Control-Delete&gt;&#39;</span><span class="p">,</span>
+                  <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_delete</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">shifted</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Shift-Control-BackSpace&gt;&#39;</span><span class="p">,</span>
+                  <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_delete</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">shifted</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Return&gt;&#39;</span><span class="p">,</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">event</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor_has_moved</span><span class="p">()))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;parenright&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_closing_brace</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;bracketright&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_closing_brace</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;braceright&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_closing_brace</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Control-z&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">undo</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Control-y&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">redo</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Control-x&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cut</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Control-c&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Control-v&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">paste</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Control-a&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">select_all</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Control-plus&gt;&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">event</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_wheel</span><span class="p">(</span><span class="s1">&#39;up&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Control-minus&gt;&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">event</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_wheel</span><span class="p">(</span><span class="s1">&#39;down&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Control-0&gt;&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">event</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_wheel</span><span class="p">(</span><span class="s1">&#39;reset&#39;</span><span class="p">))</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">bind_mouse_wheel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_wheel</span><span class="p">,</span> <span class="n">prefixes</span><span class="o">=</span><span class="s1">&#39;Control-&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">set_filetype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filetype</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_filetype</span> <span class="o">=</span> <span class="n">filetype</span>
+
+        <span class="c1"># from the text(3tk) man page: &quot;To achieve a different standard</span>
+        <span class="c1"># spacing, for example every 4 characters, simply configure the</span>
+        <span class="c1"># widget with “-tabs &quot;[expr {4 * [font measure $font 0]}] left&quot;</span>
+        <span class="c1"># -tabstyle wordprocessor”.&quot;</span>
+        <span class="c1">#</span>
+        <span class="c1"># my version is kind of minimal compared to that example, but it</span>
+        <span class="c1"># seems to work :)</span>
+        <span class="n">font</span> <span class="o">=</span> <span class="n">tkfont</span><span class="o">.</span><span class="n">Font</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="p">[</span><span class="s1">&#39;font&#39;</span><span class="p">],</span> <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;tabs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">font</span><span class="o">.</span><span class="n">measure</span><span class="p">(</span><span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="n">filetype</span><span class="o">.</span><span class="n">indent_size</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">on_wheel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direction</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;reset&#39;</span><span class="p">:</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">reset</span><span class="p">((</span><span class="s1">&#39;Font&#39;</span><span class="p">,</span> <span class="s1">&#39;size&#39;</span><span class="p">))</span>
+            <span class="k">return</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">config</span><span class="p">[</span><span class="s1">&#39;Font&#39;</span><span class="p">,</span> <span class="s1">&#39;size&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;up&#39;</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">InvalidValue</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">_on_delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control_down</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">shifted</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;This runs when the user presses backspace or delete.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag_ranges</span><span class="p">(</span><span class="s1">&#39;sel&#39;</span><span class="p">):</span>
+            <span class="c1"># nothing is selected, we can do non-default stuff</span>
+            <span class="k">if</span> <span class="n">control_down</span> <span class="ow">and</span> <span class="n">shifted</span><span class="p">:</span>
+                <span class="c1"># plan A: delete until end or beginning of line</span>
+                <span class="c1"># plan B: delete a newline character if there&#39;s nothing</span>
+                <span class="c1">#         to delete with plan A</span>
+                <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">keysym</span> <span class="o">==</span> <span class="s1">&#39;Delete&#39;</span><span class="p">:</span>
+                    <span class="n">plan_a</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;insert&#39;</span><span class="p">,</span> <span class="s1">&#39;insert lineend&#39;</span><span class="p">)</span>
+                    <span class="n">plan_b</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;insert&#39;</span><span class="p">,</span> <span class="s1">&#39;insert + 1 char&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">plan_a</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;insert linestart&#39;</span><span class="p">,</span> <span class="s1">&#39;insert&#39;</span><span class="p">)</span>
+                    <span class="n">plan_b</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;insert - 1 char&#39;</span><span class="p">,</span> <span class="s1">&#39;insert&#39;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">plan_a</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">plan_a</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                    <span class="c1"># nothing can be deleted with plan a</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="o">*</span><span class="n">plan_b</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="o">*</span><span class="n">plan_a</span><span class="p">)</span>
+                <span class="k">return</span> <span class="s1">&#39;break&#39;</span>
+
+            <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">keysym</span> <span class="o">==</span> <span class="s1">&#39;BackSpace&#39;</span><span class="p">:</span>
+                <span class="n">lineno</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;insert&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">before_cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">.0&#39;</span> <span class="o">%</span> <span class="n">lineno</span><span class="p">,</span> <span class="s1">&#39;insert&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">before_cursor</span> <span class="ow">and</span> <span class="n">before_cursor</span><span class="o">.</span><span class="n">isspace</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="s1">&#39;insert&#39;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="s1">&#39;break&#39;</span>
+
+                <span class="k">if</span> <span class="n">control_down</span><span class="p">:</span>
+                    <span class="c1"># delete previous word</span>
+                    <span class="n">end</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;insert&#39;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">event_generate</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;PrevWord&gt;&gt;&#39;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s1">&#39;insert&#39;</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="s1">&#39;break&#39;</span>
+
+            <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">keysym</span> <span class="o">==</span> <span class="s1">&#39;Delete&#39;</span> <span class="ow">and</span> <span class="n">control_down</span><span class="p">:</span>
+                <span class="c1"># delete next word</span>
+                <span class="n">old_cursor_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;insert&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">event_generate</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;NextWord&gt;&gt;&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">old_cursor_pos</span><span class="p">,</span> <span class="s1">&#39;insert&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">after_idle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor_has_moved</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">_on_closing_brace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dedent automatically.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="s1">&#39;insert&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">after_idle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor_has_moved</span><span class="p">)</span>    <span class="c1"># TODO: do we need this?</span>
+
+    <span class="k">def</span> <span class="nf">indent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Insert indentation character(s) at the given location.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filetype</span><span class="o">.</span><span class="n">tabs2spaces</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c1"># we can&#39;t just add &#39; &#39;*self._filetype.indent_size, for example,</span>
+        <span class="c1"># if indent_size is 4 and there are 7 charaters we add 1 space</span>
+        <span class="n">spaces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filetype</span><span class="o">.</span><span class="n">indent_size</span>    <span class="c1"># pep-8 line length</span>
+        <span class="n">how_many_chars</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">location</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">spaces2add</span> <span class="o">=</span> <span class="n">spaces</span> <span class="o">-</span> <span class="p">(</span><span class="n">how_many_chars</span> <span class="o">%</span> <span class="n">spaces</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="n">spaces2add</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursor_has_moved</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">dedent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove indentation character(s) if possible.</span>
+
+<span class="sd">        This method tries to remove spaces intelligently so that</span>
+<span class="sd">        everything&#39;s lined up evenly based on the indentation settings.</span>
+<span class="sd">        This method is useful for dedenting whole lines (with location</span>
+<span class="sd">        set to beginning of the line) or deleting whitespace in the</span>
+<span class="sd">        middle of a line.</span>
+
+<span class="sd">        This returns True if something was done, and False otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filetype</span><span class="o">.</span><span class="n">tabs2spaces</span><span class="p">:</span>
+            <span class="n">one_back</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> - 1 char&#39;</span> <span class="o">%</span> <span class="n">location</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">one_back</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">one_back</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="n">lineno</span><span class="p">,</span> <span class="n">column</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">location</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">))</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> linestart&#39;</span> <span class="o">%</span> <span class="n">location</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> lineend&#39;</span> <span class="o">%</span> <span class="n">location</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">column</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filetype</span><span class="o">.</span><span class="n">indent_size</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">column</span> <span class="o">-</span> <span class="p">(</span><span class="n">column</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filetype</span><span class="o">.</span><span class="n">indent_size</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">start</span> <span class="o">==</span> <span class="n">column</span><span class="p">:</span>    <span class="c1"># prefer deleting from left side</span>
+                <span class="n">start</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filetype</span><span class="o">.</span><span class="n">indent_size</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filetype</span><span class="o">.</span><span class="n">indent_size</span>
+
+        <span class="n">end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">end</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">))</span>    <span class="c1"># don&#39;t go past end of line</span>
+        <span class="k">if</span> <span class="n">start</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># delete undersized indents</span>
+            <span class="n">whitespaces</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">lstrip</span><span class="p">())</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">whitespaces</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span><span class="o">.</span><span class="n">isspace</span><span class="p">():</span>   <span class="c1"># &#39;&#39;.isspace() is False</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">.</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">lineno</span><span class="p">,</span> <span class="n">start</span><span class="p">),</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">.</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">lineno</span><span class="p">,</span> <span class="n">end</span><span class="p">))</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">undo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">edit_undo</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">tk</span><span class="o">.</span><span class="n">TclError</span><span class="p">:</span>     <span class="c1"># nothing to undo</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursor_has_moved</span><span class="p">()</span>
+        <span class="k">return</span> <span class="s1">&#39;break&#39;</span>
+
+    <span class="k">def</span> <span class="nf">redo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">edit_redo</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">tk</span><span class="o">.</span><span class="n">TclError</span><span class="p">:</span>     <span class="c1"># nothing to redo</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursor_has_moved</span><span class="p">()</span>
+        <span class="k">return</span> <span class="s1">&#39;break&#39;</span>
+
+    <span class="k">def</span> <span class="nf">cut</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">event_generate</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;Cut&gt;&gt;&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s1">&#39;break&#39;</span>
+
+    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">event_generate</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;Copy&gt;&gt;&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s1">&#39;break&#39;</span>
+
+    <span class="k">def</span> <span class="nf">paste</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">event_generate</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;Paste&gt;&gt;&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Without this, pasting while some text is selected is annoying</span>
+        <span class="c1"># because the selected text doesn&#39;t go away :(</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">sel_start</span><span class="p">,</span> <span class="n">sel_end</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag_ranges</span><span class="p">(</span><span class="s1">&#39;sel&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="c1"># nothing selected</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">sel_start</span><span class="p">,</span> <span class="n">sel_end</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s1">&#39;break&#39;</span>
+
+    <span class="k">def</span> <span class="nf">select_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tag_add</span><span class="p">(</span><span class="s1">&#39;sel&#39;</span><span class="p">,</span> <span class="s1">&#39;1.0&#39;</span><span class="p">,</span> <span class="s1">&#39;end - 1 char&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s1">&#39;break&#39;</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Akuli.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

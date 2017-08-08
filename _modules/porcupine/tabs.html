@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.tabs &#8212; Porcupine API 0.30.0 documentation</title>
+    <title>porcupine.tabs &#8212; Porcupine API 0.31.0 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.30.0',
+        VERSION:     '0.31.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -63,9 +63,8 @@
 <div class="viewcode-block" id="TabManager"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.TabManager">[docs]</a><span class="k">class</span> <span class="nc">TabManager</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">Frame</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A simple but awesome tab widget.</span>
 
-<span class="sd">    Virtual events:</span>
+<span class="sd">    .. virtualevent:: &lt;&lt;NewTab&gt;&gt;</span>
 
-<span class="sd">    ``&lt;&lt;NewTab&gt;&gt;``</span>
 <span class="sd">        This runs after a new tab has been added to this tab manager</span>
 <span class="sd">        with :meth:`~add_tab`. The tab is always added to the end of</span>
 <span class="sd">        :attr:`~tabs`, so you can access it with</span>
@@ -74,7 +73,8 @@
 <span class="sd">        Bind to the ``&lt;Destroy&gt;`` event of the tab if you want to clean</span>
 <span class="sd">        up something when the tab is closed.</span>
 
-<span class="sd">    ``&lt;&lt;CurrentTabChanged&gt;&gt;``</span>
+<span class="sd">    .. virtualevent:: &lt;&lt;CurrentTabChanged&gt;&gt;</span>
+
 <span class="sd">        This runs when the user selects another tab or Porcupine does it</span>
 <span class="sd">        for some reason. Use ``event.widget.current_tab`` to get or set</span>
 <span class="sd">        the currently selected tab.</span>
@@ -331,7 +331,7 @@
     <span class="sd">&quot;&quot;&quot;A tab widget that can be added to TabManager.</span>
 
 <span class="sd">    You can easily create custom kinds of tabs by inheriting from this</span>
-<span class="sd">    class. Here&#39;s a very minimal but complete example plugin:</span>
+<span class="sd">    class. Here&#39;s a very minimal but complete example plugin::</span>
 
 <span class="sd">        import tkinter as tk</span>
 <span class="sd">        import porcupine</span>
@@ -447,14 +447,15 @@
 <span class="sd">        tab = tabs.FileTab(tabmanager, content, path=your_path)</span>
 <span class="sd">        tabmanager.add_tab(tab)</span>
 
-<span class="sd">    Virtual events:</span>
+<span class="sd">    .. virtualevent:: &lt;&lt;PathChanged&gt;&gt;</span>
 
-<span class="sd">        ``&lt;&lt;PathChanged&gt;&gt;``</span>
-<span class="sd">            This runs when :attr:`~path` is set to a new value. Use</span>
-<span class="sd">            ``event.widget.path`` to get the new path.</span>
+<span class="sd">        This runs when :attr:`~path` is set to a new value. Use</span>
+<span class="sd">        ``event.widget.path`` to get the new path.</span>
 
-<span class="sd">        ``&lt;&lt;FiletypeChanged&gt;&gt;``</span>
-<span class="sd">            Like ``&lt;&lt;PathChanged&gt;&gt;``, but for :attr:`~filetype`.</span>
+<span class="sd">    .. virtualevent:: &lt;&lt;FiletypeChanged&gt;&gt;</span>
+
+<span class="sd">        Like ``&lt;&lt;PathChanged&gt;&gt;``, but for :attr:`~filetype`. Use</span>
+<span class="sd">        ``event.widget.filetype`` to access the new file type.</span>
 
 <span class="sd">    .. attribute:: path</span>
 

@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Introduction to Writing Plugins &#8212; Porcupine API 0.30.0 documentation</title>
+    <title>Introduction to Writing Plugins &#8212; Porcupine API 0.31.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.30.0',
+        VERSION:     '0.31.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -163,7 +163,7 @@ for more instructions.</p>
 <p>That should be plenty of useful links for you to get started with things.</p>
 </div>
 <div class="section" id="virtual-events">
-<h2>Virtual Events<a class="headerlink" href="#virtual-events" title="Permalink to this headline">¶</a></h2>
+<span id="id1"></span><h2>Virtual Events<a class="headerlink" href="#virtual-events" title="Permalink to this headline">¶</a></h2>
 <p>I added this short section here because not all tkinter users have seen virtual
 events before. For example, code like this prints <code class="docutils literal"><span class="pre">hi</span></code>:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">print_hi</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
@@ -187,9 +187,9 @@ errors. Porcupine’s autocompletion is useful for this.</p>
 there are a few things that you should be aware of.</p>
 <div class="section" id="use-add-true">
 <h3>Use add=True<a class="headerlink" href="#use-add-true" title="Permalink to this headline">¶</a></h3>
-<p>When you bind something in a plugin and another plugin might need to bind as
-well, use the <code class="docutils literal"><span class="pre">add=True</span></code> argument to <code class="docutils literal"><span class="pre">bind()</span></code>. For example, let’s
-say you have something like this:</p>
+<p>When you bind something that another plugin might need to bind as well, use the
+<code class="docutils literal"><span class="pre">add=True</span></code> argument to <code class="docutils literal"><span class="pre">bind()</span></code>. For example, let’s say you have something
+like this:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">callback1</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;lol&quot;</span><span class="p">)</span>
 
