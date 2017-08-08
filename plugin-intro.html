@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Introduction to Writing Plugins &#8212; Porcupine API 0.29.1 documentation</title>
+    <title>Introduction to Writing Plugins &#8212; Porcupine API 0.30.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.29.1',
+        VERSION:     '0.30.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -130,24 +130,24 @@ files with it, but that’s about it. Plugins can do <strong>a lot</strong>.</p>
 <div class="section" id="porcupine-s-widgets">
 <h2>Porcupine’s Widgets<a class="headerlink" href="#porcupine-s-widgets" title="Permalink to this headline">¶</a></h2>
 <p>Here are the widgets that Porcupine itself creates without any plugins:</p>
-<img alt="no-plugins.png" src="no-plugins.png" />
+<img alt="_images/no-plugins.png" src="_images/no-plugins.png" />
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
 <dl class="docutils">
-<dt>Main window (the whole image)</dt>
+<dt>❶ Main Window</dt>
 <dd>Everything is inside this widget. Usually it’s a <code class="docutils literal"><span class="pre">tkinter.Tk</span></code> root
 window, but it may be a <code class="docutils literal"><span class="pre">Toplevel</span></code> widget as well. You can
 access this widget with <a class="reference internal" href="porcupine.html#porcupine.get_main_window" title="porcupine.get_main_window"><code class="xref py py-func docutils literal"><span class="pre">porcupine.get_main_window()</span></code></a>.</dd>
-<dt>Menu bar (❶)</dt>
+<dt>❷ Menu Bar</dt>
 <dd>The <code class="xref py py-mod docutils literal"><span class="pre">porcupine.menubar</span></code> module contains functions for accessing this
 widget and adding more items to it. However, most of the time it’s easiest
 to use <a class="reference internal" href="porcupine.html#porcupine.add_action" title="porcupine.add_action"><code class="xref py py-func docutils literal"><span class="pre">porcupine.add_action()</span></code></a> as shown above.</dd>
-<dt>Tab manager (❷)</dt>
+<dt>❸ Tab Manager</dt>
 <dd>This widget contains tabs (see below), and a welcome message when there are
 no tabs to display. This widget is a <a class="reference internal" href="tabs.html#porcupine.tabs.TabManager" title="porcupine.tabs.TabManager"><code class="xref py py-class docutils literal"><span class="pre">porcupine.tabs.TabManager</span></code></a> and
 can be accessed with <a class="reference internal" href="porcupine.html#porcupine.get_tab_manager" title="porcupine.get_tab_manager"><code class="xref py py-func docutils literal"><span class="pre">porcupine.get_tab_manager()</span></code></a>.</dd>
-<dt>A tab (❸)</dt>
+<dt>❹ A Tab</dt>
 <dd><p class="first">Tabs are <a class="reference internal" href="tabs.html#porcupine.tabs.Tab" title="porcupine.tabs.Tab"><code class="xref py py-class docutils literal"><span class="pre">porcupine.tabs.Tab</span></code></a> widgets, and you can access them with
 the tab manager’s <a class="reference internal" href="tabs.html#porcupine.tabs.TabManager.tabs" title="porcupine.tabs.TabManager.tabs"><code class="xref py py-attr docutils literal"><span class="pre">tabs</span></code></a> attribute.
 This tab is a <a class="reference internal" href="tabs.html#porcupine.tabs.FileTab" title="porcupine.tabs.FileTab"><code class="xref py py-class docutils literal"><span class="pre">porcupine.tabs.FileTab</span></code></a> because it represents a new

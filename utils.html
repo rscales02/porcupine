@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.utils — Handy utility functions and classes &#8212; Porcupine API 0.29.1 documentation</title>
+    <title>porcupine.utils — Handy utility functions and classes &#8212; Porcupine API 0.30.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.29.1',
+        VERSION:     '0.30.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,17 +49,32 @@ plugins can use freely.</p>
 <dt id="porcupine.utils.running_pythonw">
 <code class="descclassname">porcupine.utils.</code><code class="descname">running_pythonw</code><a class="headerlink" href="#porcupine.utils.running_pythonw" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is True if Python is running in pythonw.exe on Windows.</p>
-<p>The pythonw.exe program runs Python scripts without a command
+<p>The <code class="docutils literal"><span class="pre">pythonw.exe</span></code> program runs Python scripts without a command
 prompt, so you need to check for that when doing things like
 starting a new command prompt from Python.</p>
 </dd></dl>
 
 <dl class="data">
-<dt id="porcupine.utils.python">
-<code class="descclassname">porcupine.utils.</code><code class="descname">python</code><a class="headerlink" href="#porcupine.utils.python" title="Permalink to this definition">¶</a></dt>
-<dd><p>If <a class="reference internal" href="#porcupine.utils.running_pythonw" title="porcupine.utils.running_pythonw"><code class="xref py py-data docutils literal"><span class="pre">running_pythonw</span></code></a> is False, this is
-<a class="reference external" href="https://docs.python.org/3/library/sys.html#sys.executable" title="(in Python v3.6)"><code class="xref py py-data docutils literal"><span class="pre">sys.executable</span></code></a>. This should point to the real python.exe
-when running in pythonw.exe.</p>
+<dt id="porcupine.utils.python_executable">
+<code class="descclassname">porcupine.utils.</code><code class="descname">python_executable</code><a class="headerlink" href="#porcupine.utils.python_executable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Like <a class="reference external" href="https://docs.python.org/3/library/sys.html#sys.executable" title="(in Python v3.6)"><code class="xref py py-data docutils literal"><span class="pre">sys.executable</span></code></a>, but this should also be correct on
+<code class="docutils literal"><span class="pre">pythonw.exe</span></code>.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="porcupine.utils.short_python_command">
+<code class="descclassname">porcupine.utils.</code><code class="descname">short_python_command</code><a class="headerlink" href="#porcupine.utils.short_python_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>A short command for running the Python that Porcupine is running on.</p>
+<p>This may contain arguments. For example, this might be <code class="docutils literal"><span class="pre">'py</span> <span class="pre">-3'</span></code> on a
+Windows system that has both Python 2 and Python 3 installed, and Python 2
+is the default.</p>
+<p>Note that this is quoted already if it needs quoting, and should <em>not</em> be
+quoted more. For example, this example is <strong>bad</strong>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="n">utils</span><span class="o">.</span><span class="n">short_python_command</span><span class="p">,</span> <span class="s1">&#39;blah&#39;</span><span class="p">,</span> <span class="s1">&#39;blah&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Use <a class="reference internal" href="#porcupine.utils.python_executable" title="porcupine.utils.python_executable"><code class="xref py py-data docutils literal"><span class="pre">python_executable</span></code></a> if you want to do a <a class="reference external" href="https://docs.python.org/3/library/subprocess.html#subprocess.call" title="(in Python v3.6)"><code class="xref py py-func docutils literal"><span class="pre">subprocess.call()</span></code></a> or
+something like that.</p>
 </dd></dl>
 
 </div>
@@ -145,19 +160,22 @@ function too many times or keeping references to the returned
 images.</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="porcupine.utils.quote">
-<code class="descclassname">porcupine.utils.</code><code class="descname">quote</code><span class="sig-paren">(</span><em>argument</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/shlex.html#quote"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.utils.quote" title="Permalink to this definition">¶</a></dt>
-<dt>
-<code class="descname">Add quotes around an argument of a command.</code></dt>
-<dd><p>This function is equivalent to <a class="reference external" href="https://docs.python.org/3/library/shlex.html#shlex.quote" title="(in Python v3.6)"><code class="xref py py-func docutils literal"><span class="pre">shlex.quote()</span></code></a> on non-Windows systems,
-and on Windows it adds double quotes in a similar way. This is useful for
-running commands in the Windows command prompt or a POSIX-compatible shell.</p>
-</dd></dl>
-
 </div>
 <div class="section" id="miscellaneous">
 <h2>Miscellaneous<a class="headerlink" href="#miscellaneous" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="porcupine.utils.invert_color">
+<code class="descclassname">porcupine.utils.</code><code class="descname">invert_color</code><span class="sig-paren">(</span><em>color</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/utils.html#invert_color"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.utils.invert_color" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a color with opposite red, green and blue values.</p>
+<p>Example: <code class="docutils literal"><span class="pre">invert_color('white')</span></code> is <code class="docutils literal"><span class="pre">'#000000'</span></code> (black).</p>
+<p>This function uses tkinter for converting the color to RGB. That’s
+why a tkinter root window must have been created, but <em>color</em> can be
+any Tk-compatible color string, like a color name or a <code class="docutils literal"><span class="pre">'#rrggbb'</span></code>
+string.</p>
+<p>The return value is always a <code class="docutils literal"><span class="pre">'#rrggbb</span></code> string (also compatible
+with Tk).</p>
+</dd></dl>
+
 <dl class="function">
 <dt id="porcupine.utils.backup_open">
 <code class="descclassname">porcupine.utils.</code><code class="descname">backup_open</code><span class="sig-paren">(</span><em>path</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/utils.html#backup_open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.utils.backup_open" title="Permalink to this definition">¶</a></dt>
@@ -176,16 +194,13 @@ the file, but this is useful when overwriting the user’s files.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="porcupine.utils.invert_color">
-<code class="descclassname">porcupine.utils.</code><code class="descname">invert_color</code><span class="sig-paren">(</span><em>color</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/utils.html#invert_color"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.utils.invert_color" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a color with opposite red, green and blue values.</p>
-<p>Example: <code class="docutils literal"><span class="pre">invert_color('white')</span></code> is <code class="docutils literal"><span class="pre">'#000000'</span></code> (black).</p>
-<p>This function uses tkinter for converting the color to RGB. That’s
-why a tkinter root window must have been created, but <em>color</em> can be
-any Tk-compatible color string, like a color name or a <code class="docutils literal"><span class="pre">'#rrggbb'</span></code>
-string.</p>
-<p>The return value is always a <code class="docutils literal"><span class="pre">'#rrggbb</span></code> string (also compatible
-with Tk).</p>
+<dt id="porcupine.utils.quote">
+<code class="descclassname">porcupine.utils.</code><code class="descname">quote</code><span class="sig-paren">(</span><em>argument</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/shlex.html#quote"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.utils.quote" title="Permalink to this definition">¶</a></dt>
+<dt>
+<code class="descname">Add quotes around an argument of a command.</code></dt>
+<dd><p>This function is equivalent to <a class="reference external" href="https://docs.python.org/3/library/shlex.html#shlex.quote" title="(in Python v3.6)"><code class="xref py py-func docutils literal"><span class="pre">shlex.quote()</span></code></a> on non-Windows systems,
+and on Windows it adds double quotes in a similar way. This is useful for
+running commands in the Windows command prompt or a POSIX-compatible shell.</p>
 </dd></dl>
 
 </div>

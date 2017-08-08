@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.filetypes &#8212; Porcupine API 0.29.1 documentation</title>
+    <title>porcupine.filetypes &#8212; Porcupine API 0.30.0 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.29.1',
+        VERSION:     '0.30.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -164,36 +164,6 @@
     <span class="k">return</span> <span class="n">filetypes</span><span class="p">[</span><span class="n">temp_lexer</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
 
 
-<span class="k">def</span> <span class="nf">_find_short_python_command</span><span class="p">():</span>
-    <span class="k">if</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;Windows&#39;</span><span class="p">:</span>
-        <span class="c1"># windows python uses a py.exe launcher program in system32</span>
-        <span class="n">expected</span> <span class="o">=</span> <span class="s1">&#39;Python </span><span class="si">%d</span><span class="s1">.</span><span class="si">%d</span><span class="s1">.</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">python</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;py&#39;</span><span class="p">,</span> <span class="s1">&#39;py -</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                           <span class="s1">&#39;py -</span><span class="si">%d</span><span class="s1">.</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[:</span><span class="mi">2</span><span class="p">]]:</span>
-                <span class="c1"># command strings aren&#39;t different from lists of</span>
-                <span class="c1"># arguments on windows, the subprocess module just</span>
-                <span class="c1"># quotes lists anyway (see subprocess.list2cmdline)</span>
-                <span class="n">got</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> --version&#39;</span> <span class="o">%</span> <span class="n">python</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">expected</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">got</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
-                    <span class="k">return</span> <span class="n">python</span>
-        <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span><span class="p">):</span>
-            <span class="c1"># something&#39;s wrong with py.exe 0_o it probably doesn&#39;t</span>
-            <span class="c1"># exist at all and we got a FileNotFoundError</span>
-            <span class="k">pass</span>
-
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">python</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;python&#39;</span><span class="p">,</span> <span class="s1">&#39;python</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                       <span class="s1">&#39;python</span><span class="si">%d</span><span class="s1">.</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[:</span><span class="mi">2</span><span class="p">]]:</span>
-            <span class="c1"># os.path.samefile() does the right thing with symlinks</span>
-            <span class="n">path</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="n">python</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">samefile</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">utils</span><span class="o">.</span><span class="n">python</span><span class="p">):</span>
-                <span class="k">return</span> <span class="n">python</span>
-
-    <span class="c1"># use full path as a fallback</span>
-    <span class="k">return</span> <span class="n">utils</span><span class="o">.</span><span class="n">python</span>
-
-
 <span class="c1"># default values of the DEFAULT section</span>
 <span class="n">_DEFAULT_DEFAULTS</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;tabs2spaces&#39;</span><span class="p">:</span> <span class="s1">&#39;yes&#39;</span><span class="p">,</span>
@@ -228,11 +198,10 @@
 
     <span class="n">config</span><span class="p">[</span><span class="s1">&#39;Makefile&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;tabs2spaces&#39;</span><span class="p">:</span> <span class="s1">&#39;no&#39;</span><span class="p">}</span>
 
-    <span class="n">python</span> <span class="o">=</span> <span class="n">_find_short_python_command</span><span class="p">()</span>
     <span class="n">config</span><span class="p">[</span><span class="s1">&#39;Python&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;max_line_length&#39;</span><span class="p">:</span> <span class="s1">&#39;79&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;run_command&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">{file}</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">python</span><span class="p">,</span>
-        <span class="s1">&#39;lint_command&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> -m flake8 </span><span class="si">{file}</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">python</span><span class="p">,</span>
+        <span class="s1">&#39;run_command&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">{file}</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">utils</span><span class="o">.</span><span class="n">short_python_command</span><span class="p">,</span>
+        <span class="s1">&#39;lint_command&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> -m flake8 </span><span class="si">{file}</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">utils</span><span class="o">.</span><span class="n">short_python_command</span><span class="p">,</span>
     <span class="p">}</span>
 
     <span class="c1"># 79 comes from documentation-style-guide-sphinx.readthedocs.io</span>

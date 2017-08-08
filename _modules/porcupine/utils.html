@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.utils &#8212; Porcupine API 0.29.1 documentation</title>
+    <title>porcupine.utils &#8212; Porcupine API 0.30.0 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.29.1',
+        VERSION:     '0.30.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -64,29 +64,52 @@
 <span class="c1"># print still works because it checks if sys.stdout is None</span>
 <span class="n">running_pythonw</span> <span class="o">=</span> <span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span>
 
-<span class="c1"># this is a hack :(</span>
-<span class="n">python</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">executable</span>
+<span class="n">python_executable</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">executable</span>
 <span class="k">if</span> <span class="n">running_pythonw</span> <span class="ow">and</span> <span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\pythonw.exe&#39;</span><span class="p">):</span>
-    <span class="c1"># get rid of the &#39;w&#39;</span>
+    <span class="c1"># get rid of the &#39;w&#39; and hope for the best...</span>
     <span class="n">_possible_python</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span> <span class="o">+</span> <span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span>
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">_possible_python</span><span class="p">):</span>
-        <span class="n">python</span> <span class="o">=</span> <span class="n">_possible_python</span>
+        <span class="n">python_executable</span> <span class="o">=</span> <span class="n">_possible_python</span>
 
-<span class="c1"># get rid of symlinks and make it absolute</span>
-<span class="n">python</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">python</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_find_short_python</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;Windows&#39;</span><span class="p">:</span>
+        <span class="c1"># windows python uses a py.exe launcher program in system32</span>
+        <span class="n">expected</span> <span class="o">=</span> <span class="s1">&#39;Python </span><span class="si">%d</span><span class="s1">.</span><span class="si">%d</span><span class="s1">.</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">python</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;py&#39;</span><span class="p">,</span> <span class="s1">&#39;py -</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                           <span class="s1">&#39;py -</span><span class="si">%d</span><span class="s1">.</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[:</span><span class="mi">2</span><span class="p">]]:</span>
+                <span class="c1"># command strings aren&#39;t different from lists of</span>
+                <span class="c1"># arguments on windows, the subprocess module just</span>
+                <span class="c1"># quotes lists anyway (see subprocess.list2cmdline)</span>
+                <span class="n">got</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> --version&#39;</span> <span class="o">%</span> <span class="n">python</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">expected</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">got</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+                    <span class="k">return</span> <span class="n">python</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span><span class="p">):</span>
+            <span class="c1"># something&#39;s wrong with py.exe 0_o it probably doesn&#39;t</span>
+            <span class="c1"># exist at all and we got a FileNotFoundError</span>
+            <span class="k">pass</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">python</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;python&#39;</span><span class="p">,</span> <span class="s1">&#39;python</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                       <span class="s1">&#39;python</span><span class="si">%d</span><span class="s1">.</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[:</span><span class="mi">2</span><span class="p">]]:</span>
+            <span class="c1"># os.path.samefile() does the right thing with symlinks</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="n">python</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">samefile</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">python</span>
+
+    <span class="c1"># use the full path as a fallback</span>
+    <span class="k">return</span> <span class="n">python_executable</span>
+
+
+<span class="n">short_python_command</span> <span class="o">=</span> <span class="n">_find_short_python</span><span class="p">()</span>
 
 
 <span class="c1"># TODO: document quote()</span>
 <span class="k">if</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;Windows&#39;</span><span class="p">:</span>
     <span class="c1"># this is mostly copy/pasted from subprocess.list2cmdline</span>
     <span class="k">def</span> <span class="nf">quote</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Like shlex.quote, but for Windows.</span>
-
-<span class="sd">        &gt;&gt;&gt; quote(&#39;test&#39;)</span>
-<span class="sd">        &#39;test&#39;</span>
-<span class="sd">        &gt;&gt;&gt; quote(&#39;test thing&#39;)</span>
-<span class="sd">        &#39;&quot;test thing&quot;&#39;</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">needquote</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">bs_buf</span> <span class="o">=</span> <span class="p">[]</span>
@@ -125,7 +148,6 @@
     <span class="kn">from</span> <span class="nn">shlex</span> <span class="k">import</span> <span class="n">quote</span>    <span class="c1"># noqa</span>
 
 
-<span class="c1"># TODO: add this to docs/utils.rst</span>
 <div class="viewcode-block" id="invert_color"><a class="viewcode-back" href="../../utils.html#porcupine.utils.invert_color">[docs]</a><span class="k">def</span> <span class="nf">invert_color</span><span class="p">(</span><span class="n">color</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Return a color with opposite red, green and blue values.</span>
 
@@ -146,8 +168,6 @@
     <span class="k">return</span> <span class="s1">&#39;#</span><span class="si">%02x%02x%02x</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span></div>
 
 
-<span class="c1"># this is currently not used anywhere, but i spent a while figuring out</span>
-<span class="c1"># how to do this and it might be useful in the future</span>
 <div class="viewcode-block" id="temporary_bind"><a class="viewcode-back" href="../../utils.html#porcupine.utils.temporary_bind">[docs]</a><span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
 <span class="k">def</span> <span class="nf">temporary_bind</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">sequence</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Bind and unbind a callback.</span>
