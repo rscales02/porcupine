@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.tabs — The tab manager and tabs in it &#8212; Porcupine API 0.32.0 documentation</title>
+    <title>porcupine.tabs — The tab manager and tabs in it &#8212; Porcupine API 0.33.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.32.0',
+        VERSION:     '0.33.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -205,6 +205,25 @@ class. Here’s a very minimal but complete example plugin:</p>
 </pre></div>
 </div>
 <dl class="attribute">
+<dt id="porcupine.tabs.Tab.status">
+<code class="descname">status</code><a class="headerlink" href="#porcupine.tabs.Tab.status" title="Permalink to this definition">¶</a></dt>
+<dd><p>A human-readable string for showing in e.g. a status bar.</p>
+<p>The status message can also contain multiple tab-separated
+things, e.g. <code class="docutils literal"><span class="pre">&quot;File</span> <span class="pre">'thing.py'\tLine</span> <span class="pre">12,</span> <span class="pre">column</span> <span class="pre">34&quot;</span></code>.</p>
+<p>This is <code class="docutils literal"><span class="pre">''</span></code> by default, but that can be changed like
+<code class="docutils literal"><span class="pre">tab.status</span> <span class="pre">=</span> <span class="pre">something_new</span></code>.</p>
+<p>If you’re writing something like a status bar, make sure to
+handle <code class="docutils literal"><span class="pre">\t</span></code> characters and bind <code class="docutils literal"><span class="pre">&lt;&lt;StatusChanged&gt;&gt;</span></code>.</p>
+</dd></dl>
+
+<dl class="virtualevent">
+<dt id="porcupine.tabs.porcupine.tabs.Tab.&lt;&lt;StatusChanged&gt;&gt;">
+<em class="property">virtual event </em><code class="descname">&lt;&lt;StatusChanged&gt;&gt;</code><a class="headerlink" href="#porcupine.tabs.porcupine.tabs.Tab.<<StatusChanged>>" title="Permalink to this definition">¶</a></dt>
+<dd><p>This event is generated when <a class="reference internal" href="#porcupine.tabs.Tab.status" title="porcupine.tabs.Tab.status"><code class="xref py py-attr docutils literal"><span class="pre">status</span></code></a> is set to a new
+value. Use <code class="docutils literal"><span class="pre">event.widget.status</span></code> to access the current status.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="porcupine.tabs.Tab.master">
 <code class="descname">master</code><a class="headerlink" href="#porcupine.tabs.Tab.master" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tkinter sets this to the parent widget. Use this attribute to
@@ -226,6 +245,10 @@ the file name in this label.</p>
 <p>By default, this always returns True, but you can override this
 in a subclass to do something more interesting. See
 <a class="reference internal" href="#porcupine.tabs.FileTab.can_be_closed" title="porcupine.tabs.FileTab.can_be_closed"><code class="xref py py-meth docutils literal"><span class="pre">FileTab.can_be_closed()</span></code></a> for an example.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last">The <code class="docutils literal"><span class="pre">&lt;&lt;StatusChanged&gt;&gt;</span></code> virtual event, documented above.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -268,17 +291,17 @@ subclass and make this focus the tab’s main widget if needed.</p>
 <em>path</em> is given, the file will be saved there when Ctrl+S is
 pressed. Otherwise this becomes a “New File” tab.</p>
 <p>For example, you can open a file from a path like this:</p>
-<blockquote>
-<div><p>from porcupine import tabs, utils
-from porcupine.settings import config</p>
-<dl class="docutils">
-<dt>with open(your_path, ‘r’, encoding=config[‘Files’, ‘encoding’]) as file:</dt>
-<dd>content = file.read()</dd>
-</dl>
-<p>tabmanager = utils.get_tab_manager()
-tab = tabs.FileTab(tabmanager, content, path=your_path)
-tabmanager.add_tab(tab)</p>
-</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">tabs</span><span class="p">,</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">porcupine.settings</span> <span class="k">import</span> <span class="n">config</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">your_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;Files&#39;</span><span class="p">,</span> <span class="s1">&#39;encoding&#39;</span><span class="p">])</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+<span class="n">tabmanager</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_tab_manager</span><span class="p">()</span>
+<span class="n">tab</span> <span class="o">=</span> <span class="n">tabs</span><span class="o">.</span><span class="n">FileTab</span><span class="p">(</span><span class="n">tabmanager</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">your_path</span><span class="p">)</span>
+<span class="n">tabmanager</span><span class="o">.</span><span class="n">add_tab</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
+</pre></div>
+</div>
 <dl class="virtualevent">
 <dt id="porcupine.tabs.porcupine.tabs.FileTab.&lt;&lt;PathChanged&gt;&gt;">
 <em class="property">virtual event </em><code class="descname">&lt;&lt;PathChanged&gt;&gt;</code><a class="headerlink" href="#porcupine.tabs.porcupine.tabs.FileTab.<<PathChanged>>" title="Permalink to this definition">¶</a></dt>

@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.tabs &#8212; Porcupine API 0.32.0 documentation</title>
+    <title>porcupine.tabs &#8212; Porcupine API 0.33.0 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.32.0',
+        VERSION:     '0.33.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -246,9 +246,11 @@
 
 <span class="sd">        .. seealso:: The :meth:`.Tab.can_be_closed` method.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">current_tab_will_be_none</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="n">tab</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_tab</span><span class="p">:</span>
             <span class="c1"># go to next or previous tab if there are other tabs</span>
-            <span class="n">there_are_other_tabs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">select_right</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">select_left</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">select_right</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">select_left</span><span class="p">()):</span>
+                <span class="n">current_tab_will_be_none</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="n">tab</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
         <span class="n">tab</span><span class="o">.</span><span class="n">_topframe</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
@@ -260,10 +262,10 @@
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">where</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tabs</span><span class="p">)):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">tabs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">_topframe</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">there_are_other_tabs</span><span class="p">:</span>
-            <span class="c1"># this must be done after deleting the tab from self.tabs to</span>
-            <span class="c1"># make sure that &lt;&lt;CurrentTabChanged&gt;&gt; handlers can use</span>
-            <span class="c1"># tabmanager.tabs to check if there are any tabs</span>
+        <span class="c1"># this must be done after deleting the tab from self.tabs to</span>
+        <span class="c1"># make sure that &lt;&lt;CurrentTabChanged&gt;&gt; handlers can use</span>
+        <span class="c1"># tabmanager.tabs to check if there are any tabs</span>
+        <span class="k">if</span> <span class="n">current_tab_will_be_none</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">current_tab</span> <span class="o">=</span> <span class="kc">None</span></div>
 
     <span class="k">def</span> <span class="nf">_select_next_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">diff</span><span class="p">,</span> <span class="n">roll_over</span><span class="p">):</span>
@@ -329,7 +331,7 @@
 
 
 <div class="viewcode-block" id="Tab"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.Tab">[docs]</a><span class="k">class</span> <span class="nc">Tab</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">Frame</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A tab widget that can be added to TabManager.</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;A tab widget that can be added to TabManager.</span>
 
 <span class="sd">    You can easily create custom kinds of tabs by inheriting from this</span>
 <span class="sd">    class. Here&#39;s a very minimal but complete example plugin::</span>
@@ -351,6 +353,24 @@
 <span class="sd">        def setup():</span>
 <span class="sd">            porcupine.add_action(new_hello_tab, &#39;Hello/New Hello Tab&#39;)</span>
 
+<span class="sd">    .. attribute:: status</span>
+
+<span class="sd">        A human-readable string for showing in e.g. a status bar.</span>
+
+<span class="sd">        The status message can also contain multiple tab-separated</span>
+<span class="sd">        things, e.g. ``&quot;File &#39;thing.py&#39;\tLine 12, column 34&quot;``.</span>
+
+<span class="sd">        This is ``&#39;&#39;`` by default, but that can be changed like</span>
+<span class="sd">        ``tab.status = something_new``.</span>
+
+<span class="sd">        If you&#39;re writing something like a status bar, make sure to</span>
+<span class="sd">        handle ``\t`` characters and bind ``&lt;&lt;StatusChanged&gt;&gt;``.</span>
+
+<span class="sd">    .. virtualevent:: &lt;&lt;StatusChanged&gt;&gt;</span>
+
+<span class="sd">        This event is generated when :attr:`status` is set to a new</span>
+<span class="sd">        value. Use ``event.widget.status`` to access the current status.</span>
+
 <span class="sd">    .. attribute:: master</span>
 
 <span class="sd">        Tkinter sets this to the parent widget. Use this attribute to</span>
@@ -365,6 +385,7 @@
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">manager</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">manager</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 
         <span class="k">def</span> <span class="nf">select_me</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
             <span class="n">manager</span><span class="o">.</span><span class="n">current_tab</span> <span class="o">=</span> <span class="bp">self</span>
@@ -390,12 +411,26 @@
         <span class="n">utils</span><span class="o">.</span><span class="n">bind_mouse_wheel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">top_label</span><span class="p">,</span> <span class="n">manager</span><span class="o">.</span><span class="n">_on_wheel</span><span class="p">)</span>
         <span class="n">utils</span><span class="o">.</span><span class="n">bind_mouse_wheel</span><span class="p">(</span><span class="n">closebutton</span><span class="p">,</span> <span class="n">manager</span><span class="o">.</span><span class="n">_on_wheel</span><span class="p">)</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_status</span>
+
+    <span class="nd">@status</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_status</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="o">=</span> <span class="n">new_status</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">event_generate</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;StatusChanged&gt;&gt;&#39;</span><span class="p">)</span>
+
 <div class="viewcode-block" id="Tab.can_be_closed"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.Tab.can_be_closed">[docs]</a>    <span class="k">def</span> <span class="nf">can_be_closed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Check if this tab can be closed.</span>
 
 <span class="sd">        By default, this always returns True, but you can override this</span>
 <span class="sd">        in a subclass to do something more interesting. See</span>
 <span class="sd">        :meth:`.FileTab.can_be_closed` for an example.</span>
+
+<span class="sd">        .. TODO: we need some way to link to virtual event docs -_-</span>
+
+<span class="sd">        .. seealso::</span>
+<span class="sd">            The ``&lt;&lt;StatusChanged&gt;&gt;`` virtual event, documented above.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
@@ -435,7 +470,7 @@
 <span class="sd">    *path* is given, the file will be saved there when Ctrl+S is</span>
 <span class="sd">    pressed. Otherwise this becomes a &quot;New File&quot; tab.</span>
 
-<span class="sd">    For example, you can open a file from a path like this:</span>
+<span class="sd">    For example, you can open a file from a path like this::</span>
 
 <span class="sd">        from porcupine import tabs, utils</span>
 <span class="sd">        from porcupine.settings import config</span>
@@ -481,7 +516,7 @@
         <span class="c1"># path and filetype are set correctly below</span>
         <span class="c1"># TODO: try to guess the filetype from the content when path is None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_path</span> <span class="o">=</span> <span class="n">path</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_guess_filetype</span><span class="p">()</span>          <span class="c1"># sets self._filetype</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_guess_filetype</span><span class="p">()</span>          <span class="c1"># this sets self._filetype</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;PathChanged&gt;&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_top_label</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;PathChanged&gt;&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_guess_filetype</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
@@ -500,9 +535,14 @@
                   <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">textwidget</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;ContentChanged&gt;&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_top_label</span><span class="p">,</span>
                              <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">content</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">textwidget</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">textwidget</span><span class="o">.</span><span class="n">edit_reset</span><span class="p">()</span>   <span class="c1"># reset undo/redo</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;PathChanged&gt;&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_status</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;FiletypeChanged&gt;&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_status</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">textwidget</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;CursorMoved&gt;&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_status</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="c1"># everything seems to work ok without this except that e.g.</span>
         <span class="c1"># pressing Ctrl+O in the text widget opens a file AND inserts a</span>
@@ -524,6 +564,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">mark_saved</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_top_label</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_status</span><span class="p">()</span>
 
 <div class="viewcode-block" id="FileTab.equivalent"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.FileTab.equivalent">[docs]</a>    <span class="k">def</span> <span class="nf">equivalent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return True if *self* and *other* are saved to the same place.</span>
@@ -613,6 +654,16 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">top_label</span><span class="p">[</span><span class="s1">&#39;fg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_orig_label_fg</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">top_label</span><span class="p">[</span><span class="s1">&#39;fg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;red&#39;</span>
+
+    <span class="k">def</span> <span class="nf">_update_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">junk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="s2">&quot;New file&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="s2">&quot;File &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span>
+        <span class="n">line</span><span class="p">,</span> <span class="n">column</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">textwidget</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;insert&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="se">\t</span><span class="s2">Line </span><span class="si">%s</span><span class="s2">, column </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filetype</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">column</span><span class="p">)</span>
 
 <div class="viewcode-block" id="FileTab.can_be_closed"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.FileTab.can_be_closed">[docs]</a>    <span class="k">def</span> <span class="nf">can_be_closed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
