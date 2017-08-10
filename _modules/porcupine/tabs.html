@@ -64,7 +64,7 @@
 <div class="viewcode-block" id="TabManager"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.TabManager">[docs]</a><span class="k">class</span> <span class="nc">TabManager</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">Frame</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A simple but awesome tab widget.</span>
 
-<span class="sd">    .. virtualevent:: &lt;&lt;NewTab&gt;&gt;</span>
+<span class="sd">    .. virtualevent:: NewTab</span>
 
 <span class="sd">        This runs after a new tab has been added to this tab manager</span>
 <span class="sd">        with :meth:`~add_tab`. The tab is always added to the end of</span>
@@ -74,7 +74,7 @@
 <span class="sd">        Bind to the ``&lt;Destroy&gt;`` event of the tab if you want to clean</span>
 <span class="sd">        up something when the tab is closed.</span>
 
-<span class="sd">    .. virtualevent:: &lt;&lt;CurrentTabChanged&gt;&gt;</span>
+<span class="sd">    .. virtualevent:: CurrentTabChanged</span>
 
 <span class="sd">        This runs when the user selects another tab or Porcupine does it</span>
 <span class="sd">        for some reason. Use ``event.widget.current_tab`` to get or set</span>
@@ -353,6 +353,11 @@
 <span class="sd">        def setup():</span>
 <span class="sd">            porcupine.add_action(new_hello_tab, &#39;Hello/New Hello Tab&#39;)</span>
 
+<span class="sd">    .. virtualevent:: StatusChanged</span>
+
+<span class="sd">        This event is generated when :attr:`status` is set to a new</span>
+<span class="sd">        value. Use ``event.widget.status`` to access the current status.</span>
+
 <span class="sd">    .. attribute:: status</span>
 
 <span class="sd">        A human-readable string for showing in e.g. a status bar.</span>
@@ -366,12 +371,7 @@
 <span class="sd">        .. TODO: we need some way to link to virtual event docs -_-</span>
 
 <span class="sd">        If you&#39;re writing something like a status bar, make sure to</span>
-<span class="sd">        handle ``\t`` characters and bind ``&lt;&lt;StatusChanged&gt;&gt;``.</span>
-
-<span class="sd">    .. virtualevent:: &lt;&lt;StatusChanged&gt;&gt;</span>
-
-<span class="sd">        This event is generated when :attr:`status` is set to a new</span>
-<span class="sd">        value. Use ``event.widget.status`` to access the current status.</span>
+<span class="sd">        handle ``\t`` characters and bind :virtevt:`~StatusChanged`.</span>
 
 <span class="sd">    .. attribute:: master</span>
 
@@ -480,14 +480,14 @@
 <span class="sd">        tab = tabs.FileTab(tabmanager, content, path=your_path)</span>
 <span class="sd">        tabmanager.add_tab(tab)</span>
 
-<span class="sd">    .. virtualevent:: &lt;&lt;PathChanged&gt;&gt;</span>
+<span class="sd">    .. virtualevent:: PathChanged</span>
 
 <span class="sd">        This runs when :attr:`~path` is set to a new value. Use</span>
 <span class="sd">        ``event.widget.path`` to get the new path.</span>
 
-<span class="sd">    .. virtualevent:: &lt;&lt;FiletypeChanged&gt;&gt;</span>
+<span class="sd">    .. virtualevent:: FiletypeChanged</span>
 
-<span class="sd">        Like ``&lt;&lt;PathChanged&gt;&gt;``, but for :attr:`~filetype`. Use</span>
+<span class="sd">        Like :virtevt:`~PathChanged`, but for :attr:`~filetype`. Use</span>
 <span class="sd">        ``event.widget.filetype`` to access the new file type.</span>
 
 <span class="sd">    .. attribute:: path</span>
@@ -501,7 +501,7 @@
 
 <span class="sd">        A value from :data:`porcupine.filetypes.filetypes`.</span>
 
-<span class="sd">        Setting this runs the ``&lt;&lt;FiletypeChanged&gt;&gt;`` virtual event.</span>
+<span class="sd">        Setting this runs :virtevt:`~FiletypeChanged`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">manager</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
