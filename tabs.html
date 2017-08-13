@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.tabs — The tab manager and tabs in it &#8212; Porcupine API 0.38.0 documentation</title>
+    <title>porcupine.tabs — The tab manager and tabs in it &#8212; Porcupine API 0.39.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.38.0',
+        VERSION:     '0.39.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -80,6 +80,37 @@ the currently selected tab.</p>
 <p>Don’t modify this list yourself, use methods like
 <a class="reference internal" href="#porcupine.tabs.TabManager.move_left" title="porcupine.tabs.TabManager.move_left"><code class="xref py py-meth docutils literal"><span class="pre">move_left()</span></code></a>, <a class="reference internal" href="#porcupine.tabs.TabManager.move_right" title="porcupine.tabs.TabManager.move_right"><code class="xref py py-meth docutils literal"><span class="pre">move_right()</span></code></a>, <a class="reference internal" href="#porcupine.tabs.TabManager.add_tab" title="porcupine.tabs.TabManager.add_tab"><code class="xref py py-meth docutils literal"><span class="pre">add_tab()</span></code></a> or
 <a class="reference internal" href="#porcupine.tabs.TabManager.close_tab" title="porcupine.tabs.TabManager.close_tab"><code class="xref py py-meth docutils literal"><span class="pre">close_tab()</span></code></a> instead.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Detached tabs are not in this list, so you can’t use this
+for doing something to each tab. However, <a class="reference internal" href="#porcupine.tabs.TabManager.NewTab" title="porcupine.tabs.TabManager.NewTab"><code class="xref py py-virtevt docutils literal"><span class="pre">&lt;&lt;NewTab&gt;&gt;</span></code></a>
+is guaranteed to work as explained above, so you can keep
+track of the tabs like this if you really need to:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">porcupine</span>
+<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">tabs</span>
+
+<span class="c1"># don&#39;t name this &quot;tabs&quot;, see the imports above</span>
+<span class="n">all_tabs</span> <span class="o">=</span> <span class="p">[]</span>     
+
+<span class="k">def</span> <span class="nf">on_new_tab</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+    <span class="n">tab</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">widget</span><span class="o">.</span><span class="n">tabs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">all_tabs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
+    <span class="n">tab</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Destroy&gt;&#39;</span><span class="p">,</span>
+             <span class="k">lambda</span> <span class="n">event</span><span class="p">:</span> <span class="n">all_tabs</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">tab</span><span class="p">),</span>
+             <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">setup</span><span class="p">():</span>
+    <span class="n">porcupine</span><span class="o">.</span><span class="n">get_tab_manager</span><span class="p">()</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;NewTab&gt;&gt;&#39;</span><span class="p">,</span> <span class="n">on_new_tab</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="porcupine.tabs.TabManager.detached_tabs">
+<code class="descname">detached_tabs</code><a class="headerlink" href="#porcupine.tabs.TabManager.detached_tabs" title="Permalink to this definition">¶</a></dt>
+<dd><p>These tabs have been detached from the main Porcupine window.
+As with <a class="reference internal" href="#porcupine.tabs.TabManager.tabs" title="porcupine.tabs.TabManager.tabs"><code class="xref py py-attr docutils literal"><span class="pre">tabs</span></code></a>, don’t modify this list yourself.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -171,13 +202,6 @@ tab was changed.</p>
 <dd><p>Like <a class="reference internal" href="#porcupine.tabs.TabManager.select_left" title="porcupine.tabs.TabManager.select_left"><code class="xref py py-meth docutils literal"><span class="pre">select_left()</span></code></a>, but switch to the tab at right.</p>
 </dd></dl>
 
-<dl class="attribute">
-<dt>
-<code class="descname">tabs</code><em class="property"> = None</em></dt>
-<dd><p>List of <a class="reference internal" href="#porcupine.tabs.Tab" title="porcupine.tabs.Tab"><code class="xref py py-class docutils literal"><span class="pre">Tab</span></code></a> objects. This is supposed to be
-read-only, don’t modify this.</p>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="class">
@@ -204,6 +228,11 @@ class. Here’s a very minimal but complete example plugin:</p>
     <span class="n">porcupine</span><span class="o">.</span><span class="n">add_action</span><span class="p">(</span><span class="n">new_hello_tab</span><span class="p">,</span> <span class="s1">&#39;Hello/New Hello Tab&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>There are no hooks that run when detaching or attaching the tab
+because you shouldn’t need to worry about it. The implementation
+doesn’t destroy the widgets and create them again or anything like
+that. However, you can check if a tab is detached with
+<a class="reference internal" href="#porcupine.tabs.TabManager.detached_tabs" title="porcupine.tabs.TabManager.detached_tabs"><code class="xref py py-attr docutils literal"><span class="pre">detached_tabs</span></code></a>.</p>
 <dl class="virtualevent">
 <dt id="porcupine.tabs.Tab.StatusChanged">
 <em class="property">virtual event </em><code class="descname">&lt;&lt;StatusChanged&gt;&gt;</code><a class="headerlink" href="#porcupine.tabs.Tab.StatusChanged" title="Permalink to this definition">¶</a></dt>
