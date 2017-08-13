@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.tabs &#8212; Porcupine API 0.39.0 documentation</title>
+    <title>porcupine.tabs &#8212; Porcupine API 0.39.1 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.39.0',
+        VERSION:     '0.39.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -91,27 +91,8 @@
 <span class="sd">        :meth:`~close_tab` instead.</span>
 
 <span class="sd">        .. note::</span>
-<span class="sd">            Detached tabs are not in this list, so you can&#39;t use this</span>
-<span class="sd">            for doing something to each tab. However, :virtevt:`~NewTab`</span>
-<span class="sd">            is guaranteed to work as explained above, so you can keep</span>
-<span class="sd">            track of the tabs like this if you really need to::</span>
-
-<span class="sd">                import porcupine</span>
-<span class="sd">                from porcupine import tabs</span>
-
-<span class="sd">                # don&#39;t name this &quot;tabs&quot;, see the imports above</span>
-<span class="sd">                all_tabs = []     </span>
-
-<span class="sd">                def on_new_tab(event):</span>
-<span class="sd">                    tab = event.widget.tabs[-1]</span>
-<span class="sd">                    all_tabs.append(tab)</span>
-<span class="sd">                    tab.bind(&#39;&lt;Destroy&gt;&#39;,</span>
-<span class="sd">                             lambda event: all_tabs.remove(tab),</span>
-<span class="sd">                             add=True)</span>
-
-<span class="sd">                def setup():</span>
-<span class="sd">                    porcupine.get_tab_manager().bind(\</span>
-<span class="sd">&#39;&lt;&lt;NewTab&gt;&gt;&#39;, on_new_tab, add=True)</span>
+<span class="sd">            Detached tabs are not in this list. See</span>
+<span class="sd">            :attr:`~detached_tabs`.</span>
 
 <span class="sd">    .. attribute:: detached_tabs</span>
 
