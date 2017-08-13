@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.utils — Handy utility functions and classes &#8212; Porcupine API 0.34.0 documentation</title>
+    <title>porcupine.utils — Handy utility functions and classes &#8212; Porcupine API 0.38.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.34.0',
+        VERSION:     '0.38.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -69,7 +69,7 @@ starting a new command prompt from Python.</p>
 Windows system that has both Python 2 and Python 3 installed, and Python 2
 is the default.</p>
 <p>Note that this is quoted already if it needs quoting, and should <em>not</em> be
-quoted more. For example, this example is <strong>bad</strong>:</p>
+quoted more. For example, this code is <strong>bad</strong>:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="n">utils</span><span class="o">.</span><span class="n">short_python_command</span><span class="p">,</span> <span class="s1">&#39;blah&#39;</span><span class="p">,</span> <span class="s1">&#39;blah&#39;</span><span class="p">])</span>
 </pre></div>
 </div>
@@ -114,6 +114,35 @@ just like with regular bindings.</p>
 <p>Binding <code class="docutils literal"><span class="pre">'&lt;Tab&gt;'</span></code> works just fine everywhere, but binding
 <code class="docutils literal"><span class="pre">'&lt;Shift-Tab&gt;'</span></code> only works on Windows and Mac OSX. This function
 also works on X11.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="porcupine.utils.bind_data_event">
+<code class="descclassname">porcupine.utils.</code><code class="descname">bind_data_event</code><span class="sig-paren">(</span><em>widget</em>, <em>sequence</em>, <em>func</em>, <em>*</em>, <em>add=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/utils.html#bind_data_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.utils.bind_data_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bind a virtual event that supports passing data to a callback function.</p>
+<p>This is a lot like <code class="docutils literal"><span class="pre">widget.bind(sequence,</span> <span class="pre">func,</span> <span class="pre">add=add)</span></code>, except
+that the function’s argument will be the value of a <em>data</em> argument
+passed to <code class="docutils literal"><span class="pre">event_generate()</span></code> instead of a <code class="docutils literal"><span class="pre">tkinter.Event</span></code>
+object. This function is needed because <code class="docutils literal"><span class="pre">Event</span></code> objects don’t have
+a <em>data</em> attribute for some reason, even on Python 3.7.</p>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tkinter</span> <span class="k">as</span> <span class="nn">tk</span>
+<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">utils</span>
+
+<span class="n">root</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Tk</span><span class="p">()</span>
+<span class="n">root</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>   <span class="c1"># the widget must be visible for virtual events to work</span>
+<span class="n">utils</span><span class="o">.</span><span class="n">bind_data_event</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="s1">&#39;&lt;&lt;Hello&gt;&gt;&#39;</span><span class="p">,</span> <span class="nb">print</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">root</span><span class="o">.</span><span class="n">event_generate</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;Hello&gt;&gt;&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="s2">&quot;hello&quot;</span><span class="p">)</span>   <span class="c1"># runs print(&quot;hello&quot;)</span>
+</pre></div>
+</div>
+<p>Note that the data is always converted to a string. The <em>add</em>
+argument is False by default for consistency with tkinter’s
+<code class="docutils literal"><span class="pre">bind()</span></code> method.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last">The <em>data</em> option is documented as <code class="docutils literal"><span class="pre">-data</span> <span class="pre">string</span></code> in
+<a href="#id1"><span class="problematic" id="id2">:man:`event(3tk)`</span></a>.</p>
+</div>
 </dd></dl>
 
 <dl class="function">

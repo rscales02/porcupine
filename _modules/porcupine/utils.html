@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.utils &#8212; Porcupine API 0.34.0 documentation</title>
+    <title>porcupine.utils &#8212; Porcupine API 0.38.0 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.34.0',
+        VERSION:     '0.38.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -50,6 +50,7 @@
 <span class="kn">import</span> <span class="nn">pkgutil</span>
 <span class="kn">import</span> <span class="nn">platform</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">threading</span>
 <span class="kn">import</span> <span class="nn">tkinter</span> <span class="k">as</span> <span class="nn">tk</span>
@@ -247,23 +248,6 @@
     <span class="n">widget</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">shift_tab</span><span class="p">,</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span> <span class="o">**</span><span class="n">bind_kwargs</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="copy_bindings"><a class="viewcode-back" href="../../utils.html#porcupine.utils.copy_bindings">[docs]</a><span class="k">def</span> <span class="nf">copy_bindings</span><span class="p">(</span><span class="n">widget1</span><span class="p">,</span> <span class="n">widget2</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Add all bindings of *widget1* to *widget2*.</span>
-
-<span class="sd">    You may need to call ``copy_bindings(porcupine.get_main_window(), widget)``</span>
-<span class="sd">    on widgets that can be focused by clicking them, like ``Text`` and</span>
-<span class="sd">    ``Entry`` widgets. Porcupine&#39;s keyboard bindings return ``&#39;break&#39;``</span>
-<span class="sd">    and are bound to the main window, and thus work by default, but in</span>
-<span class="sd">    some cases returning ``&#39;break&#39;`` doesn&#39;t do anything when the focus</span>
-<span class="sd">    is in another widget inside the main window.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># tkinter&#39;s bind() can do quite a few different things depending</span>
-    <span class="c1"># on how it&#39;s invoked</span>
-    <span class="k">for</span> <span class="n">keysym</span> <span class="ow">in</span> <span class="n">widget1</span><span class="o">.</span><span class="n">bind</span><span class="p">():</span>
-        <span class="n">tcl_command</span> <span class="o">=</span> <span class="n">widget1</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">keysym</span><span class="p">)</span>
-        <span class="n">widget2</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">keysym</span><span class="p">,</span> <span class="n">tcl_command</span><span class="p">)</span></div>
-
-
 <div class="viewcode-block" id="bind_mouse_wheel"><a class="viewcode-back" href="../../utils.html#porcupine.utils.bind_mouse_wheel">[docs]</a><span class="k">def</span> <span class="nf">bind_mouse_wheel</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">prefixes</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">bind_kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Bind mouse wheel events to callback.</span>
 
@@ -295,6 +279,68 @@
 
         <span class="n">widget</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;</span><span class="si">{}</span><span class="s1">MouseWheel&gt;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prefixes</span><span class="p">),</span>
                     <span class="n">real_callback</span><span class="p">,</span> <span class="o">**</span><span class="n">bind_kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="bind_data_event"><a class="viewcode-back" href="../../utils.html#porcupine.utils.bind_data_event">[docs]</a><span class="k">def</span> <span class="nf">bind_data_event</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">sequence</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Bind a virtual event that supports passing data to a callback function.</span>
+
+<span class="sd">    This is a lot like ``widget.bind(sequence, func, add=add)``, except</span>
+<span class="sd">    that the function&#39;s argument will be the value of a *data* argument</span>
+<span class="sd">    passed to ``event_generate()`` instead of a ``tkinter.Event``</span>
+<span class="sd">    object. This function is needed because ``Event`` objects don&#39;t have</span>
+<span class="sd">    a *data* attribute for some reason, even on Python 3.7.</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        import tkinter as tk</span>
+<span class="sd">        from porcupine import utils</span>
+
+<span class="sd">        root = tk.Tk()</span>
+<span class="sd">        root.update()   # the widget must be visible for virtual events to work</span>
+<span class="sd">        utils.bind_data_event(root, &#39;&lt;&lt;Hello&gt;&gt;&#39;, print, add=True)</span>
+<span class="sd">        root.event_generate(&#39;&lt;&lt;Hello&gt;&gt;&#39;, data=&quot;hello&quot;)   # runs print(&quot;hello&quot;)</span>
+
+<span class="sd">    Note that the data is always converted to a string. The *add*</span>
+<span class="sd">    argument is False by default for consistency with tkinter&#39;s</span>
+<span class="sd">    ``bind()`` method.</span>
+
+<span class="sd">    .. seealso::</span>
+<span class="sd">        The *data* option is documented as ``-data string`` in</span>
+<span class="sd">        :man:`event(3tk)`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># %d means data here, not digit</span>
+    <span class="c1"># i could escape this with %%d or {{ }} instead of the .replace, but</span>
+    <span class="c1"># it would be overkill imo</span>
+    <span class="n">bind_script</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">    # make sure that returning &#39;break&#39; works, tkinter does this too</span>
+<span class="s1">    if {&quot;[FUNCNAME </span><span class="si">%d</span><span class="s1">]&quot; == &quot;break&quot;} {</span>
+<span class="s1">        break</span>
+<span class="s1">    }</span>
+<span class="s1">    &#39;&#39;&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;FUNCNAME&#39;</span><span class="p">,</span> <span class="n">widget</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
+
+    <span class="c1"># add=True doesn&#39;t work if the second argument to bind() is a string -_-</span>
+    <span class="c1"># bind(3tk) says: &quot;If script is prefixed with a &quot;+&quot;, then it is</span>
+    <span class="c1"># appended to any existing binding for sequence&quot;</span>
+    <span class="k">if</span> <span class="n">add</span><span class="p">:</span>
+        <span class="n">bind_script</span> <span class="o">=</span> <span class="s1">&#39;+&#39;</span> <span class="o">+</span> <span class="n">bind_script</span>
+    <span class="n">widget</span><span class="o">.</span><span class="n">tk</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s1">&#39;bind&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">widget</span><span class="p">),</span> <span class="n">sequence</span><span class="p">,</span> <span class="n">bind_script</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="copy_bindings"><a class="viewcode-back" href="../../utils.html#porcupine.utils.copy_bindings">[docs]</a><span class="k">def</span> <span class="nf">copy_bindings</span><span class="p">(</span><span class="n">widget1</span><span class="p">,</span> <span class="n">widget2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Add all bindings of *widget1* to *widget2*.</span>
+
+<span class="sd">    You may need to call ``copy_bindings(porcupine.get_main_window(), widget)``</span>
+<span class="sd">    on widgets that can be focused by clicking them, like ``Text`` and</span>
+<span class="sd">    ``Entry`` widgets. Porcupine&#39;s keyboard bindings return ``&#39;break&#39;``</span>
+<span class="sd">    and are bound to the main window, and thus work by default, but in</span>
+<span class="sd">    some cases returning ``&#39;break&#39;`` doesn&#39;t do anything when the focus</span>
+<span class="sd">    is in another widget inside the main window.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># tkinter&#39;s bind() can do quite a few different things depending</span>
+    <span class="c1"># on how it&#39;s invoked</span>
+    <span class="k">for</span> <span class="n">keysym</span> <span class="ow">in</span> <span class="n">widget1</span><span class="o">.</span><span class="n">bind</span><span class="p">():</span>
+        <span class="n">tcl_command</span> <span class="o">=</span> <span class="n">widget1</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">keysym</span><span class="p">)</span>
+        <span class="n">widget2</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">keysym</span><span class="p">,</span> <span class="n">tcl_command</span><span class="p">)</span></div>
 
 
 <span class="c1"># FIXME: is lru_cache() guaranteed to hold references? tkinter&#39;s images</span>

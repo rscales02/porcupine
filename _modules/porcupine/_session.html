@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine._session &#8212; Porcupine API 0.34.0 documentation</title>
+    <title>porcupine._session &#8212; Porcupine API 0.38.0 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.34.0',
+        VERSION:     '0.38.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -41,7 +41,6 @@
   <h1>Source code for porcupine._session</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">tkinter</span> <span class="k">as</span> <span class="nn">tk</span>
 <span class="kn">import</span> <span class="nn">traceback</span>
 <span class="kn">import</span> <span class="nn">webbrowser</span>
@@ -219,11 +218,6 @@
     <span class="n">add_action</span><span class="p">(</span><span class="n">textmethod</span><span class="p">(</span><span class="s1">&#39;select_all&#39;</span><span class="p">),</span> <span class="s2">&quot;Edit/Select All&quot;</span><span class="p">,</span>
                <span class="p">(</span><span class="s2">&quot;Ctrl+A&quot;</span><span class="p">,</span> <span class="s1">&#39;&lt;Control-a&gt;&#39;</span><span class="p">),</span> <span class="n">tabtypes</span><span class="o">=</span><span class="p">[</span><span class="n">tabs</span><span class="o">.</span><span class="n">FileTab</span><span class="p">])</span>
     <span class="n">menubar</span><span class="o">.</span><span class="n">get_menu</span><span class="p">(</span><span class="s2">&quot;Edit&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">add_separator</span><span class="p">()</span>
-
-    <span class="c1"># TODO: make this a plugin!</span>
-    <span class="n">add_action</span><span class="p">((</span><span class="k">lambda</span><span class="p">:</span> <span class="n">_tab_manager</span><span class="o">.</span><span class="n">current_tab</span><span class="o">.</span><span class="n">find</span><span class="p">()),</span>
-               <span class="s2">&quot;Edit/Find and Replace&quot;</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;Ctrl+F&quot;</span><span class="p">,</span> <span class="s1">&#39;&lt;Control-f&gt;&#39;</span><span class="p">),</span>
-               <span class="n">tabtypes</span><span class="o">=</span><span class="p">[</span><span class="n">tabs</span><span class="o">.</span><span class="n">FileTab</span><span class="p">])</span>
 
     <span class="c1"># TODO: make sure that things added by plugins appear here,</span>
     <span class="c1"># before the separator and &quot;Porcupine Settings&quot; (see get_menu)</span>

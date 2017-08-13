@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.tabs &#8212; Porcupine API 0.34.0 documentation</title>
+    <title>porcupine.tabs &#8212; Porcupine API 0.38.0 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.34.0',
+        VERSION:     '0.38.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -55,7 +55,7 @@
 
 <span class="c1"># FIXME: the damn find thing should be a plugin...</span>
 <span class="kn">import</span> <span class="nn">porcupine</span>
-<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">_dialogs</span><span class="p">,</span> <span class="n">_find</span><span class="p">,</span> <span class="n">filetypes</span><span class="p">,</span> <span class="n">textwidget</span><span class="p">,</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">_dialogs</span><span class="p">,</span> <span class="n">filetypes</span><span class="p">,</span> <span class="n">textwidget</span><span class="p">,</span> <span class="n">utils</span>
 <span class="kn">from</span> <span class="nn">porcupine.settings</span> <span class="k">import</span> <span class="n">config</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -565,8 +565,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">scrollbar</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">textwidget</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_findwidget</span> <span class="o">=</span> <span class="kc">None</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">mark_saved</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_top_label</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_status</span><span class="p">()</span>
@@ -747,15 +745,7 @@
             <span class="k">return</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
-        <span class="k">return</span> <span class="kc">True</span></div>
-
-    <span class="c1"># TODO: turn this into a plugin!</span>
-<div class="viewcode-block" id="FileTab.find"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.FileTab.find">[docs]</a>    <span class="k">def</span> <span class="nf">find</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;This method will hopefully be removed soon. Don&#39;t use it.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_findwidget</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;find widget not created yet, creating it&quot;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_findwidget</span> <span class="o">=</span> <span class="n">_find</span><span class="o">.</span><span class="n">Finder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">textwidget</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_findwidget</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="kc">True</span></div></div>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
