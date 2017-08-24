@@ -57,6 +57,7 @@ Python:</p>
 <span class="go">/home/akuli/.config/porcupine/plugins</span>
 </pre></div>
 </div>
+<p>You can also use <code class="docutils literal"><span class="pre">--print-plugins</span></code> as shown <a class="reference external" href="https://github.com/Akuli/porcupine/tree/master/more_plugins/">here</a>.</p>
 <p>Of course, your plugins are probably not in <code class="docutils literal"><span class="pre">/home/akuli/.config/porcupine/plugins</span></code>,
 so you need to run the above commands yourself to find out where your plugins
 should go. Rest of this tutorial calls this place <strong>the plugin directory</strong>.</p>
@@ -91,6 +92,9 @@ function.</p>
 </li>
 <li><p class="first">Usually plugins are files, but directories with an <code class="docutils literal"><span class="pre">__init__.py</span></code> in them
 work as well.</p>
+</li>
+<li><p class="first">Plugins can be imported like <code class="docutils literal"><span class="pre">import</span> <span class="pre">porcupine.plugins.hello</span></code>.
+That’s how Porcupine loads them.</p>
 </li>
 <li><p class="first">File and directory names starting with <code class="docutils literal"><span class="pre">_</span></code> are ignored.</p>
 </li>
