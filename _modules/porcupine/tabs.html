@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.tabs &#8212; Porcupine API 0.39.1 documentation</title>
+    <title>porcupine.tabs &#8212; Porcupine API 0.41.0 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.39.1',
+        VERSION:     '0.41.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -53,9 +53,8 @@
 <span class="kn">from</span> <span class="nn">tkinter</span> <span class="k">import</span> <span class="n">messagebox</span>
 <span class="kn">import</span> <span class="nn">traceback</span>
 
-<span class="c1"># FIXME: the damn find thing should be a plugin...</span>
 <span class="kn">import</span> <span class="nn">porcupine</span>
-<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">_dialogs</span><span class="p">,</span> <span class="n">filetypes</span><span class="p">,</span> <span class="n">textwidget</span><span class="p">,</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">_detach</span><span class="p">,</span> <span class="n">_dialogs</span><span class="p">,</span> <span class="n">filetypes</span><span class="p">,</span> <span class="n">textwidget</span><span class="p">,</span> <span class="n">utils</span>
 <span class="kn">from</span> <span class="nn">porcupine.settings</span> <span class="k">import</span> <span class="n">config</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -273,14 +272,26 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">current_tab</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="TabManager.close_tab"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.TabManager.close_tab">[docs]</a>    <span class="k">def</span> <span class="nf">close_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tab</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Remove a tab from the tab manager.</span>
+        <span class="sd">&quot;&quot;&quot;Destroy a tab without calling :meth:`~Tab.can_be_closed`.</span>
 
-<span class="sd">        The tab is also destroyed, so it cannot be added back to the tab</span>
-<span class="sd">        manager later.</span>
+<span class="sd">        This can also be used to close detached tabs. The closed tab</span>
+<span class="sd">        cannot be added back to the tab manager later.</span>
 
 <span class="sd">        .. seealso:: The :meth:`.Tab.can_be_closed` method.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_remove_detaching_tab</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tab</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">detached_tabs</span><span class="p">:</span>
+            <span class="c1"># the tab is a toplevel and thus it&#39;s notified of its</span>
+            <span class="c1"># childrens&#39; events and stuff bound to &lt;Destroy&gt; also run</span>
+            <span class="c1"># once for each child widget (with event.widget set to the</span>
+            <span class="c1"># child), so we&#39;ll untoplevelify it first to prevent that</span>
+            <span class="c1"># and keep plugins simple</span>
+            <span class="c1"># this wasn&#39;t easy to discover, i spent quite a while trying</span>
+            <span class="c1"># to figure out what was wrong</span>
+            <span class="n">tab</span><span class="o">.</span><span class="n">tk</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s1">&#39;wm&#39;</span><span class="p">,</span> <span class="s1">&#39;forget&#39;</span><span class="p">,</span> <span class="n">tab</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">detached_tabs</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_remove_detaching_tab</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
+
         <span class="n">tab</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span></div>
 
     <span class="k">def</span> <span class="nf">_select_next_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">diff</span><span class="p">,</span> <span class="n">roll_over</span><span class="p">):</span>
@@ -345,8 +356,75 @@
             <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="Tab"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.Tab">[docs]</a><span class="k">class</span> <span class="nc">Tab</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">Frame</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;A tab widget that can be added to TabManager.</span>
+<span class="k">class</span> <span class="nc">_TabDetacher</span><span class="p">(</span><span class="n">_detach</span><span class="o">.</span><span class="n">Detacher</span><span class="p">):</span>
+
+    <span class="c1"># explicit &gt; implicit, so self.tab &gt; self.labelframe</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tab</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tab</span> <span class="o">=</span> <span class="n">tab</span>
+
+        <span class="c1"># this label is displayed as the tab&#39;s labelwidget when needed,</span>
+        <span class="c1"># and it automagically gets the same config as the real top</span>
+        <span class="c1"># label (but no bindings)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_top_label</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">tab</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                                   <span class="n">border</span><span class="o">=</span><span class="n">tab</span><span class="p">[</span><span class="s1">&#39;border&#39;</span><span class="p">],</span> <span class="n">relief</span><span class="o">=</span><span class="s1">&#39;sunken&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_top_label</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Button1-Motion&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_attaching_drag</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_top_label</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;ButtonRelease-1&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_attaching_drop</span><span class="p">)</span>
+        <span class="n">tab</span><span class="o">.</span><span class="n">top_label</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Configure&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_top_label</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># the tab&#39;s border is usually 0 so it doesn&#39;t look like a</span>
+        <span class="c1"># LabelFrame, but it&#39;s restored back to the original border when</span>
+        <span class="c1"># the tab is detached</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_orig_border</span> <span class="o">=</span> <span class="n">tab</span><span class="p">[</span><span class="s1">&#39;border&#39;</span><span class="p">]</span>
+        <span class="n">tab</span><span class="p">[</span><span class="s1">&#39;border&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># highlightthickness is space on the outside of the visible</span>
+        <span class="c1"># border line, padx and pady are on the inside</span>
+        <span class="n">tab</span><span class="p">[</span><span class="s1">&#39;highlightcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tab</span><span class="p">[</span><span class="s1">&#39;highlightbackground&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tab</span><span class="p">[</span><span class="s1">&#39;background&#39;</span><span class="p">]</span>
+        <span class="n">tab</span><span class="p">[</span><span class="s1">&#39;highlightthickness&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tab</span><span class="p">[</span><span class="s1">&#39;padx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tab</span><span class="p">[</span><span class="s1">&#39;pady&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">detach</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">_remove_detaching_tab</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">detached_tabs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="o">.</span><span class="n">on_focus</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="p">[</span><span class="s1">&#39;labelwidget&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_top_label</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="p">[</span><span class="s1">&#39;border&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_orig_border</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="p">[</span><span class="s1">&#39;highlightthickness&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="p">[</span><span class="s1">&#39;padx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="p">[</span><span class="s1">&#39;pady&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">7</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="o">.</span><span class="n">tk</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s1">&#39;wm&#39;</span><span class="p">,</span> <span class="s1">&#39;protocol&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="p">,</span> <span class="s1">&#39;WM_DELETE_WINDOW&#39;</span><span class="p">,</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_maybe_close</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_top_label</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">attach</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="p">[</span><span class="s1">&#39;labelwidget&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="p">[</span><span class="s1">&#39;border&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="p">[</span><span class="s1">&#39;highlightthickness&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="p">[</span><span class="s1">&#39;padx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="p">[</span><span class="s1">&#39;pady&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">attach</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">detached_tabs</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">_add_attaching_tab</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="o">.</span><span class="n">on_focus</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_update_top_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="o">.</span><span class="n">top_label</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c1"># some keys are handled specially by our top label</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;padx&#39;</span><span class="p">,</span> <span class="s1">&#39;pady&#39;</span><span class="p">,</span> <span class="s1">&#39;relief&#39;</span><span class="p">}:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_top_label</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tab</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">detached_tabs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="o">.</span><span class="n">tk</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s1">&#39;wm&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="p">,</span>
+                             <span class="bp">self</span><span class="o">.</span><span class="n">_top_label</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_maybe_close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="o">.</span><span class="n">can_be_closed</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">close_tab</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Tab"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.Tab">[docs]</a><span class="k">class</span> <span class="nc">Tab</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">LabelFrame</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Base class for widgets that can be added to TabManager.</span>
 
 <span class="sd">    You can easily create custom kinds of tabs by inheriting from this</span>
 <span class="sd">    class. Here&#39;s a very minimal but complete example plugin::</span>
@@ -370,9 +448,9 @@
 
 <span class="sd">    There are no hooks that run when detaching or attaching the tab</span>
 <span class="sd">    because you shouldn&#39;t need to worry about it. The implementation</span>
-<span class="sd">    doesn&#39;t destroy the widgets and create them again or anything like</span>
-<span class="sd">    that. However, you can check if a tab is detached with</span>
-<span class="sd">    :attr:`~TabManager.detached_tabs`.</span>
+<span class="sd">    doesn&#39;t destroy the widgets and create them again or anything that</span>
+<span class="sd">    stupid, but you can check if a tab is detached with</span>
+<span class="sd">    :attr:`.TabManager.detached_tabs`.</span>
 
 <span class="sd">    .. virtualevent:: StatusChanged</span>
 
@@ -388,8 +466,6 @@
 
 <span class="sd">        This is ``&#39;&#39;`` by default, but that can be changed like</span>
 <span class="sd">        ``tab.status = something_new``.</span>
-
-<span class="sd">        .. TODO: we need some way to link to virtual event docs -_-</span>
 
 <span class="sd">        If you&#39;re writing something like a status bar, make sure to</span>
 <span class="sd">        handle ``\t`` characters and bind :virtevt:`~StatusChanged`.</span>
@@ -408,51 +484,53 @@
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">manager</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">manager</span><span class="p">)</span>
+
+        <span class="c1"># the main window bindings are meant to be set on the current</span>
+        <span class="c1"># toplevel window, so they must be there when the tab is detached</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">copy_bindings</span><span class="p">(</span><span class="n">porcupine</span><span class="o">.</span><span class="n">get_main_window</span><span class="p">(),</span> <span class="bp">self</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 
         <span class="k">def</span> <span class="nf">select_me</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
-            <span class="n">manager</span><span class="o">.</span><span class="n">current_tab</span> <span class="o">=</span> <span class="bp">self</span>
+            <span class="c1"># detached tabs are always &quot;selected&quot; in their own window</span>
+            <span class="k">if</span> <span class="bp">self</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">manager</span><span class="o">.</span><span class="n">detached_tabs</span><span class="p">:</span>
+                <span class="n">manager</span><span class="o">.</span><span class="n">current_tab</span> <span class="o">=</span> <span class="bp">self</span>
 
-        <span class="k">def</span> <span class="nf">add_top_bindings</span><span class="p">(</span><span class="n">widget</span><span class="p">):</span>
-            <span class="n">widget</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Button-1&gt;&#39;</span><span class="p">,</span> <span class="n">select_me</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="n">widget</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Button1-Motion&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_drag</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="n">widget</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;ButtonRelease-1&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_drop</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="n">utils</span><span class="o">.</span><span class="n">bind_mouse_wheel</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">manager</span><span class="o">.</span><span class="n">_on_wheel</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
+        <span class="c1"># the manager will grid _topframe later</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_topframe</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="n">manager</span><span class="o">.</span><span class="n">_topframeframe</span><span class="p">,</span>
                                   <span class="n">border</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Destroy&gt;&#39;</span><span class="p">,</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">event</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_topframe</span><span class="o">.</span><span class="n">destroy</span><span class="p">()),</span>
-                  <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">add_top_bindings</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_topframe</span><span class="p">)</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">top_label</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_topframe</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">top_label</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
-        <span class="n">add_top_bindings</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">top_label</span><span class="p">)</span>
-
-        <span class="n">manager</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;CurrentTabChanged&gt;&gt;&#39;</span><span class="p">,</span>
-                     <span class="bp">self</span><span class="o">.</span><span class="n">_update_top_relief</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_update_top_relief</span><span class="p">()</span>
 
         <span class="k">def</span> <span class="nf">_close_if_can</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">can_be_closed</span><span class="p">():</span>
                 <span class="n">manager</span><span class="o">.</span><span class="n">close_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
-        <span class="n">closebutton</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_topframe</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="n">utils</span><span class="o">.</span><span class="n">get_image</span><span class="p">(</span><span class="s1">&#39;closebutton.gif&#39;</span><span class="p">))</span>
+        <span class="n">closebutton</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_topframe</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="s1">&#39;img_closebutton&#39;</span><span class="p">)</span>
         <span class="n">closebutton</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
         <span class="n">closebutton</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Button-1&gt;&#39;</span><span class="p">,</span> <span class="n">_close_if_can</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_help_window</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Toplevel</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_help_window</span><span class="o">.</span><span class="n">withdraw</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_help_window</span><span class="o">.</span><span class="n">overrideredirect</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">add_top_bindings</span><span class="p">(</span><span class="n">widget</span><span class="p">):</span>
+            <span class="n">widget</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Button-1&gt;&#39;</span><span class="p">,</span> <span class="n">select_me</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">widget</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Button1-Motion&gt;&#39;</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_detacher</span><span class="o">.</span><span class="n">on_detaching_drag</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">widget</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;ButtonRelease-1&gt;&#39;</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_detacher</span><span class="o">.</span><span class="n">on_detaching_drop</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">bind_mouse_wheel</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">manager</span><span class="o">.</span><span class="n">_on_wheel</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="n">label</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_help_window</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="s1">&#39;#ffff99&#39;</span><span class="p">,</span>
-            <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Drop the tab here</span><span class="se">\n</span><span class="s2">to detach it...&quot;</span><span class="p">)</span>
-        <span class="n">label</span><span class="o">.</span><span class="n">pack</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_label_size</span> <span class="o">=</span> <span class="p">(</span><span class="n">label</span><span class="o">.</span><span class="n">winfo_reqwidth</span><span class="p">(),</span> <span class="n">label</span><span class="o">.</span><span class="n">winfo_reqheight</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_detacher</span> <span class="o">=</span> <span class="n">_TabDetacher</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">add_top_bindings</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_topframe</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_attach_tcl_command</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_attach</span><span class="p">)</span>
+        <span class="c1"># the topframe is not in the tab, so it&#39;s not destroyed when the</span>
+        <span class="c1"># tab is destroyed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Destroy&gt;&#39;</span><span class="p">,</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">event</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_topframe</span><span class="o">.</span><span class="n">destroy</span><span class="p">()),</span>
+                  <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">add_top_bindings</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">top_label</span><span class="p">)</span>
+
+        <span class="n">manager</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;CurrentTabChanged&gt;&gt;&#39;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">_update_top_relief</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_top_relief</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_update_top_relief</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">current_tab</span> <span class="ow">is</span> <span class="bp">self</span><span class="p">:</span>
@@ -462,53 +540,6 @@
             <span class="c1"># we need to check for that</span>
             <span class="k">if</span> <span class="bp">self</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">tabs</span><span class="p">:</span>       <span class="c1"># not closed</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_topframe</span><span class="p">[</span><span class="s1">&#39;relief&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;raised&#39;</span>
-
-    <span class="c1"># drag and drop and detach stuff</span>
-    <span class="k">def</span> <span class="nf">_on_drag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-        <span class="n">window</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">winfo_toplevel</span><span class="p">()</span>
-
-        <span class="c1"># event.x_root and event.y_root are relative to the whole</span>
-        <span class="c1"># screen, these are relative to the window</span>
-        <span class="n">mouse_x</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">x_root</span> <span class="o">-</span> <span class="n">window</span><span class="o">.</span><span class="n">winfo_x</span><span class="p">()</span>
-        <span class="n">mouse_y</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">y_root</span> <span class="o">-</span> <span class="n">window</span><span class="o">.</span><span class="n">winfo_y</span><span class="p">()</span>
-
-        <span class="k">if</span> <span class="p">(</span><span class="mi">0</span> <span class="o">&lt;</span> <span class="n">mouse_x</span> <span class="o">&lt;</span> <span class="n">window</span><span class="o">.</span><span class="n">winfo_width</span><span class="p">()</span> <span class="ow">and</span>
-                <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">mouse_y</span> <span class="o">&lt;</span> <span class="n">window</span><span class="o">.</span><span class="n">winfo_height</span><span class="p">()):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_help_window</span><span class="o">.</span><span class="n">withdraw</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">x_root</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span>     <span class="c1"># centered</span>
-            <span class="n">y</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">y_root</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label_size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">10</span>     <span class="c1"># 10px above cursor</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_help_window</span><span class="o">.</span><span class="n">deiconify</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_help_window</span><span class="o">.</span><span class="n">geometry</span><span class="p">(</span><span class="s1">&#39;+</span><span class="si">%d</span><span class="s1">+</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
-
-    <span class="k">def</span> <span class="nf">_on_drop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_help_window</span><span class="o">.</span><span class="n">state</span><span class="p">()</span> <span class="o">!=</span> <span class="s1">&#39;withdrawn&#39;</span><span class="p">:</span>
-            <span class="c1"># let&#39;s get detached :D</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_help_window</span><span class="o">.</span><span class="n">withdraw</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">_remove_detaching_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-
-            <span class="c1"># only toplevels and root windows have wm methods :(</span>
-            <span class="n">window</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">winfo_toplevel</span><span class="p">()</span>   <span class="c1"># must be before the wm manage</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">tk</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s1">&#39;wm&#39;</span><span class="p">,</span> <span class="s1">&#39;manage&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">tk</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s1">&#39;wm&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">top_label</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">])</span>  <span class="c1"># FIXME</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">tk</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s1">&#39;wm&#39;</span><span class="p">,</span> <span class="s1">&#39;protocol&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;WM_DELETE_WINDOW&#39;</span><span class="p">,</span>
-                         <span class="bp">self</span><span class="o">.</span><span class="n">_attach_tcl_command</span><span class="p">)</span>
-
-            <span class="c1"># center the detached window on the main window</span>
-            <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="mi">400</span><span class="p">,</span> <span class="mi">300</span>      <span class="c1"># TODO: don&#39;t hard-code this</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">x_root</span> <span class="o">-</span> <span class="n">width</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-            <span class="n">y</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">y_root</span> <span class="o">-</span> <span class="n">height</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">tk</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s1">&#39;wm&#39;</span><span class="p">,</span> <span class="s1">&#39;geometry&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span>
-                         <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">x</span><span class="si">%d</span><span class="s1">+</span><span class="si">%d</span><span class="s1">+</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">on_focus</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">detached_tabs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_attach</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tk</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s1">&#39;wm&#39;</span><span class="p">,</span> <span class="s1">&#39;forget&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">_add_attaching_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">on_focus</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">detached_tabs</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

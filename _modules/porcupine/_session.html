@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine._session &#8212; Porcupine API 0.39.1 documentation</title>
+    <title>porcupine._session &#8212; Porcupine API 0.41.0 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.39.1',
+        VERSION:     '0.41.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -118,19 +118,14 @@
 <span class="sd">    :meth:`closed &lt;porcupine.tabs.TabManager.close_tab&gt;` and the main</span>
 <span class="sd">    window is destroyed.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">for</span> <span class="n">tab</span> <span class="ow">in</span> <span class="n">_tab_manager</span><span class="o">.</span><span class="n">tabs</span> <span class="o">+</span> <span class="n">_tab_manager</span><span class="o">.</span><span class="n">detached_tabs</span><span class="p">:</span>
+    <span class="n">all_tabs</span> <span class="o">=</span> <span class="n">_tab_manager</span><span class="o">.</span><span class="n">tabs</span> <span class="o">+</span> <span class="n">_tab_manager</span><span class="o">.</span><span class="n">detached_tabs</span>
+    <span class="k">for</span> <span class="n">tab</span> <span class="ow">in</span> <span class="n">all_tabs</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">tab</span><span class="o">.</span><span class="n">can_be_closed</span><span class="p">():</span>
             <span class="k">return</span>
         <span class="c1"># the tabs must not be closed here, otherwise some of them</span>
         <span class="c1"># are closed if not all tabs can be closed</span>
 
-    <span class="c1"># the copies are needed because attaching and closing tabs modifies</span>
-    <span class="c1"># the lists that are being looped over</span>
-    <span class="c1"># FIXME: TabManager.close_tab() should also handle detached</span>
-    <span class="c1">#        tabs, using _attach() here is shit</span>
-    <span class="k">for</span> <span class="n">tab</span> <span class="ow">in</span> <span class="n">_tab_manager</span><span class="o">.</span><span class="n">detached_tabs</span><span class="o">.</span><span class="n">copy</span><span class="p">():</span>
-        <span class="n">tab</span><span class="o">.</span><span class="n">_attach</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">tab</span> <span class="ow">in</span> <span class="n">_tab_manager</span><span class="o">.</span><span class="n">tabs</span><span class="o">.</span><span class="n">copy</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">tab</span> <span class="ow">in</span> <span class="n">all_tabs</span><span class="p">:</span>
         <span class="n">_tab_manager</span><span class="o">.</span><span class="n">close_tab</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
     <span class="n">_main_window</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span></div>
 

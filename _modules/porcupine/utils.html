@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.utils &#8212; Porcupine API 0.39.1 documentation</title>
+    <title>porcupine.utils &#8212; Porcupine API 0.41.0 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.39.1',
+        VERSION:     '0.41.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -57,6 +57,7 @@
 <span class="kn">import</span> <span class="nn">traceback</span>
 
 <span class="kn">import</span> <span class="nn">porcupine</span>
+<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">dirs</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -338,38 +339,40 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># tkinter&#39;s bind() can do quite a few different things depending</span>
     <span class="c1"># on how it&#39;s invoked</span>
-    <span class="k">for</span> <span class="n">keysym</span> <span class="ow">in</span> <span class="n">widget1</span><span class="o">.</span><span class="n">bind</span><span class="p">():</span>
-        <span class="n">tcl_command</span> <span class="o">=</span> <span class="n">widget1</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">keysym</span><span class="p">)</span>
-        <span class="n">widget2</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">keysym</span><span class="p">,</span> <span class="n">tcl_command</span><span class="p">)</span></div>
+    <span class="k">for</span> <span class="n">sequence</span> <span class="ow">in</span> <span class="n">widget1</span><span class="o">.</span><span class="n">bind</span><span class="p">():</span>
+        <span class="n">tcl_command</span> <span class="o">=</span> <span class="n">widget1</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+
+        <span class="c1"># add=True doesn&#39;t work if the command is a string :(</span>
+        <span class="n">widget2</span><span class="o">.</span><span class="n">tk</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s1">&#39;bind&#39;</span><span class="p">,</span> <span class="n">widget2</span><span class="p">,</span> <span class="n">sequence</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span> <span class="o">+</span> <span class="n">tcl_command</span><span class="p">)</span></div>
 
 
-<span class="c1"># FIXME: is lru_cache() guaranteed to hold references? tkinter&#39;s images</span>
-<span class="c1"># use __del__ and it&#39;s important to hold a reference to them as long as</span>
-<span class="c1"># they&#39;re used somewhere</span>
-<div class="viewcode-block" id="get_image"><a class="viewcode-back" href="../../utils.html#porcupine.utils.get_image">[docs]</a><span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">get_image</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create a ``tkinter.PhotoImage`` from a file in ``porcupine/images``.</span>
-
-<span class="sd">    This function is cached and the cache holds references to all</span>
-<span class="sd">    returned images, so there&#39;s no need to worry about calling this</span>
-<span class="sd">    function too many times or keeping references to the returned</span>
-<span class="sd">    images.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># only gif images should be added to porcupine/images, other image</span>
-    <span class="c1"># formats don&#39;t work with old Tk versions</span>
-    <span class="n">data</span> <span class="o">=</span> <span class="n">pkgutil</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="s1">&#39;porcupine&#39;</span><span class="p">,</span> <span class="s1">&#39;images/&#39;</span> <span class="o">+</span> <span class="n">filename</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">tk</span><span class="o">.</span><span class="n">PhotoImage</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;gif&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">data</span><span class="p">))</span></div>
-
-
-<span class="c1"># cpython exits like this:</span>
+<span class="c1"># tkinter images destroy themselves on __del__. here&#39;s how cpython exits:</span>
+<span class="c1">#</span>
 <span class="c1">#   1) atexit callbacks run</span>
-<span class="c1">#   2) module globals are set to None (wtf lol)</span>
+<span class="c1">#   2) module globals are set to None (lol)</span>
 <span class="c1">#   3) all objects are destroyed and __del__ methods run</span>
 <span class="c1">#</span>
-<span class="c1"># the problem here is that tkinter.Image.__del__ does &quot;except TclError&quot;,</span>
-<span class="c1"># but tkinter.TclError is already None, it&#39;s not a big deal but this</span>
-<span class="c1"># silences those errors</span>
-<span class="n">atexit</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">get_image</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">)</span>
+<span class="c1"># tkinter.Image.__del__ destroys the image, and that uses</span>
+<span class="c1"># &quot;except TclError&quot;. this causes means two things:</span>
+<span class="c1">#</span>
+<span class="c1">#   - it&#39;s necessary to hold references to the images to avoid calling</span>
+<span class="c1">#     __del__ while they&#39;re being used somewhere</span>
+<span class="c1">#   - the images must be destroyed before step 2 above</span>
+<span class="n">_images</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">atexit</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">_images</span><span class="o">.</span><span class="n">clear</span><span class="p">)</span>
+
+
+<span class="c1"># TODO: document this behavior</span>
+<span class="k">def</span> <span class="nf">_init_images</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirs</span><span class="o">.</span><span class="n">installdir</span><span class="p">,</span> <span class="s1">&#39;images&#39;</span><span class="p">)):</span>
+        <span class="n">no_ext</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="c1"># only gif images should be added to porcupine/images, other</span>
+        <span class="c1"># image formats don&#39;t work with old Tk versions</span>
+        <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s1">&#39;.gif&#39;</span><span class="p">:</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">PhotoImage</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;img_&#39;</span> <span class="o">+</span> <span class="n">no_ext</span><span class="p">),</span>
+                <span class="n">file</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirs</span><span class="o">.</span><span class="n">installdir</span><span class="p">,</span> <span class="s1">&#39;images&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="p">))</span>
+            <span class="n">_images</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="errordialog"><a class="viewcode-back" href="../../utils.html#porcupine.utils.errordialog">[docs]</a><span class="k">def</span> <span class="nf">errordialog</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">monospace_text</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>

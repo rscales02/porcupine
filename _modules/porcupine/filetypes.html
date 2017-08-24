@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.filetypes &#8212; Porcupine API 0.39.1 documentation</title>
+    <title>porcupine.filetypes &#8212; Porcupine API 0.41.0 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.39.1',
+        VERSION:     '0.41.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -55,6 +55,7 @@
 <span class="kn">import</span> <span class="nn">pygments.lexer</span>
 <span class="kn">import</span> <span class="nn">pygments.lexers</span>
 <span class="kn">import</span> <span class="nn">pygments.token</span>
+<span class="kn">import</span> <span class="nn">pygments.util</span>     <span class="c1"># for ClassNotFound</span>
 
 <span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">utils</span>
 
@@ -156,7 +157,11 @@
 
     <span class="c1"># sometimes pygments uses python 3 lexer correctly and we must not</span>
     <span class="c1"># do weird workarounds</span>
-    <span class="n">temp_lexer</span> <span class="o">=</span> <span class="n">pygments</span><span class="o">.</span><span class="n">lexers</span><span class="o">.</span><span class="n">get_lexer_for_filename</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">temp_lexer</span> <span class="o">=</span> <span class="n">pygments</span><span class="o">.</span><span class="n">lexers</span><span class="o">.</span><span class="n">get_lexer_for_filename</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">pygments</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">ClassNotFound</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">filetypes</span><span class="p">[</span><span class="s1">&#39;Text only&#39;</span><span class="p">]</span>
+
     <span class="k">if</span> <span class="n">temp_lexer</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;Python 3&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">filetypes</span><span class="p">[</span><span class="s1">&#39;Python&#39;</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">temp_lexer</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;Python 3.0 Traceback&#39;</span><span class="p">:</span>

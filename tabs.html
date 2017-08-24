@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.tabs — The tab manager and tabs in it &#8212; Porcupine API 0.39.1 documentation</title>
+    <title>porcupine.tabs — The tab manager and tabs in it &#8212; Porcupine API 0.41.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.39.1',
+        VERSION:     '0.41.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -146,9 +146,9 @@ the tab that is returned.</p>
 <dl class="method">
 <dt id="porcupine.tabs.TabManager.close_tab">
 <code class="descname">close_tab</code><span class="sig-paren">(</span><em>tab</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/tabs.html#TabManager.close_tab"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.tabs.TabManager.close_tab" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove a tab from the tab manager.</p>
-<p>The tab is also destroyed, so it cannot be added back to the tab
-manager later.</p>
+<dd><p>Destroy a tab without calling <a class="reference internal" href="#porcupine.tabs.Tab.can_be_closed" title="porcupine.tabs.Tab.can_be_closed"><code class="xref py py-meth docutils literal"><span class="pre">can_be_closed()</span></code></a>.</p>
+<p>This can also be used to close detached tabs. The closed tab
+cannot be added back to the tab manager later.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last">The <a class="reference internal" href="#porcupine.tabs.Tab.can_be_closed" title="porcupine.tabs.Tab.can_be_closed"><code class="xref py py-meth docutils literal"><span class="pre">Tab.can_be_closed()</span></code></a> method.</p>
@@ -188,7 +188,7 @@ tab was changed.</p>
 <dl class="class">
 <dt id="porcupine.tabs.Tab">
 <em class="property">class </em><code class="descclassname">porcupine.tabs.</code><code class="descname">Tab</code><span class="sig-paren">(</span><em>manager</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/tabs.html#Tab"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.tabs.Tab" title="Permalink to this definition">¶</a></dt>
-<dd><p>A tab widget that can be added to TabManager.</p>
+<dd><p>Base class for widgets that can be added to TabManager.</p>
 <p>You can easily create custom kinds of tabs by inheriting from this
 class. Here’s a very minimal but complete example plugin:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tkinter</span> <span class="k">as</span> <span class="nn">tk</span>
@@ -211,9 +211,9 @@ class. Here’s a very minimal but complete example plugin:</p>
 </div>
 <p>There are no hooks that run when detaching or attaching the tab
 because you shouldn’t need to worry about it. The implementation
-doesn’t destroy the widgets and create them again or anything like
-that. However, you can check if a tab is detached with
-<a class="reference internal" href="#porcupine.tabs.TabManager.detached_tabs" title="porcupine.tabs.TabManager.detached_tabs"><code class="xref py py-attr docutils literal"><span class="pre">detached_tabs</span></code></a>.</p>
+doesn’t destroy the widgets and create them again or anything that
+stupid, but you can check if a tab is detached with
+<a class="reference internal" href="#porcupine.tabs.TabManager.detached_tabs" title="porcupine.tabs.TabManager.detached_tabs"><code class="xref py py-attr docutils literal"><span class="pre">TabManager.detached_tabs</span></code></a>.</p>
 <dl class="virtualevent">
 <dt id="porcupine.tabs.Tab.StatusChanged">
 <em class="property">virtual event </em><code class="descname">&lt;&lt;StatusChanged&gt;&gt;</code><a class="headerlink" href="#porcupine.tabs.Tab.StatusChanged" title="Permalink to this definition">¶</a></dt>
