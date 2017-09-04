@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.filetypes &#8212; Porcupine API 0.41.0 documentation</title>
+    <title>porcupine.filetypes &#8212; Porcupine API 0.52.0 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.41.0',
+        VERSION:     '0.52.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -48,9 +48,6 @@
 <span class="kn">import</span> <span class="nn">platform</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">shlex</span>
-<span class="kn">import</span> <span class="nn">shutil</span>
-<span class="kn">import</span> <span class="nn">subprocess</span>
-<span class="kn">import</span> <span class="nn">sys</span>
 
 <span class="kn">import</span> <span class="nn">pygments.lexer</span>
 <span class="kn">import</span> <span class="nn">pygments.lexers</span>
@@ -208,6 +205,8 @@
         <span class="s1">&#39;run_command&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">{file}</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">utils</span><span class="o">.</span><span class="n">short_python_command</span><span class="p">,</span>
         <span class="s1">&#39;lint_command&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> -m flake8 </span><span class="si">{file}</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">utils</span><span class="o">.</span><span class="n">short_python_command</span><span class="p">,</span>
     <span class="p">}</span>
+
+    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;Tcl&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;indent_size&#39;</span><span class="p">:</span> <span class="s1">&#39;3&#39;</span><span class="p">}</span>
 
     <span class="c1"># 79 comes from documentation-style-guide-sphinx.readthedocs.io</span>
     <span class="n">config</span><span class="p">[</span><span class="s1">&#39;reStructuredText&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>

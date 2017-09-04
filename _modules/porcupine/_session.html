@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine._session &#8212; Porcupine API 0.41.0 documentation</title>
+    <title>porcupine._session &#8212; Porcupine API 0.52.0 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.41.0',
+        VERSION:     '0.52.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -41,7 +41,6 @@
   <h1>Source code for porcupine._session</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">tkinter</span> <span class="k">as</span> <span class="nn">tk</span>
 <span class="kn">import</span> <span class="nn">traceback</span>
 <span class="kn">import</span> <span class="nn">webbrowser</span>
 
@@ -49,14 +48,11 @@
 <span class="kn">import</span> <span class="nn">pygments.token</span>
 
 <span class="kn">import</span> <span class="nn">porcupine</span>
-<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="p">(</span><span class="n">_dialogs</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">filetypes</span><span class="p">,</span> <span class="n">menubar</span><span class="p">,</span>
-                       <span class="n">settingdialog</span><span class="p">,</span> <span class="n">tabs</span><span class="p">,</span> <span class="n">utils</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">porcupine.settings</span> <span class="k">import</span> <span class="n">config</span>
+<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">_dialogs</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">filetypes</span><span class="p">,</span> <span class="n">menubar</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">tabs</span><span class="p">,</span> <span class="n">utils</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
-<span class="c1"># global state makes some things a lot easier, e.g.</span>
-<span class="c1"># &quot;porcupine.open_file(path)&quot;</span>
+<span class="c1"># global state makes some things a lot easier</span>
 <span class="n">_main_window</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="n">_tab_manager</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -74,10 +70,10 @@
 
 <span class="sd">    Example::</span>
 
-<span class="sd">        import tkinter as tk</span>
+<span class="sd">        import tkinter</span>
 <span class="sd">        import porcupine</span>
 
-<span class="sd">        root = tk.Tk()</span>
+<span class="sd">        root = tkinter.Tk()</span>
 <span class="sd">        porcupine.init(root)</span>
 <span class="sd">        root.protocol(&#39;WM_DELETE_WINDOW&#39;, porcupine.quit)</span>
 <span class="sd">        root.mainloop()</span>
@@ -88,19 +84,17 @@
     <span class="k">assert</span> <span class="p">[</span><span class="n">_main_window</span><span class="p">,</span> <span class="n">_tab_manager</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span>
         <span class="s2">&quot;porcupine seems to be partially initialized&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">_main_window</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.init() was called twice&quot;</span> <span class="o">%</span> <span class="vm">__name__</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;porcupine.init() was called twice&quot;</span><span class="p">)</span>
     <span class="n">_main_window</span> <span class="o">=</span> <span class="n">window</span>    <span class="c1"># get_main_window() works from now on</span>
+
+    <span class="n">utils</span><span class="o">.</span><span class="n">_init_images</span><span class="p">()</span>
+    <span class="n">filetypes</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+    <span class="n">dirs</span><span class="o">.</span><span class="n">makedirs</span><span class="p">()</span>
 
     <span class="n">_tab_manager</span> <span class="o">=</span> <span class="n">tabs</span><span class="o">.</span><span class="n">TabManager</span><span class="p">(</span><span class="n">window</span><span class="p">)</span>
     <span class="n">_tab_manager</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">_make_welcome_msg</span><span class="p">(</span><span class="n">_tab_manager</span><span class="o">.</span><span class="n">no_tabs_frame</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">binding</span><span class="p">,</span> <span class="n">callback</span> <span class="ow">in</span> <span class="n">_tab_manager</span><span class="o">.</span><span class="n">bindings</span><span class="p">:</span>
         <span class="n">window</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">binding</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-    <span class="n">filetypes</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
-    <span class="n">dirs</span><span class="o">.</span><span class="n">makedirs</span><span class="p">()</span>
-    <span class="n">config</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
-    <span class="n">settingdialog</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
 
     <span class="n">menubar</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
     <span class="n">window</span><span class="p">[</span><span class="s1">&#39;menu&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">menubar</span><span class="o">.</span><span class="n">get_menu</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
@@ -118,14 +112,14 @@
 <span class="sd">    :meth:`closed &lt;porcupine.tabs.TabManager.close_tab&gt;` and the main</span>
 <span class="sd">    window is destroyed.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">all_tabs</span> <span class="o">=</span> <span class="n">_tab_manager</span><span class="o">.</span><span class="n">tabs</span> <span class="o">+</span> <span class="n">_tab_manager</span><span class="o">.</span><span class="n">detached_tabs</span>
-    <span class="k">for</span> <span class="n">tab</span> <span class="ow">in</span> <span class="n">all_tabs</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">tab</span> <span class="ow">in</span> <span class="n">_tab_manager</span><span class="o">.</span><span class="n">tabs</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">tab</span><span class="o">.</span><span class="n">can_be_closed</span><span class="p">():</span>
             <span class="k">return</span>
         <span class="c1"># the tabs must not be closed here, otherwise some of them</span>
         <span class="c1"># are closed if not all tabs can be closed</span>
 
-    <span class="k">for</span> <span class="n">tab</span> <span class="ow">in</span> <span class="n">all_tabs</span><span class="p">:</span>
+    <span class="c1"># closing tabs removes them from the tabs list, that&#39;s why copying</span>
+    <span class="k">for</span> <span class="n">tab</span> <span class="ow">in</span> <span class="n">_tab_manager</span><span class="o">.</span><span class="n">tabs</span><span class="o">.</span><span class="n">copy</span><span class="p">():</span>
         <span class="n">_tab_manager</span><span class="o">.</span><span class="n">close_tab</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
     <span class="n">_main_window</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span></div>
 
@@ -133,7 +127,7 @@
 <div class="viewcode-block" id="get_main_window"><a class="viewcode-back" href="../../porcupine.html#porcupine.get_main_window">[docs]</a><span class="k">def</span> <span class="nf">get_main_window</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;Return the widget passed to :func:`~init`.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">_main_window</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.init() wasn&#39;t called&quot;</span> <span class="o">%</span> <span class="vm">__name__</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;porcupine.init() wasn&#39;t called&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">_main_window</span></div>
 
 
@@ -141,40 +135,25 @@
     <span class="sd">&quot;&quot;&quot;Return the :class:`porcupine.tabs.TabManager` widget in the main window.</span>
 <span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># these are on a separate line because pep-8 line length</span>
     <span class="k">if</span> <span class="n">_tab_manager</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.init() wasn&#39;t called&quot;</span> <span class="o">%</span> <span class="vm">__name__</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;porcupine.init() wasn&#39;t called&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">_tab_manager</span></div>
 
 
-<span class="k">def</span> <span class="nf">_make_welcome_msg</span><span class="p">(</span><span class="n">frame</span><span class="p">):</span>
-    <span class="n">description</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-        <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chunk</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>    <span class="c1"># convert all whitespace to single spaces</span>
-        <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">porcupine</span><span class="o">.</span><span class="vm">__doc__</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="p">)</span>
-    <span class="p">)</span>
-
-    <span class="n">inner_frame</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
-    <span class="n">inner_frame</span><span class="o">.</span><span class="n">place</span><span class="p">(</span><span class="n">relx</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">rely</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>   <span class="c1"># float in center</span>
-    <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">inner_frame</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
-             <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Welcome to Porcupine!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">()</span>
-    <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">inner_frame</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="n">text</span><span class="o">=</span><span class="n">description</span><span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">on_resize</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
-        <span class="c1"># 0.9 adds little borders</span>
-        <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">inner_frame</span><span class="o">.</span><span class="n">winfo_children</span><span class="p">():</span>
-            <span class="n">label</span><span class="p">[</span><span class="s1">&#39;wraplength&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.9</span> <span class="o">*</span> <span class="n">event</span><span class="o">.</span><span class="n">width</span>
-
-    <span class="n">frame</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Configure&gt;&#39;</span><span class="p">,</span> <span class="n">on_resize</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-
 <span class="k">def</span> <span class="nf">_setup_actions</span><span class="p">():</span>
+    <span class="k">def</span> <span class="nf">new_file</span><span class="p">():</span>
+        <span class="n">_tab_manager</span><span class="o">.</span><span class="n">add_tab</span><span class="p">(</span><span class="n">tabs</span><span class="o">.</span><span class="n">FileTab</span><span class="p">(</span><span class="n">_tab_manager</span><span class="p">))</span>
+
     <span class="k">def</span> <span class="nf">open_files</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">open_files</span><span class="p">():</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">open_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-            <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">UnicodeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">tab</span> <span class="o">=</span> <span class="n">tabs</span><span class="o">.</span><span class="n">FileTab</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="n">_tab_manager</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">UnicodeError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;opening &#39;</span><span class="si">%s</span><span class="s2">&#39; failed&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
                 <span class="n">utils</span><span class="o">.</span><span class="n">errordialog</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="s2">&quot;Opening failed!&quot;</span><span class="p">,</span>
                                   <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
                 <span class="k">continue</span>
+
+            <span class="n">_tab_manager</span><span class="o">.</span><span class="n">add_tab</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">close_current_tab</span><span class="p">():</span>
         <span class="k">if</span> <span class="n">_tab_manager</span><span class="o">.</span><span class="n">current_tab</span><span class="o">.</span><span class="n">can_be_closed</span><span class="p">():</span>
@@ -217,10 +196,11 @@
                <span class="p">(</span><span class="s2">&quot;Ctrl+A&quot;</span><span class="p">,</span> <span class="s1">&#39;&lt;Control-a&gt;&#39;</span><span class="p">),</span> <span class="n">tabtypes</span><span class="o">=</span><span class="p">[</span><span class="n">tabs</span><span class="o">.</span><span class="n">FileTab</span><span class="p">])</span>
     <span class="n">menubar</span><span class="o">.</span><span class="n">get_menu</span><span class="p">(</span><span class="s2">&quot;Edit&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">add_separator</span><span class="p">()</span>
 
-    <span class="c1"># TODO: make sure that things added by plugins appear here,</span>
-    <span class="c1"># before the separator and &quot;Porcupine Settings&quot; (see get_menu)</span>
+    <span class="c1"># FIXME: this separator thing is a mess :(</span>
     <span class="n">menubar</span><span class="o">.</span><span class="n">get_menu</span><span class="p">(</span><span class="s2">&quot;Edit&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">add_separator</span><span class="p">()</span>
-    <span class="n">add_action</span><span class="p">(</span><span class="n">settingdialog</span><span class="o">.</span><span class="n">show</span><span class="p">,</span> <span class="s2">&quot;Edit/Porcupine Settings...&quot;</span><span class="p">)</span>
+    <span class="n">add_action</span><span class="p">(</span>
+        <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">show_dialog</span><span class="p">,</span> <span class="n">porcupine</span><span class="o">.</span><span class="n">get_main_window</span><span class="p">()),</span>
+        <span class="s2">&quot;Edit/Porcupine Settings...&quot;</span><span class="p">)</span>
 
     <span class="n">menubar</span><span class="o">.</span><span class="n">get_menu</span><span class="p">(</span><span class="s2">&quot;Color Themes&quot;</span><span class="p">)</span>   <span class="c1"># this goes between Edit and View</span>
 
@@ -257,14 +237,18 @@
     <span class="n">add_link</span><span class="p">(</span><span class="s2">&quot;Help/Read Porcupine&#39;s code on GitHub&quot;</span><span class="p">,</span>
              <span class="s2">&quot;https://github.com/Akuli/porcupine/tree/master/porcupine&quot;</span><span class="p">)</span>
 
-    <span class="n">stylenamevar</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">StringVar</span><span class="p">()</span>
+    <span class="c1"># TODO: loading the styles takes a long time on startup... try to</span>
+    <span class="c1"># make it asynchronous without writing too complicated code?</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get_section</span><span class="p">(</span><span class="s1">&#39;General&#39;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">pygments</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">get_all_styles</span><span class="p">()):</span>
-        <span class="c1"># the command runs config[&#39;Editing&#39;, &#39;pygments_style&#39;] = name</span>
+        <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">islower</span><span class="p">():</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">title</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="n">name</span>
+
         <span class="n">options</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">title</span><span class="p">(),</span>
-            <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span> <span class="s1">&#39;variable&#39;</span><span class="p">:</span> <span class="n">stylenamevar</span><span class="p">,</span>
-            <span class="s1">&#39;command&#39;</span><span class="p">:</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
-                <span class="n">config</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;Editing&#39;</span><span class="p">,</span> <span class="s1">&#39;pygments_style&#39;</span><span class="p">),</span> <span class="n">name</span><span class="p">),</span>
+            <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">label</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+            <span class="s1">&#39;variable&#39;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get_var</span><span class="p">(</span><span class="s1">&#39;pygments_style&#39;</span><span class="p">),</span>
         <span class="p">}</span>
 
         <span class="n">style</span> <span class="o">=</span> <span class="n">pygments</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">get_style_by_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
@@ -290,32 +274,6 @@
         <span class="n">options</span><span class="p">[</span><span class="s1">&#39;background&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;activeforeground&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bg</span>
 
         <span class="n">menubar</span><span class="o">.</span><span class="n">get_menu</span><span class="p">(</span><span class="s2">&quot;Color Themes&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">add_radiobutton</span><span class="p">(</span><span class="o">**</span><span class="n">options</span><span class="p">)</span>
-
-    <span class="n">config</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;Editing&#39;</span><span class="p">,</span> <span class="s1">&#39;pygments_style&#39;</span><span class="p">,</span> <span class="n">stylenamevar</span><span class="o">.</span><span class="n">set</span><span class="p">,</span>
-                   <span class="n">run_now</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-
-<div class="viewcode-block" id="new_file"><a class="viewcode-back" href="../../porcupine.html#porcupine.new_file">[docs]</a><span class="k">def</span> <span class="nf">new_file</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Add a &quot;New File&quot; tab to the tab manager with the given content in it.&quot;&quot;&quot;</span>
-    <span class="n">_tab_manager</span><span class="o">.</span><span class="n">add_tab</span><span class="p">(</span><span class="n">tabs</span><span class="o">.</span><span class="n">FileTab</span><span class="p">(</span><span class="n">_tab_manager</span><span class="p">))</span></div>
-
-
-<div class="viewcode-block" id="open_file"><a class="viewcode-back" href="../../porcupine.html#porcupine.open_file">[docs]</a><span class="k">def</span> <span class="nf">open_file</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Open an existing file in Porcupine.</span>
-
-<span class="sd">    If *path* is None, the content will be inserted to a &quot;New File&quot; tab.</span>
-
-<span class="sd">    If *content* is None, it will be read from the *path* using</span>
-<span class="sd">    :func:`open`. In that case, :exc:`UnicodeError` or :exc:`OSError`</span>
-<span class="sd">    may be raised.</span>
-
-<span class="sd">    At least one of *path* and *content* must be non-None.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">content</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;Files&#39;</span><span class="p">,</span> <span class="s1">&#39;encoding&#39;</span><span class="p">])</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
-            <span class="n">content</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-
-    <span class="n">_tab_manager</span><span class="o">.</span><span class="n">add_tab</span><span class="p">(</span><span class="n">tabs</span><span class="o">.</span><span class="n">FileTab</span><span class="p">(</span><span class="n">_tab_manager</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="add_action"><a class="viewcode-back" href="../../porcupine.html#porcupine.add_action">[docs]</a><span class="k">def</span> <span class="nf">add_action</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="n">menupath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">keyboard_shortcut</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
