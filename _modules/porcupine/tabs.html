@@ -5,13 +5,21 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<<<<<<< HEAD
     <title>porcupine.tabs &#8212; Porcupine API 0.58.0 documentation</title>
+=======
+    <title>porcupine.tabs &#8212; Porcupine API 0.52.0 documentation</title>
+>>>>>>> 84d3875465971ca28078f02dc6a3b8407778385b
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
+<<<<<<< HEAD
         VERSION:     '0.58.0',
+=======
+        VERSION:     '0.52.0',
+>>>>>>> 84d3875465971ca28078f02dc6a3b8407778385b
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -117,6 +125,7 @@
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">except</span> <span class="n">tkinter</span><span class="o">.</span><span class="n">TclError</span><span class="p">:</span>   <span class="c1"># should be &quot;Slave index n out of bounds&quot;</span>
             <span class="k">return</span> <span class="kc">False</span>
+<<<<<<< HEAD
 
     <span class="k">def</span> <span class="nf">move_next_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">diff</span><span class="p">):</span>
         <span class="k">assert</span> <span class="n">diff</span> <span class="ow">in</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">},</span> <span class="nb">repr</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span>
@@ -142,6 +151,33 @@
 
         <span class="k">return</span> <span class="kc">True</span>
 
+=======
+
+    <span class="k">def</span> <span class="nf">move_next_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">diff</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">diff</span> <span class="ow">in</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">},</span> <span class="nb">repr</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span>
+        <span class="n">i1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">())</span>
+        <span class="n">i2</span> <span class="o">=</span> <span class="n">i1</span> <span class="o">+</span> <span class="n">diff</span>
+        <span class="k">if</span> <span class="n">i1</span> <span class="o">&gt;</span> <span class="n">i2</span><span class="p">:</span>
+            <span class="n">i1</span><span class="p">,</span> <span class="n">i2</span> <span class="o">=</span> <span class="n">i2</span><span class="p">,</span> <span class="n">i1</span>
+
+        <span class="k">if</span> <span class="n">i1</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">i2</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;end&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="c1"># it&#39;s important to move the second tab back instead of moving</span>
+        <span class="c1"># the other tab forward because insert(number_of_tabs, tab)</span>
+        <span class="c1"># doesn&#39;t work for some reason</span>
+        <span class="n">tab</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tabs</span><span class="p">()[</span><span class="n">i2</span><span class="p">]</span>
+        <span class="n">options</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="p">(</span><span class="n">i2</span><span class="p">)</span>
+        <span class="n">selected</span> <span class="o">=</span> <span class="p">(</span><span class="n">tab</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">())</span>    <span class="c1"># TODO: optimize-cleanup?</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">forget</span><span class="p">(</span><span class="n">i2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">i1</span><span class="p">,</span> <span class="n">tab</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">selected</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">True</span>
+
+>>>>>>> 84d3875465971ca28078f02dc6a3b8407778385b
     <span class="k">def</span> <span class="nf">_on_click</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">identify</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">y</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;label&#39;</span><span class="p">:</span>
             <span class="c1"># something else than the top label was clicked</span>
@@ -341,6 +377,7 @@
             <span class="k">assert</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">panes</span><span class="p">(),</span> <span class="s2">&quot;_current_pane wasn&#39;t set correctly&quot;</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_pane</span><span class="o">.</span><span class="n">select</span><span class="p">()</span>
+<<<<<<< HEAD
 
     <span class="nd">@current_tab</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">current_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tab</span><span class="p">):</span>
@@ -350,6 +387,17 @@
                 <span class="n">tab</span><span class="o">.</span><span class="n">on_focus</span><span class="p">()</span>
                 <span class="k">return</span>
 
+=======
+
+    <span class="nd">@current_tab</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">current_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tab</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">pane</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">panes</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">tab</span> <span class="ow">in</span> <span class="n">pane</span><span class="o">.</span><span class="n">tabs</span><span class="p">():</span>
+                <span class="n">pane</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
+                <span class="n">tab</span><span class="o">.</span><span class="n">on_focus</span><span class="p">()</span>
+                <span class="k">return</span>
+
+>>>>>>> 84d3875465971ca28078f02dc6a3b8407778385b
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;unknown tab </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tab</span><span class="p">,))</span>
 
 <div class="viewcode-block" id="TabManager.add_tab"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.TabManager.add_tab">[docs]</a>    <span class="k">def</span> <span class="nf">add_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tab</span><span class="p">,</span> <span class="n">make_current</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
@@ -504,12 +552,21 @@
 <span class="sd">    .. attribute:: bottom_frame</span>
 <span class="sd">    .. attribute:: left_frame</span>
 <span class="sd">    .. attribute:: right_frame</span>
+<<<<<<< HEAD
 
 <span class="sd">        These are ``ttk.Frame`` widgets that are packed to each side of</span>
 <span class="sd">        the frame. Plugins add different kinds of things to these, for</span>
 <span class="sd">        example, :source:`the statusbar &lt;porcupine/plugins/statusbar.py&gt;`</span>
 <span class="sd">        is a widget in ``bottom_frame``.</span>
 
+=======
+
+<span class="sd">        These are ``ttk.Frame`` widgets that are packed to each side of</span>
+<span class="sd">        the frame. Plugins add different kinds of things to these, for</span>
+<span class="sd">        example, :source:`the statusbar &lt;porcupine/plugins/statusbar.py&gt;`</span>
+<span class="sd">        is a widget in ``bottom_frame``.</span>
+
+>>>>>>> 84d3875465971ca28078f02dc6a3b8407778385b
 <span class="sd">        These frames should contain no widgets when Porcupine is running</span>
 <span class="sd">        without plugins. Use pack when adding things here.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -663,13 +720,21 @@
 <span class="sd">        This is None if the file has never been saved, and otherwise</span>
 <span class="sd">        an absolute path as a string.</span>
 
+<<<<<<< HEAD
 <span class="sd">        .. seealso:: The :virtevt:`PathChanged` virtual event.</span>
+=======
+<span class="sd">        .. seealso:: The :virtevt:`.PathChanged` virtual event.</span>
+>>>>>>> 84d3875465971ca28078f02dc6a3b8407778385b
 
 <span class="sd">    .. attribute:: filetype</span>
 
 <span class="sd">        A filetype object from :mod:`porcupine.filetypes`.</span>
 
+<<<<<<< HEAD
 <span class="sd">        .. seealso:: The :virtevt:`FiletypeChanged` virtual event.</span>
+=======
+<span class="sd">        .. seealso:: The :virtevt:`.FiletypeChanged` virtual event.</span>
+>>>>>>> 84d3875465971ca28078f02dc6a3b8407778385b
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">manager</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -908,6 +973,7 @@
             <span class="k">return</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+<<<<<<< HEAD
         <span class="k">return</span> <span class="kc">True</span></div>
 
     <span class="k">def</span> <span class="nf">get_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -922,6 +988,9 @@
         <span class="n">tab</span><span class="o">.</span><span class="n">textwidget</span><span class="o">.</span><span class="n">mark_set</span><span class="p">(</span><span class="s1">&#39;insert&#39;</span><span class="p">,</span> <span class="n">cursor_pos</span><span class="p">)</span>
         <span class="n">tab</span><span class="o">.</span><span class="n">textwidget</span><span class="o">.</span><span class="n">see</span><span class="p">(</span><span class="s1">&#39;insert&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">tab</span></div>
+=======
+        <span class="k">return</span> <span class="kc">True</span></div></div>
+>>>>>>> 84d3875465971ca28078f02dc6a3b8407778385b
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>

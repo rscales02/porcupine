@@ -14,6 +14,14 @@ these functions do.
 .. autofunction:: get_main_window
 .. autofunction:: get_tab_manager
 .. autofunction:: add_action
+<<<<<<< HEAD
+=======
+
+
+Session stuff
+-------------
+
+>>>>>>> 84d3875465971ca28078f02dc6a3b8407778385b
 .. autofunction:: porcupine.quit
 
 

@@ -5,13 +5,21 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<<<<<<< HEAD
     <title>porcupine._session &#8212; Porcupine API 0.58.0 documentation</title>
+=======
+    <title>porcupine._session &#8212; Porcupine API 0.52.0 documentation</title>
+>>>>>>> 84d3875465971ca28078f02dc6a3b8407778385b
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
+<<<<<<< HEAD
         VERSION:     '0.58.0',
+=======
+        VERSION:     '0.52.0',
+>>>>>>> 84d3875465971ca28078f02dc6a3b8407778385b
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -57,6 +65,7 @@
 <span class="n">_tab_manager</span> <span class="o">=</span> <span class="kc">None</span>
 
 
+<<<<<<< HEAD
 <span class="c1"># get_main_window() and get_tab_manager() work only if this has been called</span>
 <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="n">main_window</span><span class="p">,</span> <span class="n">tab_manager</span><span class="p">):</span>
     <span class="k">global</span> <span class="n">_main_window</span>
@@ -80,6 +89,50 @@
     <span class="k">if</span> <span class="n">_tab_manager</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Porcupine is not running&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">_tab_manager</span></div>
+=======
+<div class="viewcode-block" id="init"><a class="viewcode-back" href="../../porcupine.html#porcupine.init">[docs]</a><span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="n">window</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Set up Porcupine.</span>
+
+<span class="sd">    Usually :source:`porcupine/__main__.py` calls this function and you</span>
+<span class="sd">    don&#39;t need to call it yourself. This function can still be useful if</span>
+<span class="sd">    you want to run Porcupine minimally from another Python program for</span>
+<span class="sd">    some reason.</span>
+
+<span class="sd">    The *window* argument can be a tkinter root window or a ``Toplevel``</span>
+<span class="sd">    widget.</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        import tkinter</span>
+<span class="sd">        import porcupine</span>
+
+<span class="sd">        root = tkinter.Tk()</span>
+<span class="sd">        porcupine.init(root)</span>
+<span class="sd">        root.protocol(&#39;WM_DELETE_WINDOW&#39;, porcupine.quit)</span>
+<span class="sd">        root.mainloop()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">_main_window</span>
+    <span class="k">global</span> <span class="n">_tab_manager</span>
+
+    <span class="k">assert</span> <span class="p">[</span><span class="n">_main_window</span><span class="p">,</span> <span class="n">_tab_manager</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span>
+        <span class="s2">&quot;porcupine seems to be partially initialized&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">_main_window</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;porcupine.init() was called twice&quot;</span><span class="p">)</span>
+    <span class="n">_main_window</span> <span class="o">=</span> <span class="n">window</span>    <span class="c1"># get_main_window() works from now on</span>
+
+    <span class="n">utils</span><span class="o">.</span><span class="n">_init_images</span><span class="p">()</span>
+    <span class="n">filetypes</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+    <span class="n">dirs</span><span class="o">.</span><span class="n">makedirs</span><span class="p">()</span>
+
+    <span class="n">_tab_manager</span> <span class="o">=</span> <span class="n">tabs</span><span class="o">.</span><span class="n">TabManager</span><span class="p">(</span><span class="n">window</span><span class="p">)</span>
+    <span class="n">_tab_manager</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">binding</span><span class="p">,</span> <span class="n">callback</span> <span class="ow">in</span> <span class="n">_tab_manager</span><span class="o">.</span><span class="n">bindings</span><span class="p">:</span>
+        <span class="n">window</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">binding</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">menubar</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+    <span class="n">window</span><span class="p">[</span><span class="s1">&#39;menu&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">menubar</span><span class="o">.</span><span class="n">get_menu</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">_setup_actions</span><span class="p">()</span></div>
+>>>>>>> 84d3875465971ca28078f02dc6a3b8407778385b
 
 
 <span class="c1"># TODO: add some way to run callbacks when this function is called</span>
@@ -100,6 +153,7 @@
         <span class="c1"># the tabs must not be closed here, otherwise some of them</span>
         <span class="c1"># are closed if not all tabs can be closed</span>
 
+<<<<<<< HEAD
     <span class="n">_main_window</span><span class="o">.</span><span class="n">event_generate</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;PorcupineQuit&gt;&gt;&#39;</span><span class="p">)</span>
 
     <span class="c1"># closing tabs removes them from the tabs list, that&#39;s why copying</span>
@@ -115,6 +169,33 @@
     <span class="k">def</span> <span class="nf">new_file</span><span class="p">():</span>
         <span class="n">_tab_manager</span><span class="o">.</span><span class="n">add_tab</span><span class="p">(</span><span class="n">tabs</span><span class="o">.</span><span class="n">FileTab</span><span class="p">(</span><span class="n">_tab_manager</span><span class="p">))</span>
 
+=======
+    <span class="c1"># closing tabs removes them from the tabs list, that&#39;s why copying</span>
+    <span class="k">for</span> <span class="n">tab</span> <span class="ow">in</span> <span class="n">_tab_manager</span><span class="o">.</span><span class="n">tabs</span><span class="o">.</span><span class="n">copy</span><span class="p">():</span>
+        <span class="n">_tab_manager</span><span class="o">.</span><span class="n">close_tab</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
+    <span class="n">_main_window</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="get_main_window"><a class="viewcode-back" href="../../porcupine.html#porcupine.get_main_window">[docs]</a><span class="k">def</span> <span class="nf">get_main_window</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Return the widget passed to :func:`~init`.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">_main_window</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;porcupine.init() wasn&#39;t called&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_main_window</span></div>
+
+
+<div class="viewcode-block" id="get_tab_manager"><a class="viewcode-back" href="../../porcupine.html#porcupine.get_tab_manager">[docs]</a><span class="k">def</span> <span class="nf">get_tab_manager</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Return the :class:`porcupine.tabs.TabManager` widget in the main window.</span>
+<span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># these are on a separate line because pep-8 line length</span>
+    <span class="k">if</span> <span class="n">_tab_manager</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;porcupine.init() wasn&#39;t called&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_tab_manager</span></div>
+
+
+<span class="k">def</span> <span class="nf">_setup_actions</span><span class="p">():</span>
+    <span class="k">def</span> <span class="nf">new_file</span><span class="p">():</span>
+        <span class="n">_tab_manager</span><span class="o">.</span><span class="n">add_tab</span><span class="p">(</span><span class="n">tabs</span><span class="o">.</span><span class="n">FileTab</span><span class="p">(</span><span class="n">_tab_manager</span><span class="p">))</span>
+
+>>>>>>> 84d3875465971ca28078f02dc6a3b8407778385b
     <span class="k">def</span> <span class="nf">open_files</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">open_files</span><span class="p">():</span>
             <span class="k">try</span><span class="p">:</span>
