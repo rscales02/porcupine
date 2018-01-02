@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>File Types &#8212; Porcupine API 0.34.0 documentation</title>
+    <title>File Types &#8212; Porcupine API 0.58.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.34.0',
+        VERSION:     '0.58.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -42,126 +42,153 @@
             
   <div class="section" id="file-types">
 <h1>File Types<a class="headerlink" href="#file-types" title="Permalink to this headline">¶</a></h1>
-<p>Porcupine supports editing several different kinds of files. This page is all
-about customizing its behaviour for each file type.</p>
+<p id="automagic-filetype-creation">Porcupine supports editing several different kinds of files. When opening or
+saving a file, only a small subset of supported file types is listed under the
+“Files of type” menu, so if the type of some file is not listed there just
+select “All Files”. There’s a good chance that your file will be syntax
+highlighted correctly anyway.</p>
 <div class="section" id="filetypes-ini">
 <h2>filetypes.ini<a class="headerlink" href="#filetypes-ini" title="Permalink to this headline">¶</a></h2>
-<p>This file contains a bunch of filetype-specific settings. Porcupine’s
-default settings should be good enough for most things, but this file
-lets you customize everything.</p>
-<p>Porcupine creates a <code class="docutils literal"><span class="pre">filetypes.ini</span></code> when it’s started for the first
-time. By default, it contains comments that explain how it works and the
+<p>If you edit files of some specific type often, you can add that file type to
+your <code class="docutils literal"><span class="pre">filetypes.ini</span></code> configuration file. This way it will show up on the
+“Files of type” menu, but you can also set up other stuff such as indentation
+settings or running commands.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Currently the compiling, running and linting commands specified in
+<code class="docutils literal"><span class="pre">filetypes.ini</span></code> don’t actually do anything. I’ll update
+<a class="reference external" href="https://github.com/Akuli/porcupine/tree/master/porcupine/plugins/run">porcupine/plugins/run</a> to support them some day.</p>
+</div>
+<p>Porcupine creates a <code class="docutils literal"><span class="pre">filetypes.ini</span></code> when it’s started for the first time. By
+default, it contains instructions for editing the file as comments and the
 default settings that Porcupine is using.</p>
-<p>The easiest way to edit this file is to open <em>Porcupine Settings</em> from
-the <em>Edit</em> menu and click the <em>Edit filetypes.ini</em> button. Porcupine
-will also syntax highlight the file specially so that anything incorrect
-won’t be colored, and it’s hard to get things wrong. If the file still
-contains invalid values, Porcupine will ignore it on startup.</p>
+<p>An easy way to edit <code class="docutils literal"><span class="pre">filetypes.ini</span></code> is to open <em>Porcupine Settings</em> from the
+<em>Edit</em> menu and click the <em>Edit filetypes.ini</em> button. Then follow the
+instructions in the beginning of the file.</p>
+<p>If your <code class="docutils literal"><span class="pre">filetypes.ini</span></code> contains something invalid, Porcupine will print a
+warning message to the terminal or command prompt and start normally.
+(Currently seeing the message requires using <code class="docutils literal"><span class="pre">porcu</span> <span class="pre">--verbose</span></code>, but hopefully
+I’ll fix that some day). If you want to reset all changes you have done to
+<code class="docutils literal"><span class="pre">filetypes.ini</span></code>, just delete it and restart Porcupine to create a new
+<code class="docutils literal"><span class="pre">filetypes.ini</span></code>.</p>
 </div>
 <div class="section" id="module-porcupine.filetypes">
 <span id="the-porcupine-filetypes-module"></span><h2>The <code class="docutils literal"><span class="pre">porcupine.filetypes</span></code> module<a class="headerlink" href="#module-porcupine.filetypes" title="Permalink to this headline">¶</a></h2>
-<p>Everything related to the <code class="docutils literal"><span class="pre">filetypes.ini</span></code> file is here.</p>
-<dl class="data">
-<dt id="porcupine.filetypes.filetypes">
-<code class="descclassname">porcupine.filetypes.</code><code class="descname">filetypes</code><a class="headerlink" href="#porcupine.filetypes.filetypes" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is a <code class="docutils literal"><span class="pre">{name:</span> <span class="pre">filetype_object}</span></code> dictionary where the names
-correspond to sections of <a class="reference internal" href="#filetypes-ini">filetypes.ini</a>. When Porcupine starts, it
-initializes this dictionary based on <code class="docutils literal"><span class="pre">filetypes.ini</span></code>.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="porcupine.filetypes.FileType">
-<em class="property">class </em><code class="descclassname">porcupine.filetypes.</code><code class="descname">FileType</code><span class="sig-paren">(</span><em>name</em>, <em>lexer_getter</em>, <em>patterns</em>, <em>mimetypes</em>, <em>config_section</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/filetypes.html#FileType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.filetypes.FileType" title="Permalink to this definition">¶</a></dt>
-<dd><p>The values of <a class="reference internal" href="#porcupine.filetypes.filetypes" title="porcupine.filetypes.filetypes"><code class="xref py py-data docutils literal"><span class="pre">filetypes</span></code></a> are FileType objects.</p>
-<p>Don’t create filetype objects yourself. Porcupine loads all Pygments
-lexers into <a class="reference internal" href="#porcupine.filetypes.filetypes" title="porcupine.filetypes.filetypes"><code class="xref py py-data docutils literal"><span class="pre">filetypes</span></code></a> by default, so you should <a class="reference external" href="http://pygments.org/docs/lexerdevelopment/">create a
-Pygments lexer</a> instead.</p>
+<p>This module exposes an API for things that are defined in <code class="docutils literal"><span class="pre">filetypes.ini</span></code>.</p>
+<div class="section" id="filetype-objects">
+<h3>Filetype Objects<a class="headerlink" href="#filetype-objects" title="Permalink to this headline">¶</a></h3>
+<p>Many functions in <a class="reference internal" href="#module-porcupine.filetypes" title="porcupine.filetypes"><code class="xref py py-mod docutils literal"><span class="pre">porcupine.filetypes</span></code></a> return filetype objects. Most
+filetype objects represent a section beginning with <code class="docutils literal"><span class="pre">[a</span> <span class="pre">header]</span></code> in
+<code class="docutils literal"><span class="pre">filetypes.ini</span></code>, but Porcupine creates new filetype objects on the fly as
+needed (see <a class="reference internal" href="#automagic-filetype-creation"><span class="std std-ref">above</span></a>).</p>
+<p>Filetype objects have these attributes and methods:</p>
 <dl class="attribute">
-<dt id="porcupine.filetypes.FileType.name">
-<code class="descname">name</code><a class="headerlink" href="#porcupine.filetypes.FileType.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>This attribute is always set to the key of <a class="reference internal" href="#porcupine.filetypes.filetypes" title="porcupine.filetypes.filetypes"><code class="xref py py-data docutils literal"><span class="pre">filetypes</span></code></a> so
-that <code class="docutils literal"><span class="pre">filetypes[some_file_type.name]</span></code> should be always
-<code class="docutils literal"><span class="pre">some_file_type</span></code>.</p>
+<dt id="porcupine.filetypes.somefiletype.name">
+<code class="descclassname">somefiletype.</code><code class="descname">name</code><a class="headerlink" href="#porcupine.filetypes.somefiletype.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is <code class="docutils literal"><span class="pre">[the</span> <span class="pre">text</span> <span class="pre">in</span> <span class="pre">square</span> <span class="pre">brackets]</span></code> in <code class="docutils literal"><span class="pre">filetypes.ini</span></code>, intended to
+be human-readable.</p>
+<p>Names of filetypes that were created “on the fly” as opposed to loading
+from <code class="docutils literal"><span class="pre">filetypes.ini</span></code> end with <code class="docutils literal"><span class="pre">'</span> <span class="pre">(not</span> <span class="pre">from</span> <span class="pre">filetypes.ini)'</span></code>.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="porcupine.filetypes.FileType.patterns">
-<code class="descname">patterns</code><a class="headerlink" href="#porcupine.filetypes.FileType.patterns" title="Permalink to this definition">¶</a></dt>
-<dd><p>List of <a class="reference external" href="https://docs.python.org/3/library/fnmatch.html#module-fnmatch" title="(in Python v3.6)"><code class="xref py py-mod docutils literal"><span class="pre">fnmatch</span></code></a> pattern strings, like <code class="docutils literal"><span class="pre">'*.py'</span></code> or
-<code class="docutils literal"><span class="pre">'Makefile'</span></code>.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="porcupine.filetypes.FileType.mimetypes">
-<code class="descname">mimetypes</code><a class="headerlink" href="#porcupine.filetypes.FileType.mimetypes" title="Permalink to this definition">¶</a></dt>
-<dd><p>List of mimetype strings, e.g.
-<code class="docutils literal"><span class="pre">['application/x-javascript',</span> <span class="pre">'text/x-javascript']</span></code>.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="porcupine.filetypes.FileType.tabs2spaces">
-<code class="descname">tabs2spaces</code><a class="headerlink" href="#porcupine.filetypes.FileType.tabs2spaces" title="Permalink to this definition">¶</a></dt>
+<dt id="porcupine.filetypes.somefiletype.filename_patterns">
+<code class="descclassname">somefiletype.</code><code class="descname">filename_patterns</code><a class="headerlink" href="#porcupine.filetypes.somefiletype.filename_patterns" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
-<dt id="porcupine.filetypes.FileType.indent_size">
-<code class="descname">indent_size</code><a class="headerlink" href="#porcupine.filetypes.FileType.indent_size" title="Permalink to this definition">¶</a></dt>
+<dt id="porcupine.filetypes.somefiletype.mimetypes">
+<code class="descclassname">somefiletype.</code><code class="descname">mimetypes</code><a class="headerlink" href="#porcupine.filetypes.somefiletype.mimetypes" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
-<dt id="porcupine.filetypes.FileType.max_line_length">
-<code class="descname">max_line_length</code><a class="headerlink" href="#porcupine.filetypes.FileType.max_line_length" title="Permalink to this definition">¶</a></dt>
+<dt id="porcupine.filetypes.somefiletype.tabs2spaces">
+<code class="descclassname">somefiletype.</code><code class="descname">tabs2spaces</code><a class="headerlink" href="#porcupine.filetypes.somefiletype.tabs2spaces" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
-<dt id="porcupine.filetypes.FileType.compile_command">
-<code class="descname">compile_command</code><a class="headerlink" href="#porcupine.filetypes.FileType.compile_command" title="Permalink to this definition">¶</a></dt>
+<dt id="porcupine.filetypes.somefiletype.indent_size">
+<code class="descclassname">somefiletype.</code><code class="descname">indent_size</code><a class="headerlink" href="#porcupine.filetypes.somefiletype.indent_size" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
-<dt id="porcupine.filetypes.FileType.run_command">
-<code class="descname">run_command</code><a class="headerlink" href="#porcupine.filetypes.FileType.run_command" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="porcupine.filetypes.FileType.lint_command">
-<code class="descname">lint_command</code><a class="headerlink" href="#porcupine.filetypes.FileType.lint_command" title="Permalink to this definition">¶</a></dt>
-<dd><p>These attributes correspond to the values defined in
-<code class="docutils literal"><span class="pre">filetypes.ini</span></code>. <code class="docutils literal"><span class="pre">tabs2spaces</span></code> is True or False, and the
-<code class="docutils literal"><span class="pre">indent_size</span></code> and <code class="docutils literal"><span class="pre">max_line_length</span></code> attributes are integers.
-The commands are strings and they may be empty.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="porcupine.filetypes.FileType.get_lexer">
-<code class="descname">get_lexer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/filetypes.html#FileType.get_lexer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.filetypes.FileType.get_lexer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a Pygments lexer object for files of this type.</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="porcupine.filetypes.FileType.substitute_command">
-<em class="property">static </em><code class="descname">substitute_command</code><span class="sig-paren">(</span><em>template</em>, <em>file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/filetypes.html#FileType.substitute_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.filetypes.FileType.substitute_command" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create an argument list for e.g. <a class="reference external" href="https://docs.python.org/3/library/subprocess.html#subprocess.call" title="(in Python v3.6)"><code class="xref py py-func docutils literal"><span class="pre">subprocess.call()</span></code></a>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
+<dt id="porcupine.filetypes.somefiletype.max_line_length">
+<code class="descclassname">somefiletype.</code><code class="descname">max_line_length</code><a class="headerlink" href="#porcupine.filetypes.somefiletype.max_line_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>See your <code class="docutils literal"><span class="pre">filetype.ini</span></code> for details regarding each attribute. Types or
+possible values are listed here:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="55%" />
+<col width="45%" />
+</colgroup>
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>template</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – A value of <a class="reference internal" href="#porcupine.filetypes.FileType.compile_command" title="porcupine.filetypes.FileType.compile_command"><code class="xref py py-attr docutils literal"><span class="pre">compile_command</span></code></a>,
-<a class="reference internal" href="#porcupine.filetypes.FileType.run_command" title="porcupine.filetypes.FileType.run_command"><code class="xref py py-attr docutils literal"><span class="pre">run_command</span></code></a> or <a class="reference internal" href="#porcupine.filetypes.FileType.lint_command" title="porcupine.filetypes.FileType.lint_command"><code class="xref py py-attr docutils literal"><span class="pre">lint_command</span></code></a>.</li>
-<li><strong>file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Path to the source file, without quotes.</li>
-</ul>
-</td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">filename_patterns</span></code></td>
+<td>list of strings</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">List of strings.</p>
-</td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">mimetypes</span></code></td>
+<td>list of strings</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tabs2spaces</span></code></td>
+<td>True or False</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">indent_size</span></code></td>
+<td>int</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">max_line_length</span></code></td>
+<td>int</td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="porcupine.filetypes.somefiletype.get_lexer">
+<code class="descclassname">somefiletype.</code><code class="descname">get_lexer</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#porcupine.filetypes.somefiletype.get_lexer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a suitable <a class="reference external" href="http://pygments.org/docs/api/#lexers">Pygments lexer</a>.</p>
+<p>Keyword arguments are passed to the lexer class.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="porcupine.filetypes.somefiletype.get_command">
+<code class="descclassname">somefiletype.</code><code class="descname">get_command</code><span class="sig-paren">(</span><em>something_command</em>, <em>filepath</em><span class="sig-paren">)</span><a class="headerlink" href="#porcupine.filetypes.somefiletype.get_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of a program and arguments for compiling, running or linting
+a file.</p>
+<p>The returned list is compatible with e.g. the <a class="reference external" href="https://docs.python.org/3/library/subprocess.html#module-subprocess" title="(in Python v3.6)"><code class="xref py py-mod docutils literal"><span class="pre">subprocess</span></code></a> module.</p>
+<p><em>something_command</em> argument must be <code class="docutils literal"><span class="pre">'compile_command'</span></code>,
+<code class="docutils literal"><span class="pre">'run_command'</span></code> or <code class="docutils literal"><span class="pre">'lint_command'</span></code>, and <em>filepath</em> should be a path to
+the file as a string.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="porcupine.filetypes.somefiletype.has_command">
+<code class="descclassname">somefiletype.</code><code class="descname">has_command</code><span class="sig-paren">(</span><em>something_command</em><span class="sig-paren">)</span><a class="headerlink" href="#porcupine.filetypes.somefiletype.has_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if the given command option was set to something else than an
+empty string and <code class="docutils literal"><span class="pre">somefiletype.get_command(something_command,</span> <span class="pre">some_path)</span></code>
+will return a useful value.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="porcupine.filetypes.guess_filetype">
+<code class="descclassname">porcupine.filetypes.</code><code class="descname">guess_filetype</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/filetypes.html#guess_filetype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.filetypes.guess_filetype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a FileType object based on a file name.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="porcupine.filetypes.get_filetype_by_name">
+<code class="descclassname">porcupine.filetypes.</code><code class="descname">get_filetype_by_name</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/filetypes.html#get_filetype_by_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.filetypes.get_filetype_by_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find and return a filetype object by its <code class="docutils literal"><span class="pre">name</span></code> attribute.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="porcupine.filetypes.get_all_filetypes">
+<code class="descclassname">porcupine.filetypes.</code><code class="descname">get_all_filetypes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/filetypes.html#get_all_filetypes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.filetypes.get_all_filetypes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of all loaded filetypes.</p>
+</dd></dl>
+
+</div>
 </div>
 </div>
 
@@ -175,7 +202,11 @@ The commands are strings and they may be empty.</p>
   <ul>
 <li><a class="reference internal" href="#">File Types</a><ul>
 <li><a class="reference internal" href="#filetypes-ini">filetypes.ini</a></li>
-<li><a class="reference internal" href="#module-porcupine.filetypes">The <code class="docutils literal"><span class="pre">porcupine.filetypes</span></code> module</a></li>
+<li><a class="reference internal" href="#module-porcupine.filetypes">The <code class="docutils literal"><span class="pre">porcupine.filetypes</span></code> module</a><ul>
+<li><a class="reference internal" href="#filetype-objects">Filetype Objects</a></li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

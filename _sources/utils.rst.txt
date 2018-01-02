@@ -6,6 +6,8 @@
 This module contains handy things that Porcupine uses internally and
 plugins can use freely.
 
+.. TODO: document the img_stuff API
+
 
 Information about Python
 ------------------------
@@ -32,7 +34,7 @@ Information about Python
    is the default.
 
    Note that this is quoted already if it needs quoting, and should *not* be
-   quoted more. For example, this example is **bad**::
+   quoted more. For example, this code is **bad**::
 
       subprocess.call([utils.short_python_command, 'blah', 'blah'])
 
@@ -45,10 +47,17 @@ Tkinter Utilities
 
 .. autofunction:: bind_mouse_wheel
 .. autofunction:: bind_tab_key
+.. autofunction:: bind_with_data
 .. autofunction:: copy_bindings
-.. autoclass:: Checkbox
 .. autofunction:: run_in_thread
-.. autofunction:: get_image
+
+.. class:: Spinbox
+
+   This is a Ttk version of ``tkinter.Spinbox``.
+
+   Ttk has a ``spinbox`` widget, but there's no ``tkinter.ttk.Spinbox``
+   yet (perhaps the ttk spinbox is a new thing and tkinter hasn't been
+   updated yet). This class should behave mostly like ``tkinter.Spinbox``.
 
 
 Miscellaneous

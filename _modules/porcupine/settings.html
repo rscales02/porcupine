@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.settings &#8212; Porcupine API 0.34.0 documentation</title>
+    <title>porcupine.settings &#8212; Porcupine API 0.58.0 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.34.0',
+        VERSION:     '0.58.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -39,19 +39,25 @@
           <div class="body" role="main">
             
   <h1>Source code for porcupine.settings</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">codecs</span>
+<span></span><span class="kn">import</span> <span class="nn">atexit</span>
+<span class="kn">import</span> <span class="nn">codecs</span>
 <span class="kn">import</span> <span class="nn">collections.abc</span>
-<span class="kn">import</span> <span class="nn">configparser</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">tkinter</span>
 <span class="kn">import</span> <span class="nn">tkinter.font</span> <span class="k">as</span> <span class="nn">tkfont</span>
+<span class="kn">from</span> <span class="nn">tkinter</span> <span class="k">import</span> <span class="n">messagebox</span><span class="p">,</span> <span class="n">ttk</span>
 <span class="kn">import</span> <span class="nn">types</span>
 
-<span class="c1"># the pygments stuff is just for _validate_style_name()</span>
+<span class="c1"># the pygments stuff is just for _validate_pygments_style_name()</span>
 <span class="kn">import</span> <span class="nn">pygments.styles</span>
 <span class="kn">import</span> <span class="nn">pygments.util</span>
 
-<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">dirs</span>
+<span class="kn">import</span> <span class="nn">porcupine</span>
+<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">utils</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -59,95 +65,130 @@
 <span class="c1"># this is a custom exception because plain ValueError is often raised</span>
 <span class="c1"># when something goes wrong unexpectedly</span>
 <div class="viewcode-block" id="InvalidValue"><a class="viewcode-back" href="../../settings.html#porcupine.settings.InvalidValue">[docs]</a><span class="k">class</span> <span class="nc">InvalidValue</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Validators raise this when attempting to set an invalid value.</span>
+    <span class="sd">&quot;&quot;&quot;Raise this in a callback if the value is invalid.</span>
 
-<span class="sd">    You can also catch this to check if a value is valid::</span>
+<span class="sd">    Example::</span>
+
+<span class="sd">        wat_config = settings.get_section(&#39;Wat Wat&#39;)</span>
+
+<span class="sd">        def validate_indent(indent):</span>
+<span class="sd">            if indent not in (&#39;tabs&#39;, &#39;spaces&#39;):</span>
+<span class="sd">                raise settings.InvalidValue(</span>
+<span class="sd">                    &quot;invalid indent %r, should be &#39;tabs&#39; or &#39;spaces&#39;&quot;</span>
+<span class="sd">                    % repr(indent))</span>
+
+<span class="sd">        wat_config.add_option(&#39;indent&#39;, default=&#39;spaces&#39;)</span>
+<span class="sd">        wat_config.connect(&#39;indent&#39;, validate_indent)</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        Be sure to connect validator callbacks before anything else is</span>
+<span class="sd">        connected. The callbacks are ran in the same order as they are</span>
+<span class="sd">        connected, and running other callbacks with an invalid value is</span>
+<span class="sd">        probably not what you want.</span>
+
+<span class="sd">    There&#39;s no need to do checks like ``isinstance(indent, str)``.</span>
+<span class="sd">    Python is a dynamically typed language.</span>
+
+<span class="sd">    You can also catch ``InvalidValue`` to check if setting a value</span>
+<span class="sd">    succeeded::</span>
 
 <span class="sd">        try:</span>
-<span class="sd">            config[&#39;Editing&#39;, &#39;pygments_style&#39;] = &#39;Zaab&#39;</span>
+<span class="sd">            wat_config[&#39;indent&#39;] = &#39;wat wat&#39;</span>
 <span class="sd">        except InvalidValue:</span>
-<span class="sd">            print(&quot;8banana pygments styles aren&#39;t installed :(&quot;)</span>
+<span class="sd">            print(&quot;&#39;wat wat&#39; is not a valid indent :(&quot;)</span>
 <span class="sd">    &quot;&quot;&quot;</span></div>
 
 
-<span class="k">class</span> <span class="nc">_Config</span><span class="p">(</span><span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">MutableMapping</span><span class="p">):</span>
+<span class="c1"># globals ftw</span>
+<span class="n">_sections</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">_loaded_json</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">_dialog</span> <span class="o">=</span> <span class="kc">None</span>          <span class="c1"># the &quot;Porcupine Settings&quot; window</span>
+<span class="n">_notebook</span> <span class="o">=</span> <span class="kc">None</span>        <span class="c1"># main widget in the dialog</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_filename</span> <span class="o">=</span> <span class="n">filename</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span> <span class="o">=</span> <span class="p">{}</span>     <span class="c1"># see add_key()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span> <span class="o">=</span> <span class="p">{}</span>   <span class="c1"># {(section, configkey): callback_list}</span>
 
-        <span class="c1"># this is stored here to allow keeping unknown settings in the</span>
-        <span class="c1"># setting files, this way if the user enables a plugin, disables</span>
-        <span class="c1"># it and enables it again, the settings will be there</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
+<div class="viewcode-block" id="get_section"><a class="viewcode-back" href="../../settings.html#porcupine.settings.get_section">[docs]</a><span class="k">def</span> <span class="nf">get_section</span><span class="p">(</span><span class="n">section_name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return a section object, creating it if it doesn&#39;t exist yet.</span>
 
-    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">run_now</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Schedule ``callback(value)`` to be called when a value changes.</span>
+<span class="sd">    The *section_name* is a title of a tab in the *Porcupine Settings*</span>
+<span class="sd">    dialog, such as ``&#39;General&#39;`` or ``&#39;File Types&#39;``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_init</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_sections</span><span class="p">[</span><span class="n">section_name</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="n">_sections</span><span class="p">[</span><span class="n">section_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">_ConfigSection</span><span class="p">(</span><span class="n">section_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_sections</span><span class="p">[</span><span class="n">section_name</span><span class="p">]</span></div>
 
-<span class="sd">        If *run_now* is True, ``callback(current_value)`` is also called</span>
-<span class="sd">        immediately when ``connect()`` is called. More than one callback</span>
-<span class="sd">        may be connected to the same ``(section, key)`` pair.</span>
+
+<span class="k">class</span> <span class="nc">_ConfigSection</span><span class="p">(</span><span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">MutableMapping</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">_notebook</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.init() wasn&#39;t called&quot;</span> <span class="o">%</span> <span class="vm">__name__</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">content_frame</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="n">_notebook</span><span class="p">)</span>
+        <span class="n">_notebook</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span> <span class="o">=</span> <span class="p">{}</span>        <span class="c1"># see add_option()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_var_cache</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">add_option</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">reset</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a new option without adding widgets to the setting dialog.</span>
+
+<span class="sd">        ``section[key]`` will be *default* unless something else is</span>
+<span class="sd">        specified.</span>
+
+<span class="sd">        If *reset* is True, the setting dialog&#39;s reset button sets this</span>
+<span class="sd">        option to *default*.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            The *reset* argument should be False for settings that</span>
+<span class="sd">            cannot be changed with the dialog. That way, clicking the</span>
+<span class="sd">            reset button resets only the settings that are shown in the</span>
+<span class="sd">            dialog.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span><span class="p">[</span><span class="n">section</span><span class="p">,</span> <span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">run_now</span><span class="p">:</span>
-            <span class="n">callback</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">section</span><span class="p">,</span> <span class="n">key</span><span class="p">])</span>
-        <span class="k">return</span> <span class="n">callback</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">SimpleNamespace</span><span class="p">(</span>
+            <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span>        <span class="c1"># not validated</span>
+            <span class="n">reset</span><span class="o">=</span><span class="n">reset</span><span class="p">,</span>
+            <span class="n">callbacks</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">errorvar</span><span class="o">=</span><span class="n">tkinter</span><span class="o">.</span><span class="n">BooleanVar</span><span class="p">(),</span>  <span class="c1"># true when the triangle is showing</span>
+        <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Undo a :meth:`~connect` call.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span><span class="p">[</span><span class="n">section</span><span class="p">,</span> <span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">info</span><span class="o">.</span><span class="n">validate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">info</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-
-        <span class="c1"># make sure that the configparser isn&#39;t caching an old value</span>
-        <span class="n">section</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="n">item</span>
+        <span class="n">old_value</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span><span class="p">[</span><span class="n">section</span><span class="p">][</span><span class="n">key</span><span class="p">]</span>
+            <span class="n">_loaded_json</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-            <span class="k">pass</span>
+            <span class="n">_loaded_json</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span><span class="p">}</span>
 
-        <span class="n">old_value</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
         <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="n">old_value</span><span class="p">:</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%r</span><span class="s2"> was set to </span><span class="si">%r</span><span class="s2">, running callbacks&quot;</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-
-            <span class="k">for</span> <span class="n">callback</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span><span class="p">[</span><span class="n">item</span><span class="p">]:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%r</span><span class="s2"> was set to </span><span class="si">%r</span><span class="s2">, running callbacks&quot;</span><span class="p">,</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">info</span><span class="o">.</span><span class="n">callbacks</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">callback</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                    <span class="n">func</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">InvalidValue</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">_loaded_json</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">old_value</span>
+                    <span class="k">raise</span> <span class="n">e</span>
                 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                     <span class="k">try</span><span class="p">:</span>
-                        <span class="n">func_name</span> <span class="o">=</span> <span class="p">(</span><span class="n">callback</span><span class="o">.</span><span class="vm">__module__</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span>
-                                     <span class="n">callback</span><span class="o">.</span><span class="vm">__qualname__</span><span class="p">)</span>
+                        <span class="n">func_name</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__module__</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">func</span><span class="o">.</span><span class="vm">__qualname__</span>
                     <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-                        <span class="n">func_name</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
-                    <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">(</span><span class="si">%r</span><span class="s2">) didn&#39;t work&quot;</span><span class="p">,</span> <span class="n">func_name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+                        <span class="n">func_name</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">(</span><span class="si">%r</span><span class="s2">) didn&#39;t work&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">,</span>
+                                  <span class="n">func_name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
-        <span class="c1"># this raises KeyError</span>
-        <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
-
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">_loaded_json</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">][</span><span class="n">key</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-            <span class="c1"># maybe it&#39;s loaded in the configparser, but not converted</span>
-            <span class="c1"># to a non-string yet? this happens when plugins add their</span>
-            <span class="c1"># own config keys after the config is loaded</span>
-            <span class="n">section</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="n">item</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">string_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span><span class="p">[</span><span class="n">section</span><span class="p">][</span><span class="n">key</span><span class="p">]</span>
-            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>    <span class="c1"># nope</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">default</span>
-            <span class="k">else</span><span class="p">:</span>       <span class="c1"># it&#39;s there :D</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">string_value</span><span class="p">)</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">default</span>
 
-    <span class="k">def</span> <span class="nf">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>    <span class="c1"># the abc requires this</span>
-        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;cannot delete setting keys&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>    <span class="c1"># the abc requires this</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;cannot delete options&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
@@ -155,186 +196,350 @@
     <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">add_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">configkey</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
-                <span class="n">converters</span><span class="o">=</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="n">validator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reset</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Add a new valid key to the config.</span>
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set ``section[key]`` back to the default value.</span>
 
-<span class="sd">        ``config[section, configkey]`` will be *default* unless</span>
-<span class="sd">        something else is specified.</span>
+<span class="sd">        The value is always reset to the *default* argument passed to</span>
+<span class="sd">        :meth:`add_option`, regardless of its *reset* argument.</span>
 
-<span class="sd">        The *converters* argument should be a two-tuple of</span>
-<span class="sd">        ``(from_string, to_string)`` functions. They should construct</span>
-<span class="sd">        values from strings and convert them back to strings,</span>
-<span class="sd">        respectively. Both functions are called like ``function(value)``</span>
-<span class="sd">        and they should return the converted value.</span>
-
-<span class="sd">        If a validator is given, it will be called with the new value as</span>
-<span class="sd">        the only argument when setting a value. It may raise an</span>
-<span class="sd">        :exc:`.InvalidValue` exception.</span>
-
-<span class="sd">        If *reset* is False, :meth:`reset` won&#39;t do anything to the</span>
-<span class="sd">        value. The setting dialog has a button that runs :meth:`reset`,</span>
-<span class="sd">        so this is is useful for things that are not controlled with the</span>
-<span class="sd">        setting dialog, like ``pygments_style``.</span>
+<span class="sd">        Resetting is useful for e.g. key bindings. For example, pressing</span>
+<span class="sd">        Ctrl+0 resets ``font_size``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># the font validators require a tkinter root window and this</span>
-        <span class="c1"># needs to run at import time (no root window yet)</span>
-        <span class="k">if</span> <span class="n">validator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">section</span> <span class="o">!=</span> <span class="s1">&#39;Font&#39;</span><span class="p">:</span>
-            <span class="n">validator</span><span class="p">(</span><span class="n">default</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">default</span>
 
-        <span class="n">info</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">SimpleNamespace</span><span class="p">(</span>
-            <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="n">validator</span><span class="p">,</span> <span class="n">reset</span><span class="o">=</span><span class="n">reset</span><span class="p">)</span>
-        <span class="n">info</span><span class="o">.</span><span class="n">from_string</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">to_string</span> <span class="o">=</span> <span class="n">converters</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">[</span><span class="n">section</span><span class="p">,</span> <span class="n">configkey</span><span class="p">]</span> <span class="o">=</span> <span class="n">info</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span><span class="p">[</span><span class="n">section</span><span class="p">,</span> <span class="n">configkey</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">run_now</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Schedule ``callback(section[key])`` to be called when the value</span>
+<span class="sd">        of an option changes.</span>
 
-    <span class="k">def</span> <span class="nf">add_bool_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">configkey</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;A convenience method for adding Boolean keys.</span>
-
-<span class="sd">        The value is ``yes`` or ``no`` when converted to a string.</span>
+<span class="sd">        If *run_now* is True, ``callback(section[key])`` is also called</span>
+<span class="sd">        immediately when ``connect()`` is called. More than one callback</span>
+<span class="sd">        can be connected to the same key.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">converters</span> <span class="o">=</span> <span class="p">(</span>        <span class="c1"># (from_string, to_string)</span>
-            <span class="k">lambda</span> <span class="n">string</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;yes&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;no&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">default</span><span class="p">),</span>
-            <span class="k">lambda</span> <span class="n">boolean</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;yes&#39;</span> <span class="k">if</span> <span class="n">boolean</span> <span class="k">else</span> <span class="s1">&#39;no&#39;</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_key</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="n">configkey</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span>
-                     <span class="n">converters</span><span class="o">=</span><span class="n">converters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">callbacks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">run_now</span><span class="p">:</span>
+            <span class="n">callback</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
 
-    <span class="k">def</span> <span class="nf">add_int_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">configkey</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
-                    <span class="n">minimum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">maximum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">validator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;A convenience method for adding integer keys.</span>
+    <span class="k">def</span> <span class="nf">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Undo a :meth:`~connect` call.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">callbacks</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
 
-<span class="sd">        The *minimum* and *maximum* arguments can be used to</span>
-<span class="sd">        automatically add a validator that makes sure that the value is</span>
-<span class="sd">        minimum, maximum or something between them. Of course, you can</span>
-<span class="sd">        also use a custom *validator* with or without the</span>
-<span class="sd">        minimum-maximum validator, and only one of *minimum* or *maximum*.</span>
+    <span class="c1"># returns an image the same size as img_triangle, but empty</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_get_fake_triangle</span><span class="p">(</span><span class="n">any_widget</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">cache</span><span class="p">:</span>
+            <span class="n">cache</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tkinter</span><span class="o">.</span><span class="n">PhotoImage</span><span class="p">(</span>
+                <span class="n">width</span><span class="o">=</span><span class="n">any_widget</span><span class="o">.</span><span class="n">tk</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s1">&#39;image&#39;</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="s1">&#39;img_triangle&#39;</span><span class="p">),</span>
+                <span class="n">height</span><span class="o">=</span><span class="n">any_widget</span><span class="o">.</span><span class="n">tk</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s1">&#39;image&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">,</span> <span class="s1">&#39;img_triangle&#39;</span><span class="p">),</span>
+            <span class="p">))</span>
+            <span class="n">atexit</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">cache</span><span class="o">.</span><span class="n">clear</span><span class="p">)</span>     <span class="c1"># see utils._init_images</span>
+        <span class="k">return</span> <span class="n">cache</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">get_var</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">var_type</span><span class="o">=</span><span class="n">tkinter</span><span class="o">.</span><span class="n">StringVar</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a tkinter variable that is bound to an option.</span>
+
+<span class="sd">        Changing the value of the variable updates the config section,</span>
+<span class="sd">        and changing the value in the section also sets the variable&#39;s</span>
+<span class="sd">        value.</span>
+
+<span class="sd">        This returns a ``StringVar`` by default, but you can use the</span>
+<span class="sd">        ``var_type`` argument to change that. For example,</span>
+<span class="sd">        ``var_type=tkinter.BooleanVar`` is suitable for an option that</span>
+<span class="sd">        is meant to be True or False.</span>
+
+<span class="sd">        If an invalid value is set to the variable, it is not set to the</span>
+<span class="sd">        section but the triangles in the frames returned by</span>
+<span class="sd">        :meth:`add_frame` are shown.</span>
+
+<span class="sd">        Calling this function multiple times with different ``var_type``</span>
+<span class="sd">        arguments raises :exc:`TypeError`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">def</span> <span class="nf">the_real_validator</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">minimum</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="n">minimum</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">InvalidValue</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%r</span><span class="s2"> is too small&quot;</span> <span class="o">%</span> <span class="n">value</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">maximum</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="n">maximum</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">InvalidValue</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%r</span><span class="s2"> is too big&quot;</span> <span class="o">%</span> <span class="n">value</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">validator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">validator</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var_cache</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_var_cache</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">var_type</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;get_var(</span><span class="si">%r</span><span class="s2">, var_type) was called multiple &quot;</span>
+                                <span class="s2">&quot;times with different var types&quot;</span> <span class="o">%</span> <span class="n">key</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var_cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_key</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="n">configkey</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">converters</span><span class="o">=</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span>
-                     <span class="n">validator</span><span class="o">=</span><span class="n">the_real_validator</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">var_type</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Set a settings to the default value.</span>
+        <span class="k">def</span> <span class="nf">var2config</span><span class="p">(</span><span class="o">*</span><span class="n">junk</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="k">except</span> <span class="n">tkinter</span><span class="o">.</span><span class="n">TclError</span><span class="p">:</span>
+                <span class="c1"># example: var_type is IntVar and the actual value is &#39;lol&#39;</span>
+                <span class="n">info</span><span class="o">.</span><span class="n">errorvar</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">return</span>
 
-<span class="sd">        The key can be a ``(section, configkey)`` tuple or None. If it&#39;s</span>
-<span class="sd">        None, all settings will be set to defaults.</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">except</span> <span class="n">InvalidValue</span><span class="p">:</span>
+                <span class="n">info</span><span class="o">.</span><span class="n">errorvar</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">return</span>
+
+            <span class="n">info</span><span class="o">.</span><span class="n">errorvar</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">set</span><span class="p">,</span> <span class="n">run_now</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">var2config</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_var_cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">var</span>
+        <span class="k">return</span> <span class="n">var</span>
+
+    <span class="k">def</span> <span class="nf">add_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">triangle_key</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a ``ttk.Frame`` to the dialog and return it.</span>
+
+<span class="sd">        The frame will contain a label that displays a |triangle| when</span>
+<span class="sd">        the value of the variable from :meth:`get_var` is invalid. The</span>
+<span class="sd">        triangle label is packed with ``side=&#39;right&#39;``.</span>
+
+<span class="sd">        For example, :meth:`add_checkbutton` works roughly like this::</span>
+
+<span class="sd">            frame = section.add_frame(key)</span>
+<span class="sd">            var = section.get_var(key, tkinter.BooleanVar)</span>
+<span class="sd">            ttk.Checkbutton(frame, text=text, variable=var).pack(side=&#39;left&#39;)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">the_key</span><span class="p">,</span> <span class="n">info</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="k">if</span> <span class="n">info</span><span class="o">.</span><span class="n">reset</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="p">[</span><span class="n">the_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">default</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">default</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content_frame</span><span class="p">)</span>
+        <span class="n">frame</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Load all settings so other modules can use them.</span>
+        <span class="k">if</span> <span class="n">triangle_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">errorvar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">[</span><span class="n">triangle_key</span><span class="p">]</span><span class="o">.</span><span class="n">errorvar</span>
+            <span class="n">triangle_label</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+            <span class="n">triangle_label</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span>
 
-<span class="sd">        This must be called after creating a tkinter root window.</span>
+            <span class="k">def</span> <span class="nf">on_errorvar_changed</span><span class="p">(</span><span class="o">*</span><span class="n">junk</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">errorvar</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+                    <span class="n">triangle_label</span><span class="p">[</span><span class="s1">&#39;image&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;img_triangle&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">triangle_label</span><span class="p">[</span><span class="s1">&#39;image&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_fake_triangle</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+
+            <span class="n">errorvar</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">on_errorvar_changed</span><span class="p">)</span>
+            <span class="n">on_errorvar_changed</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">frame</span>
+
+    <span class="k">def</span> <span class="nf">add_checkbutton</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a ``ttk.Checkbutton`` that sets an option to a bool.&quot;&quot;&quot;</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_var</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">tkinter</span><span class="o">.</span><span class="n">BooleanVar</span><span class="p">)</span>
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Checkbutton</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">add_frame</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span>
+                        <span class="n">variable</span><span class="o">=</span><span class="n">var</span><span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">add_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a ``ttk.Entry`` that sets an option to a string.&quot;&quot;&quot;</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_frame</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">textvariable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_var</span><span class="p">(</span><span class="n">key</span><span class="p">))</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">add_combobox</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">choices</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">case_sensitive</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a ``ttk.Combobox`` that sets an option to a string.</span>
+
+<span class="sd">        The combobox will contain each string in *choices*.</span>
+
+<span class="sd">        A `validator callback &lt;Validating&gt;`_ that ensures the value is</span>
+<span class="sd">        in *choices* is also added. If *case_sensitive* is False,</span>
+<span class="sd">        :meth:`str.casefold` is used when comparing the strings.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># the font stuff must be here because validating a font requires the</span>
-        <span class="c1"># tkinter root window</span>
-        <span class="n">fixedfont</span> <span class="o">=</span> <span class="n">tkfont</span><span class="o">.</span><span class="n">Font</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;TkFixedFont&#39;</span><span class="p">,</span> <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">original_family</span> <span class="o">=</span> <span class="n">fixedfont</span><span class="o">.</span><span class="n">actual</span><span class="p">(</span><span class="s1">&#39;family&#39;</span><span class="p">)</span>
-
-        <span class="k">def</span> <span class="nf">on_family_changed</span><span class="p">(</span><span class="n">family</span><span class="p">):</span>
-            <span class="n">fixedfont</span><span class="p">[</span><span class="s1">&#39;family&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">original_family</span> <span class="k">if</span> <span class="n">family</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">family</span>
-
-        <span class="k">def</span> <span class="nf">on_size_changed</span><span class="p">(</span><span class="n">size</span><span class="p">):</span>
-            <span class="n">fixedfont</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">size</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;Font&#39;</span><span class="p">,</span> <span class="s1">&#39;family&#39;</span><span class="p">,</span> <span class="n">on_family_changed</span><span class="p">,</span> <span class="n">run_now</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;Font&#39;</span><span class="p">,</span> <span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="n">on_size_changed</span><span class="p">,</span> <span class="n">run_now</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-        <span class="c1"># now the stupid font stuff is done, time to do what this method</span>
-        <span class="c1"># is supposed to be doing</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span><span class="o">.</span><span class="n">read</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_filename</span><span class="p">]):</span>
-            <span class="c1"># the user file can&#39;t be read, no need to do anything</span>
-            <span class="k">return</span>
-
-        <span class="k">for</span> <span class="n">sectionname</span><span class="p">,</span> <span class="n">section</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">for</span> <span class="n">configkey</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">section</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">[</span><span class="n">sectionname</span><span class="p">,</span> <span class="n">configkey</span><span class="p">]</span>
-                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-                    <span class="c1"># see the comments about _configparser in __init__()</span>
-                    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;unknown config key </span><span class="si">%r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">sectionname</span><span class="p">,</span> <span class="n">configkey</span><span class="p">))</span>
-                    <span class="k">continue</span>
-
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="p">[</span><span class="n">sectionname</span><span class="p">,</span> <span class="n">configkey</span><span class="p">]</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-                <span class="k">except</span> <span class="n">InvalidValue</span><span class="p">:</span>
-                    <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="s2">&quot;cannot set </span><span class="si">%r</span><span class="s2"> to </span><span class="si">%r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">sectionname</span><span class="p">,</span> <span class="n">configkey</span><span class="p">),</span>
-                        <span class="n">value</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Save all non-default settings to the user&#39;s file.&quot;&quot;&quot;</span>
-        <span class="c1"># if the user opens up two porcupines, the other porcupine might</span>
-        <span class="c1"># have saved to the config file while this porcupine was running</span>
-        <span class="c1"># we&#39;ll avoid overwriting its settings</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span><span class="o">.</span><span class="n">read</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_filename</span><span class="p">])</span>
-
-        <span class="k">for</span> <span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="n">configkey</span><span class="p">),</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">[</span><span class="n">section</span><span class="p">,</span> <span class="n">configkey</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="n">info</span><span class="o">.</span><span class="n">default</span><span class="p">:</span>
-                <span class="c1"># make sure the default will be used</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span><span class="p">[</span><span class="n">section</span><span class="p">][</span><span class="n">configkey</span><span class="p">]</span>
-                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-                    <span class="k">pass</span>
+        <span class="k">def</span> <span class="nf">validator</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">case_sensitive</span><span class="p">:</span>
+                <span class="n">ok</span> <span class="o">=</span> <span class="p">(</span><span class="n">value</span> <span class="ow">in</span> <span class="n">choices</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">string</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span><span class="p">[</span><span class="n">section</span><span class="p">][</span><span class="n">configkey</span><span class="p">]</span> <span class="o">=</span> <span class="n">string</span>
-                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span><span class="p">[</span><span class="n">section</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">configkey</span><span class="p">:</span> <span class="n">string</span><span class="p">}</span>
+                <span class="n">ok</span> <span class="o">=</span> <span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">casefold</span><span class="p">()</span> <span class="ow">in</span> <span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="o">.</span><span class="n">casefold</span><span class="p">,</span> <span class="n">choices</span><span class="p">))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">ok</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InvalidValue</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%r</span><span class="s2"> is not a valid </span><span class="si">%r</span><span class="s2"> value&quot;</span>
+                                   <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">key</span><span class="p">))</span>
 
-        <span class="c1"># delete empty sections</span>
-        <span class="k">for</span> <span class="n">sectionname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span><span class="o">.</span><span class="n">sections</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">():</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span><span class="p">[</span><span class="n">sectionname</span><span class="p">]:</span>
-                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span><span class="p">[</span><span class="n">sectionname</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">validator</span><span class="p">)</span>
 
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_configparser</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_frame</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Combobox</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span>
+                     <span class="n">textvariable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_var</span><span class="p">(</span><span class="n">key</span><span class="p">))</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">add_spinbox</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">minimum</span><span class="p">,</span> <span class="n">maximum</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a :class:`utils.Spinbox &lt;porcupine.utils.Spinbox&gt;` that sets</span>
+<span class="sd">        an option to an integer.</span>
+
+<span class="sd">        The *minimum* and *maximum* arguments are used as the bounds for</span>
+<span class="sd">        the spinbox. A `validator callback &lt;Validating&gt;`_ that makes</span>
+<span class="sd">        sure the value is between them is also added.</span>
+
+<span class="sd">        Note that *minimum* and *maximum* are inclusive, so</span>
+<span class="sd">        ``minimum=3, maximum=5`` means that 3, 4 and 5 are valid values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">validator</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="n">minimum</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InvalidValue</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%r</span><span class="s2"> is too small&quot;</span> <span class="o">%</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="n">maximum</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InvalidValue</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%r</span><span class="s2"> is too big&quot;</span> <span class="o">%</span> <span class="n">value</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">validator</span><span class="p">)</span>
+
+        <span class="n">frame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_frame</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">Spinbox</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">textvariable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_var</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">tkinter</span><span class="o">.</span><span class="n">IntVar</span><span class="p">),</span>
+                      <span class="n">from_</span><span class="o">=</span><span class="n">minimum</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="n">maximum</span><span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_needs_reset</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="n">_sections</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">info</span> <span class="ow">in</span> <span class="n">section</span><span class="o">.</span><span class="n">_info</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">info</span><span class="o">.</span><span class="n">default</span> <span class="o">!=</span> <span class="n">section</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="kc">False</span>
+
+
+<span class="k">def</span> <span class="nf">_do_reset</span><span class="p">():</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_needs_reset</span><span class="p">:</span>
+        <span class="n">messagebox</span><span class="o">.</span><span class="n">showinfo</span><span class="p">(</span><span class="s2">&quot;Reset Settings&quot;</span><span class="p">,</span>
+                            <span class="s2">&quot;You are already using the default settings.&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">messagebox</span><span class="o">.</span><span class="n">askyesno</span><span class="p">(</span>
+            <span class="s2">&quot;Reset Settings&quot;</span><span class="p">,</span> <span class="s2">&quot;Are you sure you want to reset all settings?&quot;</span><span class="p">,</span>
+            <span class="n">parent</span><span class="o">=</span><span class="n">_dialog</span><span class="p">):</span>
+        <span class="k">return</span>
+
+    <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="n">_sections</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">info</span> <span class="ow">in</span> <span class="n">section</span><span class="o">.</span><span class="n">_infos</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">info</span><span class="o">.</span><span class="n">reset</span><span class="p">:</span>
+                <span class="n">section</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">default</span>
+    <span class="n">messagebox</span><span class="o">.</span><span class="n">showinfo</span><span class="p">(</span>
+        <span class="s2">&quot;Reset Settings&quot;</span><span class="p">,</span> <span class="s2">&quot;All settings were reset to defaults.&quot;</span><span class="p">,</span>
+        <span class="n">parent</span><span class="o">=</span><span class="n">_dialog</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_validate_encoding</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">codecs</span><span class="o">.</span><span class="n">lookup</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">LookupError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">InvalidValue</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span> <span class="kn">from</span> <span class="nn">None</span>
+        <span class="k">raise</span> <span class="n">InvalidValue</span> <span class="kn">from</span> <span class="nn">e</span>
 
 
-<span class="c1"># this needs a tkinter root window</span>
-<span class="k">def</span> <span class="nf">_validate_font_family</span><span class="p">(</span><span class="n">family</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">family</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">family</span><span class="o">.</span><span class="n">casefold</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="o">.</span><span class="n">casefold</span><span class="p">,</span> <span class="n">tkfont</span><span class="o">.</span><span class="n">families</span><span class="p">()):</span>
-            <span class="k">raise</span> <span class="n">InvalidValue</span><span class="p">(</span><span class="s2">&quot;unknown font family </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">family</span><span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">_validate_style_name</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_validate_pygments_style_name</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">pygments</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">get_style_by_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">pygments</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">ClassNotFound</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">InvalidValue</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span> <span class="kn">from</span> <span class="nn">None</span>
 
 
-<span class="n">config</span> <span class="o">=</span> <span class="n">_Config</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirs</span><span class="o">.</span><span class="n">configdir</span><span class="p">,</span> <span class="s1">&#39;settings.ini&#39;</span><span class="p">))</span>
-<span class="n">config</span><span class="o">.</span><span class="n">add_key</span><span class="p">(</span><span class="s1">&#39;Font&#39;</span><span class="p">,</span> <span class="s1">&#39;family&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">validator</span><span class="o">=</span><span class="n">_validate_font_family</span><span class="p">)</span>
-<span class="n">config</span><span class="o">.</span><span class="n">add_int_key</span><span class="p">(</span><span class="s1">&#39;Font&#39;</span><span class="p">,</span> <span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">minimum</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">maximum</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
-<span class="n">config</span><span class="o">.</span><span class="n">add_key</span><span class="p">(</span><span class="s1">&#39;Files&#39;</span><span class="p">,</span> <span class="s1">&#39;encoding&#39;</span><span class="p">,</span> <span class="s1">&#39;UTF-8&#39;</span><span class="p">,</span> <span class="n">validator</span><span class="o">=</span><span class="n">_validate_encoding</span><span class="p">)</span>
-<span class="n">config</span><span class="o">.</span><span class="n">add_bool_key</span><span class="p">(</span><span class="s1">&#39;Files&#39;</span><span class="p">,</span> <span class="s1">&#39;add_trailing_newline&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-<span class="n">config</span><span class="o">.</span><span class="n">add_key</span><span class="p">(</span><span class="s1">&#39;Editing&#39;</span><span class="p">,</span> <span class="s1">&#39;pygments_style&#39;</span><span class="p">,</span> <span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="n">reset</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-               <span class="n">validator</span><span class="o">=</span><span class="n">_validate_style_name</span><span class="p">)</span>
-<span class="n">config</span><span class="o">.</span><span class="n">add_key</span><span class="p">(</span><span class="s1">&#39;GUI&#39;</span><span class="p">,</span> <span class="s1">&#39;default_size&#39;</span><span class="p">,</span> <span class="s1">&#39;650x500&#39;</span><span class="p">)</span>   <span class="c1"># TODO: fix this</span>
+<span class="k">def</span> <span class="nf">_init</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">_dialog</span>
+    <span class="k">global</span> <span class="n">_notebook</span>
+
+    <span class="k">if</span> <span class="n">_dialog</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># already initialized</span>
+        <span class="k">return</span>
+
+    <span class="n">_dialog</span> <span class="o">=</span> <span class="n">tkinter</span><span class="o">.</span><span class="n">Toplevel</span><span class="p">()</span>
+    <span class="n">_dialog</span><span class="o">.</span><span class="n">withdraw</span><span class="p">()</span>        <span class="c1"># hide it for now</span>
+    <span class="n">_dialog</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Porcupine Settings&quot;</span><span class="p">)</span>
+    <span class="n">_dialog</span><span class="o">.</span><span class="n">protocol</span><span class="p">(</span><span class="s1">&#39;WM_DELETE_WINDOW&#39;</span><span class="p">,</span> <span class="n">_dialog</span><span class="o">.</span><span class="n">withdraw</span><span class="p">)</span>
+    <span class="n">_dialog</span><span class="o">.</span><span class="n">geometry</span><span class="p">(</span><span class="s1">&#39;500x350&#39;</span><span class="p">)</span>
+
+    <span class="n">big_frame</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="n">_dialog</span><span class="p">)</span>
+    <span class="n">big_frame</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">_notebook</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Notebook</span><span class="p">(</span><span class="n">big_frame</span><span class="p">)</span>
+    <span class="n">_notebook</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">ttk</span><span class="o">.</span><span class="n">Separator</span><span class="p">(</span><span class="n">big_frame</span><span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+    <span class="n">buttonframe</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="n">big_frame</span><span class="p">)</span>
+    <span class="n">buttonframe</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">text</span><span class="p">,</span> <span class="n">command</span> <span class="ow">in</span> <span class="p">[(</span><span class="s2">&quot;Reset&quot;</span><span class="p">,</span> <span class="n">_do_reset</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OK&quot;</span><span class="p">,</span> <span class="n">_dialog</span><span class="o">.</span><span class="n">withdraw</span><span class="p">)]:</span>
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">buttonframe</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="n">command</span><span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">_loaded_json</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirs</span><span class="o">.</span><span class="n">configdir</span><span class="p">,</span> <span class="s1">&#39;settings.json&#39;</span><span class="p">),</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">_loaded_json</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+        <span class="k">pass</span>      <span class="c1"># use defaults everywhere</span>
+
+    <span class="n">general</span> <span class="o">=</span> <span class="n">get_section</span><span class="p">(</span><span class="s1">&#39;General&#39;</span><span class="p">)</span>   <span class="c1"># type: _ConfigSection</span>
+
+    <span class="n">fixedfont</span> <span class="o">=</span> <span class="n">tkfont</span><span class="o">.</span><span class="n">Font</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;TkFixedFont&#39;</span><span class="p">,</span> <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">font_families</span> <span class="o">=</span> <span class="p">[</span><span class="n">family</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="n">tkfont</span><span class="o">.</span><span class="n">families</span><span class="p">()</span>
+                     <span class="c1"># i get weird fonts starting with @ on windows</span>
+                     <span class="k">if</span> <span class="ow">not</span> <span class="n">family</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;@&#39;</span><span class="p">)]</span>
+
+    <span class="n">general</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s1">&#39;font_family&#39;</span><span class="p">,</span> <span class="n">fixedfont</span><span class="o">.</span><span class="n">actual</span><span class="p">(</span><span class="s1">&#39;family&#39;</span><span class="p">))</span>
+    <span class="n">general</span><span class="o">.</span><span class="n">add_combobox</span><span class="p">(</span><span class="s1">&#39;font_family&#39;</span><span class="p">,</span> <span class="n">font_families</span><span class="p">,</span> <span class="s2">&quot;Font Family:&quot;</span><span class="p">,</span>
+                         <span class="n">case_sensitive</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># negative font sizes have a special meaning in tk and the size is negative</span>
+    <span class="c1"># by default, that&#39;s why the stupid hard-coded default size 10</span>
+    <span class="n">general</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s1">&#39;font_size&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="n">general</span><span class="o">.</span><span class="n">add_spinbox</span><span class="p">(</span><span class="s1">&#39;font_size&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="s2">&quot;Font Size:&quot;</span><span class="p">)</span>
+
+    <span class="c1"># when font_family changes:  fixedfont[&#39;family&#39;] = new_family</span>
+    <span class="c1"># when font_size changes:    fixedfont[&#39;size&#39;] = new_size</span>
+    <span class="n">general</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+        <span class="s1">&#39;font_family&#39;</span><span class="p">,</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">fixedfont</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">,</span> <span class="s1">&#39;family&#39;</span><span class="p">),</span>
+        <span class="n">run_now</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">general</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+        <span class="s1">&#39;font_size&#39;</span><span class="p">,</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">fixedfont</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">,</span> <span class="s1">&#39;size&#39;</span><span class="p">),</span>
+        <span class="n">run_now</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># TODO: allow file-specific encodings if someone complains about this</span>
+    <span class="n">general</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s1">&#39;encoding&#39;</span><span class="p">,</span> <span class="s1">&#39;UTF-8&#39;</span><span class="p">)</span>
+    <span class="n">general</span><span class="o">.</span><span class="n">add_entry</span><span class="p">(</span><span class="s1">&#39;encoding&#39;</span><span class="p">,</span> <span class="s2">&quot;Encoding of opened and saved files:&quot;</span><span class="p">)</span>
+    <span class="n">general</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;encoding&#39;</span><span class="p">,</span> <span class="n">_validate_encoding</span><span class="p">)</span>
+
+    <span class="n">general</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s1">&#39;pygments_style&#39;</span><span class="p">,</span> <span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="n">reset</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">general</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;pygments_style&#39;</span><span class="p">,</span> <span class="n">_validate_pygments_style_name</span><span class="p">)</span>
+
+    <span class="n">filetypes</span> <span class="o">=</span> <span class="n">get_section</span><span class="p">(</span><span class="s1">&#39;File Types&#39;</span><span class="p">)</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">filetypes</span><span class="o">.</span><span class="n">content_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
+        <span class="s2">&quot;Currently there&#39;s no GUI for changing filetype specific &quot;</span>
+        <span class="s2">&quot;settings, but they&#39;re stored in filetypes.ini and you can &quot;</span>
+        <span class="s2">&quot;edit it yourself.&quot;</span><span class="p">))</span>
+    <span class="n">label</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+    <span class="n">filetypes</span><span class="o">.</span><span class="n">content_frame</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span>      <span class="c1"># automatic wrapping</span>
+        <span class="s1">&#39;&lt;Configure&gt;&#39;</span><span class="p">,</span>
+        <span class="k">lambda</span> <span class="n">event</span><span class="p">:</span> <span class="n">label</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">wraplength</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">width</span><span class="p">),</span>
+        <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">edit_it</span><span class="p">():</span>
+        <span class="c1"># porcupine/tabs.py imports this file</span>
+        <span class="c1"># these local imports feel so evil xD  MUHAHAHAA!!!</span>
+        <span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">tabs</span>
+
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirs</span><span class="o">.</span><span class="n">configdir</span><span class="p">,</span> <span class="s1">&#39;filetypes.ini&#39;</span><span class="p">)</span>
+        <span class="n">manager</span> <span class="o">=</span> <span class="n">porcupine</span><span class="o">.</span><span class="n">get_tab_manager</span><span class="p">()</span>
+        <span class="n">manager</span><span class="o">.</span><span class="n">add_tab</span><span class="p">(</span><span class="n">tabs</span><span class="o">.</span><span class="n">FileTab</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="n">manager</span><span class="p">,</span> <span class="n">path</span><span class="p">))</span>
+        <span class="n">_dialog</span><span class="o">.</span><span class="n">withdraw</span><span class="p">()</span>
+
+    <span class="n">ttk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">filetypes</span><span class="o">.</span><span class="n">content_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Edit filetypes.ini&quot;</span><span class="p">,</span>
+               <span class="n">command</span><span class="o">=</span><span class="n">edit_it</span><span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">anchor</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">show_dialog</span><span class="p">(</span><span class="n">window</span><span class="p">):</span>
+    <span class="n">_init</span><span class="p">()</span>
+
+    <span class="c1"># hide sections with no widgets in the content_frame</span>
+    <span class="c1"># add and hide preserve order and title texts</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">section</span> <span class="ow">in</span> <span class="n">_sections</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">section</span><span class="o">.</span><span class="n">content_frame</span><span class="o">.</span><span class="n">winfo_children</span><span class="p">():</span>
+            <span class="n">_notebook</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">section</span><span class="o">.</span><span class="n">content_frame</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_notebook</span><span class="o">.</span><span class="n">hide</span><span class="p">(</span><span class="n">section</span><span class="o">.</span><span class="n">content_frame</span><span class="p">)</span>
+
+    <span class="n">_dialog</span><span class="o">.</span><span class="n">transient</span><span class="p">(</span><span class="n">window</span><span class="p">)</span>
+    <span class="n">_dialog</span><span class="o">.</span><span class="n">deiconify</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">save</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">_loaded_json</span><span class="p">:</span>
+        <span class="c1"># there&#39;s something to save</span>
+        <span class="c1"># if two porcupines are running and the user changes settings</span>
+        <span class="c1"># differently in them, the settings of the one that&#39;s closed</span>
+        <span class="c1"># first are discarded</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirs</span><span class="o">.</span><span class="n">configdir</span><span class="p">,</span> <span class="s1">&#39;settings.json&#39;</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">_loaded_json</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
+
+
+<span class="c1"># docs/settings.rst relies on this</span>
+<span class="c1"># FIXME: the [source] links of section methods don&#39;t work :(</span>
+<span class="k">if</span> <span class="s1">&#39;sphinx&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>
+    <span class="n">section</span> <span class="o">=</span> <span class="n">_ConfigSection</span>
 </pre></div>
 
           </div>

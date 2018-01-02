@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine — The top level Porcupine package &#8212; Porcupine API 0.34.0 documentation</title>
+    <title>porcupine — The top level Porcupine package &#8212; Porcupine API 0.58.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.34.0',
+        VERSION:     '0.58.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -45,15 +45,13 @@
 <p>Doing <code class="docutils literal"><span class="pre">import</span> <span class="pre">porcupine</span></code> gives you access to the things documented here. It
 <em>may</em> work for other submodules too, but it’s recommended to be more specific
 when importing them, like <code class="docutils literal"><span class="pre">from</span> <span class="pre">porcupine</span> <span class="pre">import</span> <span class="pre">tabs</span></code>.</p>
-<div class="section" id="stuff-that-the-intro-covers-too">
-<h2>Stuff that the intro covers too<a class="headerlink" href="#stuff-that-the-intro-covers-too" title="Permalink to this headline">¶</a></h2>
 <p>If you haven’t read <a class="reference internal" href="plugin-intro.html#plugin-intro"><span class="std std-ref">the plugin writing introduction</span></a> yet
 I recommend reading it first. Then you’ll have a much better idea about what
 these functions do.</p>
 <dl class="function">
 <dt id="porcupine.get_main_window">
 <code class="descclassname">porcupine.</code><code class="descname">get_main_window</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/_session.html#get_main_window"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.get_main_window" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the widget passed to <a class="reference internal" href="#porcupine.init" title="porcupine.init"><code class="xref py py-func docutils literal"><span class="pre">init()</span></code></a>.</p>
+<dd><p>Return the tkinter root window that Porcupine is using.</p>
 </dd></dl>
 
 <dl class="function">
@@ -80,72 +78,18 @@ The menuitem will be disabled and the binding won’t do anything when
 the current tab is not of a compatible type.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="really-high-level-file-api">
-<h2>Really high-level file API<a class="headerlink" href="#really-high-level-file-api" title="Permalink to this headline">¶</a></h2>
-<p>These functions create <a class="reference internal" href="tabs.html#porcupine.tabs.FileTab" title="porcupine.tabs.FileTab"><code class="xref py py-class docutils literal"><span class="pre">FileTab</span></code></a> objects
-and add them to the tab manager.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">I may remove these functions later because they really don’t do much (see
-the [source] links at right). Use <a class="reference internal" href="tabs.html#porcupine.tabs.FileTab" title="porcupine.tabs.FileTab"><code class="xref py py-class docutils literal"><span class="pre">porcupine.tabs.FileTab</span></code></a> directly
-instead of these functions.</p>
-</div>
-<dl class="function">
-<dt id="porcupine.new_file">
-<code class="descclassname">porcupine.</code><code class="descname">new_file</code><span class="sig-paren">(</span><em>content=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/_session.html#new_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.new_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add a “New File” tab to the tab manager with the given content in it.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="porcupine.open_file">
-<code class="descclassname">porcupine.</code><code class="descname">open_file</code><span class="sig-paren">(</span><em>path</em>, <em>content=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/_session.html#open_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.open_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Open an existing file in Porcupine.</p>
-<p>If <em>path</em> is None, the content will be inserted to a “New File” tab.</p>
-<p>If <em>content</em> is None, it will be read from the <em>path</em> using
-<a class="reference external" href="https://docs.python.org/3/library/functions.html#open" title="(in Python v3.6)"><code class="xref py py-func docutils literal"><span class="pre">open()</span></code></a>. In that case, <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#UnicodeError" title="(in Python v3.6)"><code class="xref py py-exc docutils literal"><span class="pre">UnicodeError</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#OSError" title="(in Python v3.6)"><code class="xref py py-exc docutils literal"><span class="pre">OSError</span></code></a>
-may be raised.</p>
-<p>At least one of <em>path</em> and <em>content</em> must be non-None.</p>
-</dd></dl>
-
-</div>
-<div class="section" id="session-stuff">
-<h2>Session stuff<a class="headerlink" href="#session-stuff" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="porcupine.quit">
 <code class="descclassname">porcupine.</code><code class="descname">quit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/_session.html#quit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.quit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calling this function is equivalent to clicking the X button in the
 corner of the window.</p>
-<p>This function makes sure that all tabs can be closed by calling
-their <a class="reference internal" href="tabs.html#porcupine.tabs.Tab.can_be_closed" title="porcupine.tabs.Tab.can_be_closed"><code class="xref py py-meth docutils literal"><span class="pre">can_be_closed()</span></code></a>
-methods. If they can, all tabs are
-<a class="reference internal" href="tabs.html#porcupine.tabs.TabManager.close_tab" title="porcupine.tabs.TabManager.close_tab"><code class="xref py py-meth docutils literal"><span class="pre">closed</span></code></a> and the main
-window is destroyed.</p>
+<p>First the <a class="reference internal" href="tabs.html#porcupine.tabs.Tab.can_be_closed" title="porcupine.tabs.Tab.can_be_closed"><code class="xref py py-meth docutils literal"><span class="pre">can_be_closed()</span></code></a> method of each
+tab is called. If all tabs can be closed, a <code class="docutils literal"><span class="pre">&lt;&lt;PorcupineQuit&gt;&gt;</span></code>
+virtual event is generated on the main window, all tabs are closed
+with <a class="reference internal" href="tabs.html#porcupine.tabs.TabManager.close_tab" title="porcupine.tabs.TabManager.close_tab"><code class="xref py py-meth docutils literal"><span class="pre">close_tab()</span></code></a> and widgets are
+destroyed.</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="porcupine.init">
-<code class="descclassname">porcupine.</code><code class="descname">init</code><span class="sig-paren">(</span><em>window</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/_session.html#init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.init" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set up Porcupine.</p>
-<p>Usually <a class="reference external" href="https://github.com/Akuli/porcupine/tree/master/porcupine/__main__.py">porcupine/__main__.py</a> calls this function and you
-don’t need to call it yourself. This function can still be useful if
-you want to run Porcupine minimally from another Python program for
-some reason.</p>
-<p>The <em>window</em> argument can be a tkinter root window or a <code class="docutils literal"><span class="pre">Toplevel</span></code>
-widget.</p>
-<p>Example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tkinter</span> <span class="k">as</span> <span class="nn">tk</span>
-<span class="kn">import</span> <span class="nn">porcupine</span>
-
-<span class="n">root</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Tk</span><span class="p">()</span>
-<span class="n">porcupine</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
-<span class="n">root</span><span class="o">.</span><span class="n">protocol</span><span class="p">(</span><span class="s1">&#39;WM_DELETE_WINDOW&#39;</span><span class="p">,</span> <span class="n">porcupine</span><span class="o">.</span><span class="n">quit</span><span class="p">)</span>
-<span class="n">root</span><span class="o">.</span><span class="n">mainloop</span><span class="p">()</span>
-</pre></div>
-</div>
-</dd></dl>
-
-</div>
 <div class="section" id="version-information">
 <h2>Version Information<a class="headerlink" href="#version-information" title="Permalink to this headline">¶</a></h2>
 <dl class="data">
@@ -180,9 +124,6 @@ supports a specific feature:</p>
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#"><code class="docutils literal"><span class="pre">porcupine</span></code> — The top level Porcupine package</a><ul>
-<li><a class="reference internal" href="#stuff-that-the-intro-covers-too">Stuff that the intro covers too</a></li>
-<li><a class="reference internal" href="#really-high-level-file-api">Really high-level file API</a></li>
-<li><a class="reference internal" href="#session-stuff">Session stuff</a></li>
 <li><a class="reference internal" href="#version-information">Version Information</a></li>
 </ul>
 </li>

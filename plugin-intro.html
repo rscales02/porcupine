@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Introduction to Writing Plugins &#8212; Porcupine API 0.34.0 documentation</title>
+    <title>Introduction to Writing Plugins &#8212; Porcupine API 0.58.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.34.0',
+        VERSION:     '0.58.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -57,6 +57,7 @@ Python:</p>
 <span class="go">/home/akuli/.config/porcupine/plugins</span>
 </pre></div>
 </div>
+<p>You can also use <code class="docutils literal"><span class="pre">--print-plugindir</span></code> as shown <a class="reference external" href="https://github.com/Akuli/porcupine/tree/master/more_plugins/">here</a>.</p>
 <p>Of course, your plugins are probably not in <code class="docutils literal"><span class="pre">/home/akuli/.config/porcupine/plugins</span></code>,
 so you need to run the above commands yourself to find out where your plugins
 should go. Rest of this tutorial calls this place <strong>the plugin directory</strong>.</p>
@@ -92,6 +93,9 @@ function.</p>
 <li><p class="first">Usually plugins are files, but directories with an <code class="docutils literal"><span class="pre">__init__.py</span></code> in them
 work as well.</p>
 </li>
+<li><p class="first">Plugins can be imported like <code class="docutils literal"><span class="pre">import</span> <span class="pre">porcupine.plugins.hello</span></code>.
+That’s how Porcupine loads them.</p>
+</li>
 <li><p class="first">File and directory names starting with <code class="docutils literal"><span class="pre">_</span></code> are ignored.</p>
 </li>
 <li><p class="first">Each plugin must define a <code class="docutils literal"><span class="pre">setup()</span></code> function. If your plugin is a package,
@@ -121,9 +125,12 @@ above), but you can also <a class="reference external" href="https://github.com/
 <p>This tutorial is all about writing <em>more</em> plugins, but we’ll start by running
 Porcupine with <em>no</em> plugins at all just to get an idea of how much can be done
 with plugins. Open a command prompt or terminal and run this command on it:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">porcupine</span> <span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">plugins</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">porcu</span> <span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">plugins</span>
 </pre></div>
 </div>
+<p>If the <code class="docutils literal"><span class="pre">porcu</span></code> command doesn’t work you can use <code class="docutils literal"><span class="pre">pyw</span> <span class="pre">-m</span> <span class="pre">porcupine</span></code> or
+<code class="docutils literal"><span class="pre">python3</span> <span class="pre">-m</span> <span class="pre">porcupine</span></code> instead of <code class="docutils literal"><span class="pre">porcu</span></code> as shown
+<a class="reference external" href="https://github.com/Akuli/porcupine/wiki/Installing-and-Running-Porcupine#installing-porcupine">here</a>.</p>
 <p>This will run Porcupine without any plugins, and it is minimal. You can edit
 files with it, but that’s about it. Plugins can do <strong>a lot</strong>.</p>
 </div>
@@ -153,7 +160,7 @@ the tab manager’s <a class="reference internal" href="tabs.html#porcupine.tabs
 This tab is a <a class="reference internal" href="tabs.html#porcupine.tabs.FileTab" title="porcupine.tabs.FileTab"><code class="xref py py-class docutils literal"><span class="pre">porcupine.tabs.FileTab</span></code></a> because it represents a new
 file. The text widget and scroll bar are just widgets packed inside the tab.
 The <code class="docutils literal"><span class="pre">New</span> <span class="pre">File</span></code> label can be accessed with the tab’s
-<a class="reference internal" href="tabs.html#porcupine.tabs.Tab.top_label" title="porcupine.tabs.Tab.top_label"><code class="xref py py-attr docutils literal"><span class="pre">top_label</span></code></a> attribute, but it’s not
+<code class="xref py py-attr docutils literal"><span class="pre">top_label</span></code> attribute, but it’s not
 packed inside the tab.</p>
 <p class="last">Not all tabs need to be file tabs. In fact, you can easily create custom
 kinds of tabs that contain any Tk widgets. See <a class="reference internal" href="tabs.html#module-porcupine.tabs" title="porcupine.tabs"><code class="xref py py-mod docutils literal"><span class="pre">porcupine.tabs</span></code></a>

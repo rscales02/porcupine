@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.utils — Handy utility functions and classes &#8212; Porcupine API 0.34.0 documentation</title>
+    <title>porcupine.utils — Handy utility functions and classes &#8212; Porcupine API 0.58.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.34.0',
+        VERSION:     '0.58.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -69,7 +69,7 @@ starting a new command prompt from Python.</p>
 Windows system that has both Python 2 and Python 3 installed, and Python 2
 is the default.</p>
 <p>Note that this is quoted already if it needs quoting, and should <em>not</em> be
-quoted more. For example, this example is <strong>bad</strong>:</p>
+quoted more. For example, this code is <strong>bad</strong>:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="n">utils</span><span class="o">.</span><span class="n">short_python_command</span><span class="p">,</span> <span class="s1">&#39;blah&#39;</span><span class="p">,</span> <span class="s1">&#39;blah&#39;</span><span class="p">])</span>
 </pre></div>
 </div>
@@ -117,6 +117,40 @@ also works on X11.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="porcupine.utils.bind_with_data">
+<code class="descclassname">porcupine.utils.</code><code class="descname">bind_with_data</code><span class="sig-paren">(</span><em>widget</em>, <em>sequence</em>, <em>callback</em>, <em>add=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/utils.html#bind_with_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.utils.bind_with_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Like <code class="docutils literal"><span class="pre">widget.bind(sequence,</span> <span class="pre">callback)</span></code>, but supports the <code class="docutils literal"><span class="pre">data</span></code>
+argument of <code class="docutils literal"><span class="pre">event_generate()</span></code>.</p>
+<p>Here’s an example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">utils</span>
+
+<span class="k">def</span> <span class="nf">on_wutwut</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+<span class="n">utils</span><span class="o">.</span><span class="n">bind_with_data</span><span class="p">(</span><span class="n">some_widget</span><span class="p">,</span> <span class="s1">&#39;&lt;&lt;Thingy&gt;&gt;&#39;</span><span class="p">,</span> <span class="n">on_wutwut</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># this prints &#39;wut wut&#39;</span>
+<span class="n">some_widget</span><span class="o">.</span><span class="n">event_generate</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;Thingy&gt;&gt;&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="s1">&#39;wut wut&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that everything is a string in Tcl, so tkinter <code class="docutils literal"><span class="pre">str()</span></code>’s the data.</p>
+<p>The event objects have all the attributes that tkinter events
+usually have, and these additional attributes:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">data</span></code></dt>
+<dd>See the above example.</dd>
+<dt><code class="docutils literal"><span class="pre">data_int</span></code> and <code class="docutils literal"><span class="pre">data_float</span></code></dt>
+<dd>These are set to <code class="docutils literal"><span class="pre">int(event.data)</span></code> and <code class="docutils literal"><span class="pre">float(event.data)</span></code>,
+or None if <code class="docutils literal"><span class="pre">data</span></code> is not a valid integer or float.</dd>
+<dt><code class="docutils literal"><span class="pre">data_widget</span></code></dt>
+<dd>If a widget was passed as <code class="docutils literal"><span class="pre">data</span></code> to <code class="docutils literal"><span class="pre">event_generate()</span></code>,
+this is that widget. Otherwise this is None.</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="function">
 <dt id="porcupine.utils.copy_bindings">
 <code class="descclassname">porcupine.utils.</code><code class="descname">copy_bindings</code><span class="sig-paren">(</span><em>widget1</em>, <em>widget2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/utils.html#copy_bindings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.utils.copy_bindings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add all bindings of <em>widget1</em> to <em>widget2</em>.</p>
@@ -126,15 +160,6 @@ on widgets that can be focused by clicking them, like <code class="docutils lite
 and are bound to the main window, and thus work by default, but in
 some cases returning <code class="docutils literal"><span class="pre">'break'</span></code> doesn’t do anything when the focus
 is in another widget inside the main window.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="porcupine.utils.Checkbox">
-<em class="property">class </em><code class="descclassname">porcupine.utils.</code><code class="descname">Checkbox</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/utils.html#Checkbox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.utils.Checkbox" title="Permalink to this definition">¶</a></dt>
-<dd><p>Like <code class="docutils literal"><span class="pre">tkinter.Checkbutton</span></code>, but works with my dark GTK+ theme.</p>
-<p>Tkinter’s Checkbutton displays a white checkmark on a white
-background on my dark GTK+ theme (BlackMATE on Mate 1.8). This class
-fixes that.</p>
 </dd></dl>
 
 <dl class="function">
@@ -150,14 +175,13 @@ called from Tk’s main loop, so it can do things with Tkinter widgets
 unlike <em>blocking_function</em>.</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="porcupine.utils.get_image">
-<code class="descclassname">porcupine.utils.</code><code class="descname">get_image</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/utils.html#get_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.utils.get_image" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a <code class="docutils literal"><span class="pre">tkinter.PhotoImage</span></code> from a file in <code class="docutils literal"><span class="pre">porcupine/images</span></code>.</p>
-<p>This function is cached and the cache holds references to all
-returned images, so there’s no need to worry about calling this
-function too many times or keeping references to the returned
-images.</p>
+<dl class="class">
+<dt id="porcupine.utils.Spinbox">
+<em class="property">class </em><code class="descclassname">porcupine.utils.</code><code class="descname">Spinbox</code><a class="reference internal" href="_modules/porcupine/utils.html#Spinbox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.utils.Spinbox" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a Ttk version of <code class="docutils literal"><span class="pre">tkinter.Spinbox</span></code>.</p>
+<p>Ttk has a <code class="docutils literal"><span class="pre">spinbox</span></code> widget, but there’s no <code class="docutils literal"><span class="pre">tkinter.ttk.Spinbox</span></code>
+yet (perhaps the ttk spinbox is a new thing and tkinter hasn’t been
+updated yet). This class should behave mostly like <code class="docutils literal"><span class="pre">tkinter.Spinbox</span></code>.</p>
 </dd></dl>
 
 </div>
