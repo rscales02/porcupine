@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>File Types &#8212; Porcupine API 0.58.0 documentation</title>
+    <title>File Types &#8212; Porcupine API 0.59.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.58.0',
+        VERSION:     '0.59.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -150,13 +150,15 @@ possible values are listed here:</p>
 
 <dl class="method">
 <dt id="porcupine.filetypes.somefiletype.get_command">
-<code class="descclassname">somefiletype.</code><code class="descname">get_command</code><span class="sig-paren">(</span><em>something_command</em>, <em>filepath</em><span class="sig-paren">)</span><a class="headerlink" href="#porcupine.filetypes.somefiletype.get_command" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">somefiletype.</code><code class="descname">get_command</code><span class="sig-paren">(</span><em>something_command</em>, <em>basename</em><span class="sig-paren">)</span><a class="headerlink" href="#porcupine.filetypes.somefiletype.get_command" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a list of a program and arguments for compiling, running or linting
 a file.</p>
 <p>The returned list is compatible with e.g. the <a class="reference external" href="https://docs.python.org/3/library/subprocess.html#module-subprocess" title="(in Python v3.6)"><code class="xref py py-mod docutils literal"><span class="pre">subprocess</span></code></a> module.</p>
 <p><em>something_command</em> argument must be <code class="docutils literal"><span class="pre">'compile_command'</span></code>,
-<code class="docutils literal"><span class="pre">'run_command'</span></code> or <code class="docutils literal"><span class="pre">'lint_command'</span></code>, and <em>filepath</em> should be a path to
-the file as a string.</p>
+<code class="docutils literal"><span class="pre">'run_command'</span></code> or <code class="docutils literal"><span class="pre">'lint_command'</span></code>, and <em>basename</em> should be a path to
+the file as a string relative to the file’s location. For example, the
+<em>basename</em> of <code class="docutils literal"><span class="pre">'/home/akuli/test.py'</span></code> is <code class="docutils literal"><span class="pre">'test.py'</span></code>, but the command
+returned by this method should be ran in <code class="docutils literal"><span class="pre">/home/akuli/</span></code>.</p>
 </dd></dl>
 
 <dl class="method">
