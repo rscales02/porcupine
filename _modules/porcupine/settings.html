@@ -5,21 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<<<<<<< HEAD
     <title>porcupine.settings &#8212; Porcupine API 0.58.0 documentation</title>
-=======
-    <title>porcupine.settings &#8212; Porcupine API 0.52.0 documentation</title>
->>>>>>> 84d3875465971ca28078f02dc6a3b8407778385b
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-<<<<<<< HEAD
         VERSION:     '0.58.0',
-=======
-        VERSION:     '0.52.0',
->>>>>>> 84d3875465971ca28078f02dc6a3b8407778385b
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -65,11 +57,7 @@
 <span class="kn">import</span> <span class="nn">pygments.util</span>
 
 <span class="kn">import</span> <span class="nn">porcupine</span>
-<<<<<<< HEAD
 <span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">utils</span>
-=======
-<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">tabs</span><span class="p">,</span> <span class="n">utils</span>
->>>>>>> 84d3875465971ca28078f02dc6a3b8407778385b
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -510,13 +498,10 @@
         <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">edit_it</span><span class="p">():</span>
-<<<<<<< HEAD
         <span class="c1"># porcupine/tabs.py imports this file</span>
         <span class="c1"># these local imports feel so evil xD  MUHAHAHAA!!!</span>
         <span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">tabs</span>
 
-=======
->>>>>>> 84d3875465971ca28078f02dc6a3b8407778385b
         <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirs</span><span class="o">.</span><span class="n">configdir</span><span class="p">,</span> <span class="s1">&#39;filetypes.ini&#39;</span><span class="p">)</span>
         <span class="n">manager</span> <span class="o">=</span> <span class="n">porcupine</span><span class="o">.</span><span class="n">get_tab_manager</span><span class="p">()</span>
         <span class="n">manager</span><span class="o">.</span><span class="n">add_tab</span><span class="p">(</span><span class="n">tabs</span><span class="o">.</span><span class="n">FileTab</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="n">manager</span><span class="p">,</span> <span class="n">path</span><span class="p">))</span>

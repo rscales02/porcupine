@@ -5,21 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<<<<<<< HEAD
     <title>porcupine.utils &#8212; Porcupine API 0.58.0 documentation</title>
-=======
-    <title>porcupine.utils &#8212; Porcupine API 0.52.0 documentation</title>
->>>>>>> 84d3875465971ca28078f02dc6a3b8407778385b
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-<<<<<<< HEAD
         VERSION:     '0.58.0',
-=======
-        VERSION:     '0.52.0',
->>>>>>> 84d3875465971ca28078f02dc6a3b8407778385b
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -350,24 +342,13 @@
             <span class="n">event</span><span class="o">.</span><span class="n">data_widget</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="k">return</span> <span class="n">callback</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>      <span class="c1"># may return &#39;break&#39;</span>
-<<<<<<< HEAD
-
-    <span class="c1"># tkinter&#39;s bind() ignores the add argument when the callback is a</span>
-    <span class="c1"># string :(</span>
-    <span class="n">widget</span><span class="o">.</span><span class="n">tk</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&#39;bind </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> {+ if {&quot;[</span><span class="si">%s</span><span class="s1"> </span><span class="si">%%</span><span class="s1">d]&quot; == &quot;break&quot;} break }&#39;</span>
-                   <span class="o">%</span> <span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">sequence</span><span class="p">,</span> <span class="n">widget</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">run_the_callback</span><span class="p">)))</span></div>
-=======
->>>>>>> 84d3875465971ca28078f02dc6a3b8407778385b
 
     <span class="c1"># tkinter&#39;s bind() ignores the add argument when the callback is a</span>
     <span class="c1"># string :(</span>
     <span class="n">widget</span><span class="o">.</span><span class="n">tk</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&#39;bind </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> {+ if {&quot;[</span><span class="si">%s</span><span class="s1"> </span><span class="si">%%</span><span class="s1">d]&quot; == &quot;break&quot;} break }&#39;</span>
                    <span class="o">%</span> <span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">sequence</span><span class="p">,</span> <span class="n">widget</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">run_the_callback</span><span class="p">)))</span></div>
 
-<<<<<<< HEAD
-=======
 
->>>>>>> 84d3875465971ca28078f02dc6a3b8407778385b
 <div class="viewcode-block" id="copy_bindings"><a class="viewcode-back" href="../../utils.html#porcupine.utils.copy_bindings">[docs]</a><span class="k">def</span> <span class="nf">copy_bindings</span><span class="p">(</span><span class="n">widget1</span><span class="p">,</span> <span class="n">widget2</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Add all bindings of *widget1* to *widget2*.</span>
 
@@ -431,13 +412,7 @@
 <span class="k">def</span> <span class="nf">_init_images</span><span class="p">():</span>
     <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirs</span><span class="o">.</span><span class="n">installdir</span><span class="p">,</span> <span class="s1">&#39;images&#39;</span><span class="p">)):</span>
         <span class="n">no_ext</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-<<<<<<< HEAD
         <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;.gif&#39;</span><span class="p">,</span> <span class="s1">&#39;.png&#39;</span><span class="p">):</span>     <span class="c1"># Tk 8.4 supports at least these</span>
-=======
-        <span class="c1"># only gif images should be added to porcupine/images, other</span>
-        <span class="c1"># image formats don&#39;t work with old Tk versions</span>
-        <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s1">&#39;.gif&#39;</span><span class="p">:</span>
->>>>>>> 84d3875465971ca28078f02dc6a3b8407778385b
             <span class="n">image</span> <span class="o">=</span> <span class="n">tkinter</span><span class="o">.</span><span class="n">PhotoImage</span><span class="p">(</span>
                 <span class="n">name</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;img_&#39;</span> <span class="o">+</span> <span class="n">no_ext</span><span class="p">),</span>
                 <span class="n">file</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirs</span><span class="o">.</span><span class="n">installdir</span><span class="p">,</span> <span class="s1">&#39;images&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="p">))</span>
