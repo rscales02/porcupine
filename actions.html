@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.actions — Add stuff to the menubar &#8212; Porcupine API 0.60.0 documentation</title>
+    <title>porcupine.actions — Add stuff to the menubar &#8212; Porcupine API 0.60.2 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.60.0',
+        VERSION:     '0.60.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -73,7 +73,7 @@ which <a class="reference external" href="#action-adding-functions">adding funct
 <dt id="porcupine.actions.any_action.binding">
 <code class="descclassname">any_action.</code><code class="descname">binding</code><a class="headerlink" href="#porcupine.actions.any_action.binding" title="Permalink to this definition">¶</a></dt>
 <dd><p>A string suitable for tkinter’s <code class="docutils literal"><span class="pre">bind()</span></code> method, e.g. <code class="docutils literal"><span class="pre">'&lt;Control-n&gt;'</span></code>.
-<a class="reference external" href="https://github.com/Akuli/porcupine/tree/master/porcupine/plugins/menubar">The menubar plugin</a> uses
+<a class="reference external" href="https://github.com/Akuli/porcupine/tree/master/porcupine/plugins/menubar.py">The menubar plugin</a> uses
 <a class="reference internal" href="utils.html#porcupine.utils.get_keyboard_shortcut" title="porcupine.utils.get_keyboard_shortcut"><code class="xref py py-func docutils literal"><span class="pre">porcupine.utils.get_keyboard_shortcut()</span></code></a> when it displays things like
 <code class="docutils literal"><span class="pre">Ctrl+N</span></code> next to <em>New File</em>. Can be None for no binding.</p>
 </dd></dl>
@@ -166,7 +166,7 @@ created. <em>default</em> should be True or False, but it may be omitted if
 <dt id="porcupine.actions.add_choice">
 <code class="descclassname">porcupine.actions.</code><code class="descname">add_choice</code><span class="sig-paren">(</span><em>path</em>, <em>choices</em>, <em>default=None</em>, <em>*</em>, <em>var=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/actions.html#add_choice"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.actions.add_choice" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add an action for choosing one from a list of choices.</p>
-<p><a class="reference external" href="https://github.com/Akuli/porcupine/tree/master/porcupine/plugins/menubar">The menubar plugin</a> displays
+<p><a class="reference external" href="https://github.com/Akuli/porcupine/tree/master/porcupine/plugins/menubar.py">The menubar plugin</a> displays
 these actions as submenus that contain radio button items.</p>
 <p>If given, <em>default</em> should be an element of <em>choices</em>. It defaults
 to <code class="docutils literal"><span class="pre">var.get()</span></code> if <code class="docutils literal"><span class="pre">var</span></code> is given, and <code class="docutils literal"><span class="pre">choices[0]</span></code> if it’s not

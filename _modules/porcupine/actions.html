@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.actions &#8212; Porcupine API 0.60.0 documentation</title>
+    <title>porcupine.actions &#8212; Porcupine API 0.60.2 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.60.0',
+        VERSION:     '0.60.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -39,8 +39,8 @@
           <div class="body" role="main">
             
   <h1>Source code for porcupine.actions</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">operator</span>
-<span class="kn">import</span> <span class="nn">tkinter</span>
+<span></span><span class="kn">import</span> <span class="nn">tkinter</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="kn">import</span> <span class="nn">porcupine</span>
 <span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">tabs</span>
@@ -67,7 +67,7 @@
         <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;yesno&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">var</span> <span class="o">=</span> <span class="n">var</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;this shouldn&#39;t happen&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;this shouldn&#39;t happen&quot;</span><span class="p">)</span>  <span class="c1"># pragma: no cover</span>
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;&lt;Action object </span><span class="si">%r</span><span class="s1">: kind=</span><span class="si">%r</span><span class="s1">, enabled=</span><span class="si">%r</span><span class="s1">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span>
@@ -90,9 +90,10 @@
             <span class="n">porcupine</span><span class="o">.</span><span class="n">get_main_window</span><span class="p">()</span><span class="o">.</span><span class="n">event_generate</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_var_set_check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">junk</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">choices</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">choices</span><span class="p">:</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;the var of </span><span class="si">%r</span><span class="s2"> was set to </span><span class="si">%r</span><span class="s2"> which is not one &quot;</span>
-                          <span class="s2">&quot;of the choices&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="p">,</span> <span class="ne">RuntimeWarning</span><span class="p">)</span>
+                          <span class="s2">&quot;of the choices&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">),</span> <span class="ne">RuntimeWarning</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_add_any_action</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">kind</span><span class="p">,</span> <span class="n">callback_or_choices</span><span class="p">,</span> <span class="n">binding</span><span class="p">,</span> <span class="n">var</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
@@ -102,6 +103,8 @@
     <span class="k">if</span> <span class="n">filetype_names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">tabtypes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># python raises TypeError when it comes to invalid arguments</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;only one of filetype_names and tabtypes can be used&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">_actions</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;there&#39;s already an action with path </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
 
     <span class="c1"># event_generate must be before setting action.enabled, this way</span>
     <span class="c1"># plugins get a chance to do something to the new action before it&#39;s</span>
@@ -123,7 +126,9 @@
                 <span class="n">action</span><span class="o">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tab</span><span class="p">,</span> <span class="n">tabtypes</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">filetype_names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">def</span> <span class="nf">enable_or_disable</span><span class="p">(</span><span class="n">junk_event</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <span class="c1"># the noqa comment is needed because flake8 thinks this is</span>
+            <span class="c1"># a &quot;redefinition of unused &#39;enable_or_disable&#39;&quot;</span>
+            <span class="k">def</span> <span class="nf">enable_or_disable</span><span class="p">(</span><span class="n">junk_event</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>     <span class="c1"># noqa</span>
                 <span class="n">tab</span> <span class="o">=</span> <span class="n">porcupine</span><span class="o">.</span><span class="n">get_tab_manager</span><span class="p">()</span><span class="o">.</span><span class="n">current_tab</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tab</span><span class="p">,</span> <span class="n">tabs</span><span class="o">.</span><span class="n">FileTab</span><span class="p">):</span>
                     <span class="n">action</span><span class="o">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="n">tab</span><span class="o">.</span><span class="n">filetype</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">filetype_names</span>
@@ -177,12 +182,14 @@
 <span class="sd">    If *var* is given, it should be a ``tkinter.BooleanVar`` and it&#39;s</span>
 <span class="sd">    used as the ``var`` of the option; otherwise a new ``BooleanVar`` is</span>
 <span class="sd">    created. *default* should be True or False, but it may be omitted if</span>
-<span class="sd">    *var* is specified. </span>
+<span class="sd">    *var* is specified.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">var</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;specify default or var&quot;</span><span class="p">)</span>
         <span class="n">var</span> <span class="o">=</span> <span class="n">tkinter</span><span class="o">.</span><span class="n">BooleanVar</span><span class="p">()</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">default</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">default</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">var</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">default</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">_add_any_action</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;yesno&#39;</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span>
@@ -192,7 +199,7 @@
 <div class="viewcode-block" id="add_choice"><a class="viewcode-back" href="../../actions.html#porcupine.actions.add_choice">[docs]</a><span class="k">def</span> <span class="nf">add_choice</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">choices</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">var</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Add an action for choosing one from a list of choices.</span>
 
-<span class="sd">    :source:`The menubar plugin &lt;porcupine/plugins/menubar&gt;` displays</span>
+<span class="sd">    :source:`The menubar plugin &lt;porcupine/plugins/menubar.py&gt;` displays</span>
 <span class="sd">    these actions as submenus that contain radio button items.</span>
 
 <span class="sd">    If given, *default* should be an element of *choices*. It defaults</span>
@@ -204,10 +211,21 @@
 <span class="sd">    created.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">var</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">var</span> <span class="o">=</span> <span class="n">tkinter</span><span class="o">.</span><span class="n">StringVar</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">default</span> <span class="o">=</span> <span class="n">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">default</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">choices</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;default value </span><span class="si">%r</span><span class="s2"> is not in choices&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">default</span><span class="p">,))</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">tkinter</span><span class="o">.</span><span class="n">StringVar</span><span class="p">()</span>
         <span class="n">var</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">default</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">choices</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;the var&#39;s current value </span><span class="si">%r</span><span class="s2"> is not in choices&quot;</span>
+                             <span class="o">%</span> <span class="n">var</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">default</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">choices</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;default value </span><span class="si">%r</span><span class="s2"> is not in choices&quot;</span>
+                                 <span class="o">%</span> <span class="p">(</span><span class="n">default</span><span class="p">,))</span>
+            <span class="n">var</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">default</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">_add_any_action</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;choice&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">var</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 

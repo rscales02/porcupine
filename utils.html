@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.utils — Handy utility functions and classes &#8212; Porcupine API 0.60.0 documentation</title>
+    <title>porcupine.utils — Handy utility functions and classes &#8212; Porcupine API 0.60.2 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.60.0',
+        VERSION:     '0.60.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -289,7 +289,9 @@ unbinds the function it bound, and doesn’t touch anything else.</p>
 </pre></div>
 </div>
 <p>Calls to this function may be nested, and other things can be bound
-inside the <code class="docutils literal"><span class="pre">with</span></code> block.</p>
+inside the <code class="docutils literal"><span class="pre">with</span></code> block as long as <code class="docutils literal"><span class="pre">add=True</span></code> is used.</p>
+<p>The event objects support the same additional attributes as those
+from <a class="reference internal" href="#porcupine.utils.bind_with_data" title="porcupine.utils.bind_with_data"><code class="xref py py-func docutils literal"><span class="pre">bind_with_data()</span></code></a>.</p>
 </dd></dl>
 
 </div>

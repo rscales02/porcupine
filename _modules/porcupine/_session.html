@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine._session &#8212; Porcupine API 0.60.0 documentation</title>
+    <title>porcupine._session &#8212; Porcupine API 0.60.2 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.60.0',
+        VERSION:     '0.60.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -44,11 +44,7 @@
 <span class="kn">import</span> <span class="nn">traceback</span>
 <span class="kn">import</span> <span class="nn">webbrowser</span>
 
-<span class="kn">import</span> <span class="nn">pygments.styles</span>
-<span class="kn">import</span> <span class="nn">pygments.token</span>
-
-<span class="kn">import</span> <span class="nn">porcupine</span>
-<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">_dialogs</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">filetypes</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">tabs</span><span class="p">,</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">_dialogs</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">tabs</span><span class="p">,</span> <span class="n">utils</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -58,13 +54,18 @@
 
 
 <span class="c1"># get_main_window() and get_tab_manager() work only if this has been called</span>
-<span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="n">main_window</span><span class="p">,</span> <span class="n">tab_manager</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="n">main_window</span><span class="p">):</span>
     <span class="k">global</span> <span class="n">_main_window</span>
     <span class="k">global</span> <span class="n">_tab_manager</span>
-
     <span class="k">assert</span> <span class="n">_main_window</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">_tab_manager</span> <span class="ow">is</span> <span class="kc">None</span>
+
+    <span class="n">tabmanager</span> <span class="o">=</span> <span class="n">tabs</span><span class="o">.</span><span class="n">TabManager</span><span class="p">(</span><span class="n">main_window</span><span class="p">)</span>
+    <span class="n">tabmanager</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">binding</span><span class="p">,</span> <span class="n">callback</span> <span class="ow">in</span> <span class="n">tabmanager</span><span class="o">.</span><span class="n">bindings</span><span class="p">:</span>
+        <span class="n">main_window</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">binding</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
     <span class="n">_main_window</span> <span class="o">=</span> <span class="n">main_window</span>
-    <span class="n">_tab_manager</span> <span class="o">=</span> <span class="n">tab_manager</span>
+    <span class="n">_tab_manager</span> <span class="o">=</span> <span class="n">tabmanager</span>
 
 
 <div class="viewcode-block" id="get_main_window"><a class="viewcode-back" href="../../porcupine.html#porcupine.get_main_window">[docs]</a><span class="k">def</span> <span class="nf">get_main_window</span><span class="p">():</span>
@@ -149,7 +150,7 @@
     <span class="c1"># TODO: is Edit the best possible place for this?</span>
     <span class="n">actions</span><span class="o">.</span><span class="n">add_command</span><span class="p">(</span>
         <span class="s2">&quot;Edit/Porcupine Settings...&quot;</span><span class="p">,</span>
-        <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">show_dialog</span><span class="p">,</span> <span class="n">porcupine</span><span class="o">.</span><span class="n">get_main_window</span><span class="p">()))</span>
+        <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">show_dialog</span><span class="p">,</span> <span class="n">get_main_window</span><span class="p">()))</span>
 
     <span class="k">def</span> <span class="nf">change_font_size</span><span class="p">(</span><span class="n">how</span><span class="p">):</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get_section</span><span class="p">(</span><span class="s1">&#39;General&#39;</span><span class="p">)</span>
