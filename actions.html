@@ -1,0 +1,280 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>porcupine.actions — Add stuff to the menubar &#8212; Porcupine API 0.60.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.60.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="porcupine.tabs — The tab manager and tabs in it" href="tabs.html" />
+    <link rel="prev" title="porcupine — The top level Porcupine package" href="porcupine.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-porcupine.actions">
+<span id="porcupine-actions-add-stuff-to-the-menubar"></span><h1><a class="reference internal" href="#module-porcupine.actions" title="porcupine.actions"><code class="xref py py-mod docutils literal"><span class="pre">porcupine.actions</span></code></a> — Add stuff to the menubar<a class="headerlink" href="#module-porcupine.actions" title="Permalink to this headline">¶</a></h1>
+<p>An <strong>action</strong> is displayed to the user as an item in the menubar, and actions
+are often associated with a global keyboard binding; that is, a keyboard
+binding not limited to a specific widget. For example, Ctrl+C for copying is
+not global because it behaves differently depending on which widget is
+selected, but Porcupine’s Ctrl+N binding is global because Ctrl+N always
+creates a new file. In fact, Ctrl+N and the “New File” button in the “File”
+menu are both created with just one <a class="reference internal" href="#porcupine.actions.add_command" title="porcupine.actions.add_command"><code class="xref py py-func docutils literal"><span class="pre">add_command()</span></code></a> call.</p>
+<p>See <a class="reference internal" href="plugin-intro.html#plugin-intro"><span class="std std-ref">the plugin writing introduction</span></a> for a complete
+example plugin that uses this module.</p>
+<div class="section" id="action-objects">
+<h2>Action Objects<a class="headerlink" href="#action-objects" title="Permalink to this headline">¶</a></h2>
+<p>The action adding functions documented below return these. All action objects
+have these attributes:</p>
+<dl class="attribute">
+<dt id="porcupine.actions.any_action.path">
+<code class="descclassname">any_action.</code><code class="descname">path</code><a class="headerlink" href="#porcupine.actions.any_action.path" title="Permalink to this definition">¶</a></dt>
+<dd><p>A string consisting of user-readable parts joined with <code class="docutils literal"><span class="pre">/</span></code>, e.g.
+<code class="docutils literal"><span class="pre">'File/New</span> <span class="pre">File'</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="porcupine.actions.any_action.kind">
+<code class="descclassname">any_action.</code><code class="descname">kind</code><a class="headerlink" href="#porcupine.actions.any_action.kind" title="Permalink to this definition">¶</a></dt>
+<dd><p>One of the strings <code class="docutils literal"><span class="pre">'command'</span></code>, <code class="docutils literal"><span class="pre">'yesno'</span></code> or <code class="docutils literal"><span class="pre">'choice'</span></code> depending on
+which <a class="reference external" href="#action-adding-functions">adding function</a> the action came from.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="porcupine.actions.any_action.binding">
+<code class="descclassname">any_action.</code><code class="descname">binding</code><a class="headerlink" href="#porcupine.actions.any_action.binding" title="Permalink to this definition">¶</a></dt>
+<dd><p>A string suitable for tkinter’s <code class="docutils literal"><span class="pre">bind()</span></code> method, e.g. <code class="docutils literal"><span class="pre">'&lt;Control-n&gt;'</span></code>.
+<a class="reference external" href="https://github.com/Akuli/porcupine/tree/master/porcupine/plugins/menubar">The menubar plugin</a> uses
+<a class="reference internal" href="utils.html#porcupine.utils.get_keyboard_shortcut" title="porcupine.utils.get_keyboard_shortcut"><code class="xref py py-func docutils literal"><span class="pre">porcupine.utils.get_keyboard_shortcut()</span></code></a> when it displays things like
+<code class="docutils literal"><span class="pre">Ctrl+N</span></code> next to <em>New File</em>. Can be None for no binding.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="porcupine.actions.any_action.enabled">
+<code class="descclassname">any_action.</code><code class="descname">enabled</code><a class="headerlink" href="#porcupine.actions.any_action.enabled" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if the action is currently usable, and False otherwise. The menubar
+makes disabled actions gray.</p>
+<p>Setting this to True or False generates an <code class="docutils literal"><span class="pre">&lt;&lt;ActionEnabled&gt;&gt;</span></code> or
+<code class="docutils literal"><span class="pre">&lt;&lt;ActionDisabled&gt;&gt;</span></code> virtual event respectively. These events are
+generated on the main window, and their datas are the <a class="reference internal" href="#porcupine.actions.any_action.path" title="porcupine.actions.any_action.path"><code class="xref py py-attr docutils literal"><span class="pre">path</span></code></a> strings.
+The virtual events do not run if the new <code class="docutils literal"><span class="pre">enabled</span></code> value does not differ
+from the old value.</p>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">actions</span><span class="p">,</span> <span class="n">get_main_window</span><span class="p">,</span> <span class="n">utils</span>
+
+<span class="k">def</span> <span class="nf">on_action_enabled</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+    <span class="n">action</span> <span class="o">=</span> <span class="n">actions</span><span class="o">.</span><span class="n">get_action</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+    <span class="o">...</span>
+
+<span class="n">utils</span><span class="o">.</span><span class="n">bind_with_data</span><span class="p">(</span><span class="n">get_main_window</span><span class="p">(),</span> <span class="s1">&#39;&lt;&lt;ActionEnabled&gt;&gt;&#39;</span><span class="p">,</span>
+                     <span class="n">on_action_enabled</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="porcupine.html#porcupine.get_main_window" title="porcupine.get_main_window"><code class="xref py py-func docutils literal"><span class="pre">porcupine.get_main_window()</span></code></a>,
+<a class="reference internal" href="utils.html#porcupine.utils.bind_with_data" title="porcupine.utils.bind_with_data"><code class="xref py py-func docutils literal"><span class="pre">porcupine.utils.bind_with_data()</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="porcupine.actions.command_action.callback">
+<code class="descclassname">command_action.</code><code class="descname">callback</code><a class="headerlink" href="#porcupine.actions.command_action.callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the callback function passed to <a class="reference internal" href="#porcupine.actions.add_command" title="porcupine.actions.add_command"><code class="xref py py-func docutils literal"><span class="pre">add_command()</span></code></a>. Only
+<code class="docutils literal"><span class="pre">'command'</span></code> actions have this attribute.</p>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">action</span><span class="o">.</span><span class="n">enabled</span><span class="p">:</span>
+    <span class="n">action</span><span class="o">.</span><span class="n">callback</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="porcupine.actions.yesno_or_choice_action.var">
+<code class="descclassname">yesno_or_choice_action.</code><code class="descname">var</code><a class="headerlink" href="#porcupine.actions.yesno_or_choice_action.var" title="Permalink to this definition">¶</a></dt>
+<dd><p>Only <code class="docutils literal"><span class="pre">'yesno'</span></code> and <code class="docutils literal"><span class="pre">'choice'</span></code> actions have a <code class="docutils literal"><span class="pre">var</span></code> attribute, and
+it’s set to a tkinter variable object representing the current state. For
+<code class="docutils literal"><span class="pre">'yesno'</span></code> actions, this is a <code class="docutils literal"><span class="pre">tkinter.BooleanVar</span></code> that is set to
+<code class="docutils literal"><span class="pre">True</span></code> when the menuitem is checked and <code class="docutils literal"><span class="pre">False</span></code> when it’s not. The
+<code class="docutils literal"><span class="pre">var</span></code> of <code class="docutils literal"><span class="pre">'choice'</span></code> actions is a <code class="docutils literal"><span class="pre">tkinter.StringVar</span></code> set to the
+currently selected choice.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="porcupine.actions.choice_action.choices">
+<code class="descclassname">choice_action.</code><code class="descname">choices</code><a class="headerlink" href="#porcupine.actions.choice_action.choices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Only <code class="docutils literal"><span class="pre">'choice'</span></code> actions have this attribute, and it’s set to the
+<em>choices</em> passed to <a class="reference internal" href="#porcupine.actions.add_choice" title="porcupine.actions.add_choice"><code class="xref py py-func docutils literal"><span class="pre">add_choice()</span></code></a>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="action-adding-functions">
+<h2>Action Adding Functions<a class="headerlink" href="#action-adding-functions" title="Permalink to this headline">¶</a></h2>
+<p>These functions return the action object they add. Adding a new action also
+generates a <code class="docutils literal"><span class="pre">&lt;&lt;NewAction&gt;&gt;</span></code> virtual event on the main window with the data
+set to the action name, similarly to how the <a class="reference internal" href="#porcupine.actions.any_action.enabled" title="porcupine.actions.any_action.enabled"><code class="xref py py-attr docutils literal"><span class="pre">enabled</span></code></a>
+attribute works. Actions are usually added in the <code class="docutils literal"><span class="pre">setup()</span></code> function of a
+plugin, but adding more actions later works as well.</p>
+<dl class="function">
+<dt id="porcupine.actions.add_command">
+<code class="descclassname">porcupine.actions.</code><code class="descname">add_command</code><span class="sig-paren">(</span><em>path</em>, <em>callback</em>, <em>keyboard_binding=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/actions.html#add_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.actions.add_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a simple action that runs <code class="docutils literal"><span class="pre">callback()</span></code>.</p>
+<p>The returned action object has a <code class="docutils literal"><span class="pre">callback</span></code> attribute set to the
+<code class="docutils literal"><span class="pre">callback</span></code> passed to this function.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="porcupine.actions.add_yesno">
+<code class="descclassname">porcupine.actions.</code><code class="descname">add_yesno</code><span class="sig-paren">(</span><em>path</em>, <em>default=None</em>, <em>keyboard_binding=None</em>, <em>*</em>, <em>var=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/actions.html#add_yesno"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.actions.add_yesno" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an action that appears as a checkbox item in the menubar.</p>
+<p>If <em>var</em> is given, it should be a <code class="docutils literal"><span class="pre">tkinter.BooleanVar</span></code> and it’s
+used as the <code class="docutils literal"><span class="pre">var</span></code> of the option; otherwise a new <code class="docutils literal"><span class="pre">BooleanVar</span></code> is
+created. <em>default</em> should be True or False, but it may be omitted if
+<em>var</em> is specified.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="porcupine.actions.add_choice">
+<code class="descclassname">porcupine.actions.</code><code class="descname">add_choice</code><span class="sig-paren">(</span><em>path</em>, <em>choices</em>, <em>default=None</em>, <em>*</em>, <em>var=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/actions.html#add_choice"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.actions.add_choice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an action for choosing one from a list of choices.</p>
+<p><a class="reference external" href="https://github.com/Akuli/porcupine/tree/master/porcupine/plugins/menubar">The menubar plugin</a> displays
+these actions as submenus that contain radio button items.</p>
+<p>If given, <em>default</em> should be an element of <em>choices</em>. It defaults
+to <code class="docutils literal"><span class="pre">var.get()</span></code> if <code class="docutils literal"><span class="pre">var</span></code> is given, and <code class="docutils literal"><span class="pre">choices[0]</span></code> if it’s not
+given.</p>
+<p>If <em>var</em> is given, it should be a <code class="docutils literal"><span class="pre">tkinter.StringVar</span></code> and it’s
+used as the <code class="docutils literal"><span class="pre">var</span></code> of the option; otherwise a new <code class="docutils literal"><span class="pre">StringVar</span></code> is
+created.</p>
+</dd></dl>
+
+<p>The above functions take these optional keyword-only arguments as <code class="docutils literal"><span class="pre">**kwargs</span></code>:</p>
+<dl class="docutils">
+<dt><em>filetype_names</em></dt>
+<dd><p class="first">Enable and disable the action automatically so that it’s enabled only when
+a file of a specific type is being edited. For example,
+<code class="docutils literal"><span class="pre">filetype_names=['Python']</span></code> is useful for a Python-specific action.</p>
+<p class="last">This should be a list of <a class="reference internal" href="filetypes.html#porcupine.filetypes.somefiletype.name" title="porcupine.filetypes.somefiletype.name"><code class="xref py py-attr docutils literal"><span class="pre">name</span></code></a>
+attributes of <a class="reference internal" href="filetypes.html#filetype-objects"><span class="std std-ref">filetype objects</span></a>. The action is
+disabled if the current tab is not a <a class="reference internal" href="tabs.html#porcupine.tabs.FileTab" title="porcupine.tabs.FileTab"><code class="xref py py-class docutils literal"><span class="pre">FileTab</span></code></a>.</p>
+</dd>
+<dt><em>tabtypes</em></dt>
+<dd><p class="first">Enable and disable the action automatically so that it’s enabled only when
+the current tab is of a specific type.</p>
+<p class="last">If given, this should be a list of <a class="reference internal" href="tabs.html#porcupine.tabs.Tab" title="porcupine.tabs.Tab"><code class="xref py py-class docutils literal"><span class="pre">Tab</span></code></a> subclasses.
+If you want to also enable the action when there are no tabs, add <code class="docutils literal"><span class="pre">None</span></code>
+to the list.</p>
+</dd>
+</dl>
+<p>Using <em>filetype_names</em> and <em>tabtypes</em> in the same function call doesn’t work.</p>
+</div>
+<div class="section" id="other-functions">
+<h2>Other Functions<a class="headerlink" href="#other-functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="porcupine.actions.get_action">
+<code class="descclassname">porcupine.actions.</code><code class="descname">get_action</code><span class="sig-paren">(</span><em>action_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/actions.html#get_action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.actions.get_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Look up and return an existing action object by its path.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="porcupine.actions.get_all_actions">
+<code class="descclassname">porcupine.actions.</code><code class="descname">get_all_actions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/actions.html#get_all_actions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.actions.get_all_actions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of all existing action objects in arbitrary order.</p>
+<p>Note that plugins like <a class="reference external" href="https://github.com/Akuli/porcupine/tree/master/porcupine/plugins/menubar.py">the menubar</a>
+should also use the <code class="docutils literal"><span class="pre">&lt;&lt;NewAction&gt;&gt;</span></code> virtual event documented
+<a class="reference external" href="#action-adding-functions">above</a>.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><code class="docutils literal"><span class="pre">porcupine.actions</span></code> — Add stuff to the menubar</a><ul>
+<li><a class="reference internal" href="#action-objects">Action Objects</a></li>
+<li><a class="reference internal" href="#action-adding-functions">Action Adding Functions</a></li>
+<li><a class="reference internal" href="#other-functions">Other Functions</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="porcupine.html" title="previous chapter"><code class="docutils literal"><span class="pre">porcupine</span></code> — The top level Porcupine package</a></li>
+      <li>Next: <a href="tabs.html" title="next chapter"><code class="docutils literal"><span class="pre">porcupine.tabs</span></code> — The tab manager and tabs in it</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/actions.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Akuli.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/actions.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

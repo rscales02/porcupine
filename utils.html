@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.utils — Handy utility functions and classes &#8212; Porcupine API 0.59.0 documentation</title>
+    <title>porcupine.utils — Handy utility functions and classes &#8212; Porcupine API 0.60.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.59.0',
+        VERSION:     '0.60.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -160,6 +160,24 @@ on widgets that can be focused by clicking them, like <code class="docutils lite
 and are bound to the main window, and thus work by default, but in
 some cases returning <code class="docutils literal"><span class="pre">'break'</span></code> doesn’t do anything when the focus
 is in another widget inside the main window.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="porcupine.utils.get_keyboard_shortcut">
+<code class="descclassname">porcupine.utils.</code><code class="descname">get_keyboard_shortcut</code><span class="sig-paren">(</span><em>binding</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/utils.html#get_keyboard_shortcut"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.utils.get_keyboard_shortcut" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a Tk binding string to a format that most people are used to.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">get_keyboard_shortcut</span><span class="p">(</span><span class="s1">&#39;&lt;Control-c&gt;&#39;</span><span class="p">)</span>
+<span class="go">&#39;Ctrl+C&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">get_keyboard_shortcut</span><span class="p">(</span><span class="s1">&#39;&lt;Control-C&gt;&#39;</span><span class="p">)</span>
+<span class="go">&#39;Ctrl+Shift+C&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">get_keyboard_shortcut</span><span class="p">(</span><span class="s1">&#39;&lt;Control-0&gt;&#39;</span><span class="p">)</span>
+<span class="go">&#39;Ctrl+Zero&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">get_keyboard_shortcut</span><span class="p">(</span><span class="s1">&#39;&lt;Control-1&gt;&#39;</span><span class="p">)</span>
+<span class="go">&#39;Ctrl+1&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">get_keyboard_shortcut</span><span class="p">(</span><span class="s1">&#39;&lt;F11&gt;&#39;</span><span class="p">)</span>
+<span class="go">&#39;F11&#39;</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">

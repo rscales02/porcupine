@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Introduction to Writing Plugins &#8212; Porcupine API 0.59.0 documentation</title>
+    <title>Introduction to Writing Plugins &#8212; Porcupine API 0.60.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.59.0',
+        VERSION:     '0.60.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -46,6 +46,12 @@
 plugins for it in Python 3. Writing plugins is easy, but this tutorial and
 Porcupine’s API documentation assume
 <a class="reference external" href="https://github.com/Akuli/tkinter-tutorial">basic tkinter skills</a>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If you are an experienced tkinter user and you don’t want to read this
+whole tutorial, read at least
+<a class="reference internal" href="#plugin-intro-pitfalls"><span class="std std-ref">the pitfall section</span></a>.</p>
+</div>
 <div class="section" id="where-are-the-plugins">
 <h2>Where are the plugins?<a class="headerlink" href="#where-are-the-plugins" title="Permalink to this headline">¶</a></h2>
 <p>Porcupine searches for plugins in two places. The plugins that come with
@@ -72,13 +78,13 @@ are installed in a different place:</p>
 <h2>Hello World!<a class="headerlink" href="#hello-world" title="Permalink to this headline">¶</a></h2>
 <p>Create a <code class="docutils literal"><span class="pre">hello.py</span></code> to your plugin directory, and add this code to it:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tkinter</span> <span class="k">import</span> <span class="n">messagebox</span>
-<span class="kn">import</span> <span class="nn">porcupine</span>
+<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">actions</span>
 
 <span class="k">def</span> <span class="nf">hello</span><span class="p">():</span>
     <span class="n">messagebox</span><span class="o">.</span><span class="n">showinfo</span><span class="p">(</span><span class="s2">&quot;Hello&quot;</span><span class="p">,</span> <span class="s2">&quot;Hello World!&quot;</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">setup</span><span class="p">():</span>
-    <span class="n">porcupine</span><span class="o">.</span><span class="n">add_action</span><span class="p">(</span><span class="n">hello</span><span class="p">,</span> <span class="s1">&#39;Hello/Hello World&#39;</span><span class="p">)</span>
+    <span class="n">actions</span><span class="o">.</span><span class="n">add_command</span><span class="p">(</span><span class="s2">&quot;Hello/Hello World&quot;</span><span class="p">,</span> <span class="n">hello</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Restart Porcupine. You should see a new <em>Hello</em> menu in the menubar with a
@@ -88,7 +94,8 @@ function.</p>
 <blockquote>
 <div><ul>
 <li><p class="first">You can also add actions to menus that Porcupine created, like
-<code class="docutils literal"><span class="pre">porcupine.add_action(hello,</span> <span class="pre">'Run/Hello')</span></code>.</p>
+<code class="docutils literal"><span class="pre">actions.add_command(&quot;Run/Hello&quot;,</span> <span class="pre">hello)</span></code>. See <a class="reference internal" href="actions.html#module-porcupine.actions" title="porcupine.actions"><code class="xref py py-mod docutils literal"><span class="pre">porcupine.actions</span></code></a>
+for more documentation about actions.</p>
 </li>
 <li><p class="first">Usually plugins are files, but directories with an <code class="docutils literal"><span class="pre">__init__.py</span></code> in them
 work as well.</p>
@@ -131,8 +138,11 @@ with plugins. Open a command prompt or terminal and run this command on it:</p>
 <p>If the <code class="docutils literal"><span class="pre">porcu</span></code> command doesn’t work you can use <code class="docutils literal"><span class="pre">pyw</span> <span class="pre">-m</span> <span class="pre">porcupine</span></code> or
 <code class="docutils literal"><span class="pre">python3</span> <span class="pre">-m</span> <span class="pre">porcupine</span></code> instead of <code class="docutils literal"><span class="pre">porcu</span></code> as shown
 <a class="reference external" href="https://github.com/Akuli/porcupine/wiki/Installing-and-Running-Porcupine#installing-porcupine">here</a>.</p>
-<p>This will run Porcupine without any plugins, and it is minimal. You can edit
-files with it, but that’s about it. Plugins can do <strong>a lot</strong>.</p>
+<p>This will run Porcupine without any plugins, and in fact, it’s just an empty
+window with <em>nothing</em> inside it! However, actions are a part of Porcupine (even
+though <a class="reference external" href="https://github.com/Akuli/porcupine/tree/master/porcupine/plugins/menubar.py">the menubar</a> that usually
+displays them is a plugin), so you can e.g. press Ctrl+N to create a new file
+or Ctrl+S to save it.</p>
 </div>
 <div class="section" id="porcupine-s-widgets">
 <h2>Porcupine’s Widgets<a class="headerlink" href="#porcupine-s-widgets" title="Permalink to this headline">¶</a></h2>
@@ -143,31 +153,22 @@ files with it, but that’s about it. Plugins can do <strong>a lot</strong>.</p>
 </div>
 <dl class="docutils">
 <dt>❶ Main Window</dt>
-<dd>Everything is inside this widget. Usually it’s a <code class="docutils literal"><span class="pre">tkinter.Tk</span></code> root
-window, but it may be a <code class="docutils literal"><span class="pre">Toplevel</span></code> widget as well. You can
-access this widget with <a class="reference internal" href="porcupine.html#porcupine.get_main_window" title="porcupine.get_main_window"><code class="xref py py-func docutils literal"><span class="pre">porcupine.get_main_window()</span></code></a>.</dd>
-<dt>❷ Menu Bar</dt>
-<dd>The <code class="xref py py-mod docutils literal"><span class="pre">porcupine.menubar</span></code> module contains functions for accessing this
-widget and adding more items to it. However, most of the time it’s easiest
-to use <a class="reference internal" href="porcupine.html#porcupine.add_action" title="porcupine.add_action"><code class="xref py py-func docutils literal"><span class="pre">porcupine.add_action()</span></code></a> as shown above.</dd>
-<dt>❸ Tab Manager</dt>
-<dd>This widget contains tabs (see below), and a welcome message when there are
-no tabs to display. This widget is a <a class="reference internal" href="tabs.html#porcupine.tabs.TabManager" title="porcupine.tabs.TabManager"><code class="xref py py-class docutils literal"><span class="pre">porcupine.tabs.TabManager</span></code></a> and
-can be accessed with <a class="reference internal" href="porcupine.html#porcupine.get_tab_manager" title="porcupine.get_tab_manager"><code class="xref py py-func docutils literal"><span class="pre">porcupine.get_tab_manager()</span></code></a>.</dd>
-<dt>❹ A Tab</dt>
-<dd><p class="first">Tabs are <a class="reference internal" href="tabs.html#porcupine.tabs.Tab" title="porcupine.tabs.Tab"><code class="xref py py-class docutils literal"><span class="pre">porcupine.tabs.Tab</span></code></a> widgets, and you can access them with
+<dd>Everything is inside this widget. Usually it’s a <code class="docutils literal"><span class="pre">tkinter.Tk</span></code> root window,
+but it might be a <code class="docutils literal"><span class="pre">Toplevel</span></code> widget in a future version of Porcupine. You
+can access this widget with <a class="reference internal" href="porcupine.html#porcupine.get_main_window" title="porcupine.get_main_window"><code class="xref py py-func docutils literal"><span class="pre">porcupine.get_main_window()</span></code></a>.</dd>
+<dt>❷ Tab Manager</dt>
+<dd>This widget contains tabs (as in browser tabs, not <code class="docutils literal"><span class="pre">\t</span></code> characters), and
+<a class="reference external" href="https://github.com/Akuli/porcupine/tree/master/porcupine/plugins/welcome.py">the welcome plugin</a> displays a
+welcome message in it when there are no tabs. This widget is a
+<a class="reference internal" href="tabs.html#porcupine.tabs.TabManager" title="porcupine.tabs.TabManager"><code class="xref py py-class docutils literal"><span class="pre">porcupine.tabs.TabManager</span></code></a> and can be accessed with
+<a class="reference internal" href="porcupine.html#porcupine.get_tab_manager" title="porcupine.get_tab_manager"><code class="xref py py-func docutils literal"><span class="pre">porcupine.get_tab_manager()</span></code></a>.</dd>
+<dt>❸ A Tab</dt>
+<dd>Tabs are <a class="reference internal" href="tabs.html#porcupine.tabs.Tab" title="porcupine.tabs.Tab"><code class="xref py py-class docutils literal"><span class="pre">porcupine.tabs.Tab</span></code></a> widgets, and you can access them with
 the tab manager’s <a class="reference internal" href="tabs.html#porcupine.tabs.TabManager.tabs" title="porcupine.tabs.TabManager.tabs"><code class="xref py py-attr docutils literal"><span class="pre">tabs</span></code></a> attribute.
 This tab is a <a class="reference internal" href="tabs.html#porcupine.tabs.FileTab" title="porcupine.tabs.FileTab"><code class="xref py py-class docutils literal"><span class="pre">porcupine.tabs.FileTab</span></code></a> because it represents a new
-file. The text widget and scroll bar are just widgets packed inside the tab.
-The <code class="docutils literal"><span class="pre">New</span> <span class="pre">File</span></code> label can be accessed with the tab’s
-<code class="xref py py-attr docutils literal"><span class="pre">top_label</span></code> attribute, but it’s not
-packed inside the tab.</p>
-<p class="last">Not all tabs need to be file tabs. In fact, you can easily create custom
-kinds of tabs that contain any Tk widgets. See <a class="reference internal" href="tabs.html#module-porcupine.tabs" title="porcupine.tabs"><code class="xref py py-mod docutils literal"><span class="pre">porcupine.tabs</span></code></a>
-for more instructions.</p>
-</dd>
+file, but you can also create custom tabs that contain any tkinter widgets.
+See <a class="reference internal" href="tabs.html#module-porcupine.tabs" title="porcupine.tabs"><code class="xref py py-mod docutils literal"><span class="pre">porcupine.tabs</span></code></a> for more documentation about tabs.</dd>
 </dl>
-<p>That should be plenty of useful links for you to get started with things.</p>
 </div>
 <div class="section" id="virtual-events">
 <span id="id1"></span><h2>Virtual Events<a class="headerlink" href="#virtual-events" title="Permalink to this headline">¶</a></h2>
@@ -186,10 +187,10 @@ to them in plugins.</p>
 <p>Be careful to spell virtual event names correctly. We didn’t really define the
 <code class="docutils literal"><span class="pre">&lt;&lt;PrintHi&gt;&gt;</span></code> event anywhere, so if we spell <code class="docutils literal"><span class="pre">&lt;PrintHi&gt;&gt;</span></code> correctly in one
 place and misspell it like <code class="docutils literal"><span class="pre">&lt;&lt;PirntHi&gt;&gt;</span></code> somewhere else we don’t get any
-errors. Porcupine’s autocompletion is useful for this.</p>
+errors.</p>
 </div>
 <div class="section" id="potential-pitfalls">
-<h2>Potential Pitfalls<a class="headerlink" href="#potential-pitfalls" title="Permalink to this headline">¶</a></h2>
+<span id="plugin-intro-pitfalls"></span><h2>Potential Pitfalls<a class="headerlink" href="#potential-pitfalls" title="Permalink to this headline">¶</a></h2>
 <p>Most tkinter things work in Porcupine like you would expect them to work, but
 there are a few things that you should be aware of.</p>
 <div class="section" id="use-add-true">
@@ -225,7 +226,7 @@ won’t delete it.</p>
 <div class="section" id="binding-key-presses">
 <h3>Binding Key Presses<a class="headerlink" href="#binding-key-presses" title="Permalink to this headline">¶</a></h3>
 <p>If you want to bind a key press <strong>globally</strong> you should use
-<a class="reference internal" href="porcupine.html#porcupine.add_action" title="porcupine.add_action"><code class="xref py py-func docutils literal"><span class="pre">porcupine.add_action()</span></code></a> in most cases, but you can also bind on the main
+<a class="reference internal" href="actions.html#module-porcupine.actions" title="porcupine.actions"><code class="xref py py-mod docutils literal"><span class="pre">porcupine.actions</span></code></a> in most cases, but you can also bind on the main
 window, like this:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">print_hello</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Hello World!&quot;</span><span class="p">)</span>

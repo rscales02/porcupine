@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.tabs — The tab manager and tabs in it &#8212; Porcupine API 0.59.0 documentation</title>
+    <title>porcupine.tabs — The tab manager and tabs in it &#8212; Porcupine API 0.60.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.59.0',
+        VERSION:     '0.60.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -24,7 +24,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="porcupine.textwidget — Handy tkinter.Text subclasses" href="textwidget.html" />
-    <link rel="prev" title="porcupine — The top level Porcupine package" href="porcupine.html" />
+    <link rel="prev" title="porcupine.actions — Add stuff to the menubar" href="actions.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -229,22 +229,20 @@ the tab that is returned.</p>
 <dd><p>Base class for widgets that can be added to TabManager.</p>
 <p>You can easily create custom kinds of tabs by inheriting from this
 class. Here’s a very minimal but complete example plugin:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tkinter</span> <span class="k">as</span> <span class="nn">tk</span>
-<span class="kn">import</span> <span class="nn">porcupine</span>
-<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">tabs</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tkinter</span> <span class="k">import</span> <span class="n">ttk</span>
+<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">actions</span><span class="p">,</span> <span class="n">get_tab_manager</span><span class="p">,</span> <span class="n">tabs</span>
 
 <span class="k">class</span> <span class="nc">HelloTab</span><span class="p">(</span><span class="n">tabs</span><span class="o">.</span><span class="n">Tab</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">manager</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">manager</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Hello&quot;</span>
-        <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Hello World!&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">()</span>
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Hello World!&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">()</span>
 
 <span class="k">def</span> <span class="nf">new_hello_tab</span><span class="p">():</span>
-    <span class="n">manager</span> <span class="o">=</span> <span class="n">porcupine</span><span class="o">.</span><span class="n">get_tab_manager</span><span class="p">()</span>
-    <span class="n">manager</span><span class="o">.</span><span class="n">add_tab</span><span class="p">(</span><span class="n">HelloTab</span><span class="p">(</span><span class="n">manager</span><span class="p">))</span>
+    <span class="n">get_tab_manager</span><span class="p">()</span><span class="o">.</span><span class="n">add_tab</span><span class="p">(</span><span class="n">HelloTab</span><span class="p">(</span><span class="n">get_tab_manager</span><span class="p">()))</span>
 
 <span class="k">def</span> <span class="nf">setup</span><span class="p">():</span>
-    <span class="n">porcupine</span><span class="o">.</span><span class="n">add_action</span><span class="p">(</span><span class="n">new_hello_tab</span><span class="p">,</span> <span class="s1">&#39;Hello/New Hello Tab&#39;</span><span class="p">)</span>
+    <span class="n">actions</span><span class="o">.</span><span class="n">add_command</span><span class="p">(</span><span class="s1">&#39;Hello/New Hello Tab&#39;</span><span class="p">,</span> <span class="n">new_hello_tab</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Note that you need to use the pack geometry manager when creating
@@ -519,7 +517,7 @@ cancelled the dialog.</p>
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="porcupine.html" title="previous chapter"><code class="docutils literal"><span class="pre">porcupine</span></code> — The top level Porcupine package</a></li>
+      <li>Previous: <a href="actions.html" title="previous chapter"><code class="docutils literal"><span class="pre">porcupine.actions</span></code> — Add stuff to the menubar</a></li>
       <li>Next: <a href="textwidget.html" title="next chapter"><code class="docutils literal"><span class="pre">porcupine.textwidget</span></code> — Handy <code class="docutils literal"><span class="pre">tkinter.Text</span></code> subclasses</a></li>
   </ul></li>
 </ul>

@@ -6,13 +6,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Index &#8212; Porcupine API 0.59.0 documentation</title>
+    <title>Index &#8212; Porcupine API 0.60.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.59.0',
+        VERSION:     '0.60.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -53,6 +53,7 @@
  | <a href="#G"><strong>G</strong></a>
  | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
+ | <a href="#K"><strong>K</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#N"><strong>N</strong></a>
@@ -78,11 +79,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="tabs.html#porcupine.tabs.TabManager.add">add() (porcupine.tabs.TabManager method)</a>
 </li>
-      <li><a href="porcupine.html#porcupine.add_action">add_action() (in module porcupine)</a>
-</li>
       <li><a href="settings.html#porcupine.settings.section.add_checkbutton">add_checkbutton() (porcupine.settings.section method)</a>
 </li>
+      <li><a href="actions.html#porcupine.actions.add_choice">add_choice() (in module porcupine.actions)</a>
+</li>
       <li><a href="settings.html#porcupine.settings.section.add_combobox">add_combobox() (porcupine.settings.section method)</a>
+</li>
+      <li><a href="actions.html#porcupine.actions.add_command">add_command() (in module porcupine.actions)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -96,6 +99,8 @@
 </li>
       <li><a href="tabs.html#porcupine.tabs.TabManager.add_tab">add_tab() (porcupine.tabs.TabManager method)</a>
 </li>
+      <li><a href="actions.html#porcupine.actions.add_yesno">add_yesno() (in module porcupine.actions)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -106,11 +111,13 @@
 </li>
       <li><a href="utils.html#porcupine.utils.bind_mouse_wheel">bind_mouse_wheel() (in module porcupine.utils)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="utils.html#porcupine.utils.bind_tab_key">bind_tab_key() (in module porcupine.utils)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="utils.html#porcupine.utils.bind_with_data">bind_with_data() (in module porcupine.utils)</a>
+</li>
+      <li><a href="actions.html#porcupine.actions.any_action.binding">binding (porcupine.actions.any_action attribute)</a>
 </li>
       <li><a href="tabs.html#porcupine.tabs.Tab.bottom_frame">bottom_frame (porcupine.tabs.Tab attribute)</a>
 </li>
@@ -122,18 +129,22 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dirs.html#porcupine.dirs.cachedir">cachedir (in module porcupine.dirs)</a>
 </li>
+      <li><a href="actions.html#porcupine.actions.command_action.callback">callback (porcupine.actions.command_action attribute)</a>
+</li>
       <li><a href="tabs.html#porcupine.tabs.FileTab.can_be_closed">can_be_closed() (porcupine.tabs.FileTab method)</a>
 
       <ul>
         <li><a href="tabs.html#porcupine.tabs.Tab.can_be_closed">(porcupine.tabs.Tab method)</a>
 </li>
       </ul></li>
-      <li><a href="tabs.html#porcupine.tabs.TabManager.close_tab">close_tab() (porcupine.tabs.TabManager method)</a>
+      <li><a href="actions.html#porcupine.actions.choice_action.choices">choices (porcupine.actions.choice_action attribute)</a>
 </li>
-      <li><a href="dirs.html#porcupine.dirs.configdir">configdir (in module porcupine.dirs)</a>
+      <li><a href="tabs.html#porcupine.tabs.TabManager.close_tab">close_tab() (porcupine.tabs.TabManager method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="dirs.html#porcupine.dirs.configdir">configdir (in module porcupine.dirs)</a>
+</li>
       <li><a href="settings.html#porcupine.settings.section.connect">connect() (porcupine.settings.section method)</a>
 </li>
       <li><a href="settings.html#porcupine.settings.section.content_frame">content_frame (porcupine.settings.section attribute)</a>
@@ -160,6 +171,8 @@
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="actions.html#porcupine.actions.any_action.enabled">enabled (porcupine.actions.any_action attribute)</a>
+</li>
       <li><a href="tabs.html#porcupine.tabs.FileTab.equivalent">equivalent() (porcupine.tabs.FileTab method)</a>
 
       <ul>
@@ -192,18 +205,24 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="actions.html#porcupine.actions.get_action">get_action() (in module porcupine.actions)</a>
+</li>
+      <li><a href="actions.html#porcupine.actions.get_all_actions">get_all_actions() (in module porcupine.actions)</a>
+</li>
       <li><a href="filetypes.html#porcupine.filetypes.get_all_filetypes">get_all_filetypes() (in module porcupine.filetypes)</a>
 </li>
       <li><a href="filetypes.html#porcupine.filetypes.somefiletype.get_command">get_command() (porcupine.filetypes.somefiletype method)</a>
 </li>
       <li><a href="filetypes.html#porcupine.filetypes.get_filetype_by_name">get_filetype_by_name() (in module porcupine.filetypes)</a>
 </li>
+      <li><a href="utils.html#porcupine.utils.get_keyboard_shortcut">get_keyboard_shortcut() (in module porcupine.utils)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="filetypes.html#porcupine.filetypes.somefiletype.get_lexer">get_lexer() (porcupine.filetypes.somefiletype method)</a>
 </li>
       <li><a href="porcupine.html#porcupine.get_main_window">get_main_window() (in module porcupine)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="settings.html#porcupine.settings.get_section">get_section() (in module porcupine.settings)</a>
 </li>
       <li><a href="tabs.html#porcupine.tabs.Tab.get_state">get_state() (porcupine.tabs.Tab method)</a>
@@ -249,6 +268,14 @@
       <li><a href="textwidget.html#porcupine.textwidget.HandyText.iter_chunks">iter_chunks() (porcupine.textwidget.HandyText method)</a>
 </li>
       <li><a href="textwidget.html#porcupine.textwidget.HandyText.iter_lines">iter_lines() (porcupine.textwidget.HandyText method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="K">K</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="actions.html#porcupine.actions.any_action.kind">kind (porcupine.actions.any_action attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -312,16 +339,22 @@
 </li>
       <li><a href="tabs.html#porcupine.tabs.TabManager.panes">panes() (porcupine.tabs.TabManager method)</a>
 </li>
-      <li><a href="tabs.html#porcupine.tabs.FileTab.path">path (porcupine.tabs.FileTab attribute)</a>
+      <li><a href="actions.html#porcupine.actions.any_action.path">path (porcupine.actions.any_action attribute)</a>
+
+      <ul>
+        <li><a href="tabs.html#porcupine.tabs.FileTab.path">(porcupine.tabs.FileTab attribute)</a>
 </li>
+      </ul></li>
       <li><a href="porcupine.html#module-porcupine">porcupine (module)</a>
+</li>
+      <li><a href="actions.html#module-porcupine.actions">porcupine.actions (module)</a>
 </li>
       <li><a href="dirs.html#module-porcupine.dirs">porcupine.dirs (module)</a>
 </li>
-      <li><a href="filetypes.html#module-porcupine.filetypes">porcupine.filetypes (module)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="filetypes.html#module-porcupine.filetypes">porcupine.filetypes (module)</a>
+</li>
       <li><a href="settings.html#module-porcupine.settings">porcupine.settings (module)</a>
 </li>
       <li><a href="tabs.html#module-porcupine.tabs">porcupine.tabs (module)</a>
@@ -431,6 +464,10 @@
 
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="actions.html#porcupine.actions.yesno_or_choice_action.var">var (porcupine.actions.yesno_or_choice_action attribute)</a>
+</li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="porcupine.html#porcupine.version_info">version_info (in module porcupine)</a>
 </li>

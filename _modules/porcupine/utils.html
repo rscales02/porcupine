@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.utils &#8212; Porcupine API 0.59.0 documentation</title>
+    <title>porcupine.utils &#8212; Porcupine API 0.60.0 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.59.0',
+        VERSION:     '0.60.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,6 +49,7 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">platform</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">string</span> <span class="k">as</span> <span class="nn">string_module</span>      <span class="c1"># string is used as a variable name</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">threading</span>
@@ -545,9 +546,43 @@
         <span class="k">yield</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">doctest</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">doctest</span><span class="o">.</span><span class="n">testmod</span><span class="p">())</span>
+<div class="viewcode-block" id="get_keyboard_shortcut"><a class="viewcode-back" href="../../utils.html#porcupine.utils.get_keyboard_shortcut">[docs]</a><span class="k">def</span> <span class="nf">get_keyboard_shortcut</span><span class="p">(</span><span class="n">binding</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert a Tk binding string to a format that most people are used to.</span>
+
+<span class="sd">    &gt;&gt;&gt; get_keyboard_shortcut(&#39;&lt;Control-c&gt;&#39;)</span>
+<span class="sd">    &#39;Ctrl+C&#39;</span>
+<span class="sd">    &gt;&gt;&gt; get_keyboard_shortcut(&#39;&lt;Control-C&gt;&#39;)</span>
+<span class="sd">    &#39;Ctrl+Shift+C&#39;</span>
+<span class="sd">    &gt;&gt;&gt; get_keyboard_shortcut(&#39;&lt;Control-0&gt;&#39;)</span>
+<span class="sd">    &#39;Ctrl+Zero&#39;</span>
+<span class="sd">    &gt;&gt;&gt; get_keyboard_shortcut(&#39;&lt;Control-1&gt;&#39;)</span>
+<span class="sd">    &#39;Ctrl+1&#39;</span>
+<span class="sd">    &gt;&gt;&gt; get_keyboard_shortcut(&#39;&lt;F11&gt;&#39;)</span>
+<span class="sd">    &#39;F11&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TODO: handle more corner cases, see bind(3tk)</span>
+    <span class="n">parts</span> <span class="o">=</span> <span class="n">binding</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;&lt;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;&gt;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">part</span> <span class="o">==</span> <span class="s1">&#39;Control&#39;</span><span class="p">:</span>
+            <span class="c1"># TODO: i think this is supposed to use the command symbol</span>
+            <span class="c1"># on OSX? i don&#39;t have a mac</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Ctrl&#39;</span><span class="p">)</span>
+        <span class="c1"># tk doesnt like e.g. &lt;Control-ö&gt;, that&#39;s why ascii only here</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">part</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">string_module</span><span class="o">.</span><span class="n">ascii_lowercase</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">part</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">string_module</span><span class="o">.</span><span class="n">ascii_uppercase</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Shift&#39;</span><span class="p">)</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">part</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">part</span> <span class="o">==</span> <span class="s1">&#39;0&#39;</span><span class="p">:</span>
+            <span class="c1"># 0 and O look too much like each other</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Zero&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># good enough guess :D</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">capitalize</span><span class="p">())</span>
+
+    <span class="k">return</span> <span class="s1">&#39;+&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></div>
 </pre></div>
 
           </div>

@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine — The top level Porcupine package &#8212; Porcupine API 0.59.0 documentation</title>
+    <title>porcupine — The top level Porcupine package &#8212; Porcupine API 0.60.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.59.0',
+        VERSION:     '0.60.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="porcupine.tabs — The tab manager and tabs in it" href="tabs.html" />
+    <link rel="next" title="porcupine.actions — Add stuff to the menubar" href="actions.html" />
     <link rel="prev" title="Introduction to Writing Plugins" href="plugin-intro.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -58,24 +58,6 @@ these functions do.</p>
 <dt id="porcupine.get_tab_manager">
 <code class="descclassname">porcupine.</code><code class="descname">get_tab_manager</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/_session.html#get_tab_manager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.get_tab_manager" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the <a class="reference internal" href="tabs.html#porcupine.tabs.TabManager" title="porcupine.tabs.TabManager"><code class="xref py py-class docutils literal"><span class="pre">porcupine.tabs.TabManager</span></code></a> widget in the main window.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="porcupine.add_action">
-<code class="descclassname">porcupine.</code><code class="descname">add_action</code><span class="sig-paren">(</span><em>callback</em>, <em>menupath=None</em>, <em>keyboard_shortcut=(None</em>, <em>None)</em>, <em>tabtypes=(None</em>, <em>&lt;class 'porcupine.tabs.Tab'&gt;)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/_session.html#add_action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.add_action" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add a keyboard binding and/or a menu item.</p>
-<p>If <em>menupath</em> is given, it will be split by the last <code class="docutils literal"><span class="pre">/</span></code>. The
-first part will be used to get a menu with
-<code class="xref py py-meth docutils literal"><span class="pre">porcupine.menubar.get_menu()</span></code>, and the end will be used as the
-text of the menu item.</p>
-<p>Keyboard shortcuts can be added too. If given, <em>keyboard_shortcut</em>
-should be a two-tuple of a user-readable string and a tkinter
-keyboard binding; for example, <code class="docutils literal"><span class="pre">('Ctrl+S',</span> <span class="pre">'&lt;Control-s&gt;')</span></code>.</p>
-<p>If defined, the <em>tabtypes</em> argument should be an iterable of
-<a class="reference internal" href="tabs.html#porcupine.tabs.Tab" title="porcupine.tabs.Tab"><code class="xref py py-class docutils literal"><span class="pre">porcupine.tabs.Tab</span></code></a> subclasses that item can work
-with. If you want to allow no tabs at all, add None to this list.
-The menuitem will be disabled and the binding won’t do anything when
-the current tab is not of a compatible type.</p>
 </dd></dl>
 
 <dl class="function">
@@ -133,7 +115,7 @@ supports a specific feature:</p>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
       <li>Previous: <a href="plugin-intro.html" title="previous chapter">Introduction to Writing Plugins</a></li>
-      <li>Next: <a href="tabs.html" title="next chapter"><code class="docutils literal"><span class="pre">porcupine.tabs</span></code> — The tab manager and tabs in it</a></li>
+      <li>Next: <a href="actions.html" title="next chapter"><code class="docutils literal"><span class="pre">porcupine.actions</span></code> — Add stuff to the menubar</a></li>
   </ul></li>
 </ul>
 </div>
