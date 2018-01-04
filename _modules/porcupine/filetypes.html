@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.filetypes &#8212; Porcupine API 0.60.2 documentation</title>
+    <title>porcupine.filetypes &#8212; Porcupine API 0.62.0 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.60.2',
+        VERSION:     '0.62.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -183,6 +183,16 @@
 <span class="s1"># make doesn&#39;t work with spaces</span>
 <span class="s1">tabs2spaces = no</span>
 <span class="s1">run_command = make</span>
+
+<span class="s1"># TODO: Windows batch files and powershell files</span>
+
+<span class="s1"># TODO: this really needs a shebang when porcupine will support them</span>
+<span class="s1"># i&#39;m not trying to discriminate anyone with pygments_lexer and</span>
+<span class="s1"># run_command, change them if you want to</span>
+<span class="s1">[Shell]</span>
+<span class="s1">filename_patterns = *.sh</span>
+<span class="s1">pygments_lexer = pygments.lexers.BashLexer</span>
+<span class="s1">run_command = bash </span><span class="si">{file}</span><span class="s1"></span>
 
 <span class="s1"># tcl man pages and many people on wiki.tcl.tk indent with 3 spaces</span>
 <span class="s1">[Tcl]</span>

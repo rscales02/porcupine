@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.utils &#8212; Porcupine API 0.60.2 documentation</title>
+    <title>porcupine.utils &#8212; Porcupine API 0.62.0 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.60.2',
+        VERSION:     '0.62.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -396,33 +396,6 @@
                 <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
             <span class="n">config</span> <span class="o">=</span> <span class="n">configure</span></div>
-
-
-<span class="c1"># tkinter images destroy themselves on __del__. here&#39;s how cpython exits:</span>
-<span class="c1">#</span>
-<span class="c1">#   1) atexit callbacks run</span>
-<span class="c1">#   2) module globals are set to None (lol)</span>
-<span class="c1">#   3) all objects are destroyed and __del__ methods run</span>
-<span class="c1">#</span>
-<span class="c1"># tkinter.Image.__del__ destroys the image, and that uses</span>
-<span class="c1"># &quot;except TclError&quot;. this causes means two things:</span>
-<span class="c1">#</span>
-<span class="c1">#   - it&#39;s necessary to hold references to the images to avoid calling</span>
-<span class="c1">#     __del__ while they&#39;re being used somewhere</span>
-<span class="c1">#   - the images must be destroyed before step 2 above</span>
-<span class="n">_images</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="n">atexit</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">_images</span><span class="o">.</span><span class="n">clear</span><span class="p">)</span>
-
-
-<span class="c1"># TODO: document this behavior</span>
-<span class="k">def</span> <span class="nf">_init_images</span><span class="p">():</span>
-    <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirs</span><span class="o">.</span><span class="n">installdir</span><span class="p">,</span> <span class="s1">&#39;images&#39;</span><span class="p">)):</span>
-        <span class="n">no_ext</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;.gif&#39;</span><span class="p">,</span> <span class="s1">&#39;.png&#39;</span><span class="p">):</span>     <span class="c1"># Tk 8.4 supports at least these</span>
-            <span class="n">image</span> <span class="o">=</span> <span class="n">tkinter</span><span class="o">.</span><span class="n">PhotoImage</span><span class="p">(</span>
-                <span class="n">name</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;img_&#39;</span> <span class="o">+</span> <span class="n">no_ext</span><span class="p">),</span>
-                <span class="n">file</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirs</span><span class="o">.</span><span class="n">installdir</span><span class="p">,</span> <span class="s1">&#39;images&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="p">))</span>
-            <span class="n">_images</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="errordialog"><a class="viewcode-back" href="../../utils.html#porcupine.utils.errordialog">[docs]</a><span class="k">def</span> <span class="nf">errordialog</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">monospace_text</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
