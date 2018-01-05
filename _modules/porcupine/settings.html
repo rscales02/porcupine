@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.settings &#8212; Porcupine API 0.63.1 documentation</title>
+    <title>porcupine.settings &#8212; Porcupine API 0.63.2 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.63.1',
+        VERSION:     '0.63.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -207,18 +207,36 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">default</span>
 
-    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">run_now</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">run_now</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Schedule ``callback(section[key])`` to be called when the value</span>
 <span class="sd">        of an option changes.</span>
 
 <span class="sd">        If *run_now* is True, ``callback(section[key])`` is also called</span>
-<span class="sd">        immediately when ``connect()`` is called. More than one callback</span>
-<span class="sd">        can be connected to the same key.</span>
+<span class="sd">        immediately when ``connect()`` is called, and the option is</span>
+<span class="sd">        reset if the callback raises :exc:`InvalidValue`.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            *run_now* is True by default, so if you don&#39;t want to run</span>
+<span class="sd">            the callback right away you need an explicit</span>
+<span class="sd">            ``run_now=False``.</span>
+
+<span class="sd">        More than one callback can be connected to the same key.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">callbacks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">run_now</span><span class="p">:</span>
-            <span class="n">callback</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">callback</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+            <span class="k">except</span> <span class="n">InvalidValue</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">func_name</span> <span class="o">=</span> <span class="p">(</span><span class="n">callback</span><span class="o">.</span><span class="vm">__module__</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span>
+                                 <span class="n">callback</span><span class="o">.</span><span class="vm">__qualname__</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                    <span class="n">func_name</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%r</span><span class="s2"> value </span><span class="si">%r</span><span class="s2"> is invalid according to </span><span class="si">%s</span><span class="s2">, resetting&quot;</span>
+                    <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">func_name</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_infos</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">callbacks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Undo a :meth:`~connect` call.&quot;&quot;&quot;</span>
@@ -265,8 +283,9 @@
         <span class="k">def</span> <span class="nf">var2config</span><span class="p">(</span><span class="o">*</span><span class="n">junk</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">value</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-            <span class="k">except</span> <span class="n">tkinter</span><span class="o">.</span><span class="n">TclError</span><span class="p">:</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">tkinter</span><span class="o">.</span><span class="n">TclError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
                 <span class="c1"># example: var_type is IntVar and the actual value is &#39;lol&#39;</span>
+                <span class="c1"># not-very-latest pythons use int() and raise ValueError</span>
                 <span class="n">info</span><span class="o">.</span><span class="n">errorvar</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
                 <span class="k">return</span>
 
@@ -278,7 +297,7 @@
 
             <span class="n">info</span><span class="o">.</span><span class="n">errorvar</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">set</span><span class="p">,</span> <span class="n">run_now</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">set</span><span class="p">)</span>      <span class="c1"># runs var.set</span>
         <span class="n">var</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">var2config</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_var_cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">var</span>
@@ -471,11 +490,9 @@
     <span class="c1"># when font_family changes:  fixedfont[&#39;family&#39;] = new_family</span>
     <span class="c1"># when font_size changes:    fixedfont[&#39;size&#39;] = new_size</span>
     <span class="n">general</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
-        <span class="s1">&#39;font_family&#39;</span><span class="p">,</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">fixedfont</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">,</span> <span class="s1">&#39;family&#39;</span><span class="p">),</span>
-        <span class="n">run_now</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="s1">&#39;font_family&#39;</span><span class="p">,</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">fixedfont</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">,</span> <span class="s1">&#39;family&#39;</span><span class="p">))</span>
     <span class="n">general</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
-        <span class="s1">&#39;font_size&#39;</span><span class="p">,</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">fixedfont</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">,</span> <span class="s1">&#39;size&#39;</span><span class="p">),</span>
-        <span class="n">run_now</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="s1">&#39;font_size&#39;</span><span class="p">,</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">fixedfont</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">,</span> <span class="s1">&#39;size&#39;</span><span class="p">))</span>
 
     <span class="c1"># TODO: allow file-specific encodings if someone complains about this</span>
     <span class="n">general</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s1">&#39;encoding&#39;</span><span class="p">,</span> <span class="s1">&#39;UTF-8&#39;</span><span class="p">)</span>

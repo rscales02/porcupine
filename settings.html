@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.settings — Porcupine’s setting manager &#8212; Porcupine API 0.63.1 documentation</title>
+    <title>porcupine.settings — Porcupine’s setting manager &#8212; Porcupine API 0.63.2 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.63.1',
+        VERSION:     '0.63.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -149,12 +149,19 @@ thread-safe so you must not set config values from threads if you use
 </div>
 <dl class="method">
 <dt id="porcupine.settings.section.connect">
-<code class="descclassname">section.</code><code class="descname">connect</code><span class="sig-paren">(</span><em>key</em>, <em>callback</em>, <em>run_now=False</em><span class="sig-paren">)</span><a class="headerlink" href="#porcupine.settings.section.connect" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">section.</code><code class="descname">connect</code><span class="sig-paren">(</span><em>key</em>, <em>callback</em>, <em>run_now=True</em><span class="sig-paren">)</span><a class="headerlink" href="#porcupine.settings.section.connect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Schedule <code class="docutils literal"><span class="pre">callback(section[key])</span></code> to be called when the value
 of an option changes.</p>
 <p>If <em>run_now</em> is True, <code class="docutils literal"><span class="pre">callback(section[key])</span></code> is also called
-immediately when <code class="docutils literal"><span class="pre">connect()</span></code> is called. More than one callback
-can be connected to the same key.</p>
+immediately when <code class="docutils literal"><span class="pre">connect()</span></code> is called, and the option is
+reset if the callback raises <a class="reference internal" href="#porcupine.settings.InvalidValue" title="porcupine.settings.InvalidValue"><code class="xref py py-exc docutils literal"><span class="pre">InvalidValue</span></code></a>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><em>run_now</em> is True by default, so if you don’t want to run
+the callback right away you need an explicit
+<code class="docutils literal"><span class="pre">run_now=False</span></code>.</p>
+</div>
+<p>More than one callback can be connected to the same key.</p>
 </dd></dl>
 
 <dl class="method">
