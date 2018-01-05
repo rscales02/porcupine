@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.filetypes &#8212; Porcupine API 0.62.0 documentation</title>
+    <title>porcupine.filetypes &#8212; Porcupine API 0.63.1 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.62.0',
+        VERSION:     '0.63.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -145,7 +145,7 @@
 
 <span class="s1"># flake8 is the default because pylint doesn&#39;t like my code :/ &lt;/3</span>
 <span class="s1">run_command = </span><span class="si">%(python)s</span><span class="s1"> </span><span class="si">{file}</span><span class="s1"></span>
-<span class="s1">lint_command = </span><span class="si">%(python)s</span><span class="s1"> -m flake8</span>
+<span class="s1">lint_command = </span><span class="si">%(python)s</span><span class="s1"> -m flake8 </span><span class="si">{file}</span><span class="s1"></span>
 
 <span class="s1"># any style settings for some of these freely indentable languages would make</span>
 <span class="s1"># some people hate me</span>
