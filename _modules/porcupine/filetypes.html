@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.filetypes &#8212; Porcupine API 0.63.3 documentation</title>
+    <title>porcupine.filetypes &#8212; Porcupine API 0.65.0 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.63.3',
+        VERSION:     '0.65.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -39,8 +39,7 @@
           <div class="body" role="main">
             
   <h1>Source code for porcupine.filetypes</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Everything related to filetypes.ini.&quot;&quot;&quot;</span>
-<span class="c1"># TODO: support shebangs like a modern editor should??</span>
+<span></span><span class="sd">&quot;&quot;&quot;Stuff related to filetypes.ini.&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">collections</span>
 <span class="kn">import</span> <span class="nn">configparser</span>
@@ -78,6 +77,7 @@
 <span class="s1"># Valid keys:</span>
 <span class="s1">#   filename_patterns   space-separated list of patterns like *.py or *.txt</span>
 <span class="s1">#   mimetypes           space-separated list of MIME types</span>
+<span class="s1">#   shebang_regex       regular expression for shebangs</span>
 <span class="s1">#   pygments_lexer      for syntax highlighting, see below</span>
 <span class="s1">#   tabs2spaces         yes or no</span>
 <span class="s1">#   indent_size         number of spaces or tab width, positive integer</span>
@@ -86,19 +86,27 @@
 <span class="s1">#   run_command         see below</span>
 <span class="s1">#   lint_command        see below</span>
 <span class="s1">#</span>
-<span class="s1"># If any of these are not specified, the values in the [DEFAULT] section will</span>
-<span class="s1"># be used instead.</span>
-<span class="s1">#</span>
 <span class="s1"># As you can see, Porcupine can detect the correct filetype based on the</span>
-<span class="s1"># filename or the MIME type. You can just use filename_patterns if you don&#39;t</span>
-<span class="s1"># know what MIME types are. If no matching filetype is found but the Pygments</span>
-<span class="s1"># highlighting library (see below) knows something about the file, Porcupine</span>
-<span class="s1"># uses it and values in the [DEFAULT] section. The [DEFAULT] section will be</span>
-<span class="s1"># used if Pygments knows nothing about the file.</span>
+<span class="s1"># filename, MIME type or shebang. Use filename_patterns if you don&#39;t know what</span>
+<span class="s1"># MIME types, shebangs and regexes are; * means anything, so &#39;*.txt&#39; means</span>
+<span class="s1"># anything that ends with &#39;.txt&#39;.</span>
+<span class="s1">#</span>
+<span class="s1"># The shebang regex can contain anything accepted by Python&#39;s re module that</span>
+<span class="s1"># matches any part of a shebang, or empty for no shebang checking. If you want</span>
+<span class="s1"># to match the full shebang including the #! part, put it between ^ and $</span>
+<span class="s1"># characters. Run help(&#39;re&#39;) in Python for more info about Python&#39;s regexes.</span>
+<span class="s1"># Arguments starting with - are removed from the shebang before checking, so a</span>
+<span class="s1"># regex like &#39;^#!/blah/blah$&#39; matches the shebang &#39;#!/blah/blah --wat&#39;.</span>
+<span class="s1">#</span>
+<span class="s1"># If no matching filetype is found but the Pygments highlighting library (see</span>
+<span class="s1"># below) knows something about the file, Porcupine uses it and values in the</span>
+<span class="s1"># [DEFAULT] section. Porcupine displays these filetypes with &#39; (not from</span>
+<span class="s1"># filetypes.ini)&#39; at the end of their names. The [DEFAULT] section is used if</span>
+<span class="s1"># Pygments knows nothing about the file.</span>
 <span class="s1">#</span>
 <span class="s1"># Set pygments_lexer_name to pygments.lexers.SomethingLexer or the full name of</span>
-<span class="s1"># any other importable Python class. Note that Pygments lets you omit the part</span>
-<span class="s1"># after pygments.lexers; e.g. pygments.lexers.Python3Lexer is equivalent to</span>
+<span class="s1"># any other Pygments lexer class. Note that Pygments lets you omit the part</span>
+<span class="s1"># after pygments.lexers, e.g. pygments.lexers.Python3Lexer is equivalent to</span>
 <span class="s1"># pygments.lexers.python.Python3Lexer. Here&#39;s a list of lexers that Pygments</span>
 <span class="s1"># comes with:  http://pygments.org/docs/lexers/</span>
 <span class="s1">#</span>
@@ -125,6 +133,7 @@
 <span class="s1"># way, not because i like them this way</span>
 <span class="s1">filename_patterns =</span>
 <span class="s1">mimetypes =</span>
+<span class="s1">shebang_regex =</span>
 <span class="s1">pygments_lexer = pygments.lexers.TextLexer</span>
 <span class="s1">tabs2spaces = yes</span>
 <span class="s1">indent_size = 4</span>
@@ -136,6 +145,7 @@
 <span class="s1">[Python]</span>
 <span class="s1">mimetypes = text/x-python application/x-python text/x-python3 application/x-py</span><span class="se">\</span>
 <span class="s1">thon3</span>
+<span class="s1">shebang_regex = python(\d(\.\d)?)?$</span>
 <span class="s1">pygments_lexer = pygments.lexers.Python3Lexer</span>
 
 <span class="s1"># pep8-based brainwashing: KITTENS DIE IF YOU USE WRONG STYLE</span>
@@ -185,18 +195,19 @@
 <span class="s1">run_command = make</span>
 
 <span class="s1"># TODO: Windows batch files and powershell files</span>
-
-<span class="s1"># TODO: this really needs a shebang when porcupine will support them</span>
 <span class="s1"># i&#39;m not trying to discriminate anyone with pygments_lexer and</span>
 <span class="s1"># run_command, change them if you want to</span>
+<span class="s1"># shebang_regex is partly copy/pasted from nano&#39;s default config</span>
 <span class="s1">[Shell]</span>
 <span class="s1">filename_patterns = *.sh</span>
+<span class="s1">shebang_regex = ((ba|da|k|pdk)?sh[-0-9_]*|openrc-run|runscript)$</span>
 <span class="s1">pygments_lexer = pygments.lexers.BashLexer</span>
 <span class="s1">run_command = bash </span><span class="si">{file}</span><span class="s1"></span>
 
 <span class="s1"># tcl man pages and many people on wiki.tcl.tk indent with 3 spaces</span>
 <span class="s1">[Tcl]</span>
 <span class="s1">mimetypes = text/x-tcl text/x-script.tcl application/x-tcl</span>
+<span class="s1">shebang_regex = (wi|tcl)sh$</span>
 <span class="s1">pygments_lexer = pygments.lexers.TclLexer</span>
 <span class="s1">indent_size = 3</span>
 <span class="s1">tabs2spaces = yes</span>
@@ -231,7 +242,9 @@
 <span class="c1"># _config and _filetypes, and new filetypes are added to them if the</span>
 <span class="c1"># user opens a file that doesn&#39;t match any of the existing file types</span>
 <span class="c1"># _config is never saved back to filetypes.ini</span>
-<span class="n">_config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
+<span class="c1">#</span>
+<span class="c1"># interpolation=None allows using % signs in the config</span>
+<span class="n">_config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">(</span><span class="n">interpolation</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
 <span class="c1"># ordered to make sure that filetypes loaded from filetypes.ini are used</span>
 <span class="c1"># when possible</span>
@@ -252,16 +265,22 @@
 <span class="k">class</span> <span class="nc">_FileType</span><span class="p">:</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-        <span class="k">assert</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_filetypes</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_config</span>
+        <span class="k">assert</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_filetypes</span>
         <span class="n">section</span> <span class="o">=</span> <span class="n">_config</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">filename_patterns</span> <span class="o">=</span> <span class="n">section</span><span class="p">[</span><span class="s1">&#39;filename_patterns&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mimetypes</span> <span class="o">=</span> <span class="n">section</span><span class="p">[</span><span class="s1">&#39;mimetypes&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
 
         <span class="c1"># this is kind of verbose, but not too bad imo</span>
-        <span class="c1"># unknown options are ignored, newer porcupines might have more</span>
-        <span class="c1"># keys and this way it should be possible to use the same config</span>
-        <span class="c1"># file painlessly with different porcupines</span>
+
+        <span class="k">if</span> <span class="n">section</span><span class="p">[</span><span class="s1">&#39;shebang_regex&#39;</span><span class="p">]:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">shebang_regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">section</span><span class="p">[</span><span class="s1">&#39;shebang_regex&#39;</span><span class="p">])</span>
+            <span class="k">except</span> <span class="n">re</span><span class="o">.</span><span class="n">error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">_OptionError</span><span class="p">(</span><span class="s1">&#39;shebang_regex&#39;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># regex that matches nothing</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">shebang_regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;before start of string^&#39;</span><span class="p">)</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">modulename</span><span class="p">,</span> <span class="n">classname</span> <span class="o">=</span> <span class="n">section</span><span class="p">[</span><span class="s1">&#39;pygments_lexer&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
@@ -330,16 +349,38 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">samefile</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">_get_ini_path</span><span class="p">()):</span>
             <span class="k">return</span> <span class="n">_filetypes</span><span class="p">[</span><span class="s1">&#39;Porcupine filetypes.ini&#39;</span><span class="p">]</span>
-    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+    <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
         <span class="c1"># the file doesn&#39;t exist yet</span>
         <span class="k">pass</span>
 
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># the shebang is read as utf-8 because the filetype config file</span>
+        <span class="c1"># is utf-8</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">file</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;#!&#39;</span><span class="p">:</span>
+                <span class="c1"># it has a shebang: read until \n but at most 1000</span>
+                <span class="c1"># bytes, remove trailing whitespace</span>
+                <span class="n">shebang_line</span> <span class="o">=</span> <span class="s1">&#39;#!&#39;</span> <span class="o">+</span> <span class="n">file</span><span class="o">.</span><span class="n">readline</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">shebang_line</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">UnicodeError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">):</span>
+        <span class="n">shebang_line</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">shebang_line</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># remove arguments: &quot;#!/bla/bla -t --bleh&quot; becomes &quot;#!/bla/bla&quot;</span>
+        <span class="n">shebang_line</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\s-.*$&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">shebang_line</span><span class="p">)</span>
+
     <span class="n">mimetype</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">(</span><span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">pathname2url</span><span class="p">(</span><span class="n">filename</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+
     <span class="k">for</span> <span class="n">filetype</span> <span class="ow">in</span> <span class="n">_filetypes</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
         <span class="k">if</span> <span class="n">mimetype</span> <span class="ow">in</span> <span class="n">filetype</span><span class="o">.</span><span class="n">mimetypes</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">filetype</span>
         <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">fnmatch</span><span class="o">.</span><span class="n">fnmatch</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">pattern</span><span class="p">)</span>
                <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">filetype</span><span class="o">.</span><span class="n">filename_patterns</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">filetype</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">filetype</span><span class="o">.</span><span class="n">shebang_regex</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span>
+                <span class="n">shebang_line</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span>
+                <span class="n">filetype</span><span class="o">.</span><span class="n">shebang_regex</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">shebang_line</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">filetype</span>
 
     <span class="c1"># create a new filetype automagically if nothing else works</span>
@@ -353,8 +394,12 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">lexer</span> <span class="o">=</span> <span class="n">pygments</span><span class="o">.</span><span class="n">lexers</span><span class="o">.</span><span class="n">get_lexer_for_filename</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">pygments</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">ClassNotFound</span><span class="p">:</span>
-            <span class="c1"># ok, there will be no highlighting with default settings</span>
-            <span class="k">return</span> <span class="n">_filetypes</span><span class="p">[</span><span class="s1">&#39;DEFAULT&#39;</span><span class="p">]</span>
+            <span class="c1"># can we use the shebang?</span>
+            <span class="k">if</span> <span class="n">shebang_line</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">_filetypes</span><span class="p">[</span><span class="s1">&#39;DEFAULT&#39;</span><span class="p">]</span>
+            <span class="n">lexer</span> <span class="o">=</span> <span class="n">pygments</span><span class="o">.</span><span class="n">lexers</span><span class="o">.</span><span class="n">guess_lexer</span><span class="p">(</span><span class="n">shebang_line</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lexer</span><span class="p">,</span> <span class="n">pygments</span><span class="o">.</span><span class="n">lexers</span><span class="o">.</span><span class="n">TextLexer</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">_filetypes</span><span class="p">[</span><span class="s1">&#39;DEFAULT&#39;</span><span class="p">]</span>
 
     <span class="n">name</span> <span class="o">=</span> <span class="n">lexer</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39; (not from filetypes.ini)&#39;</span>
     <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_filetypes</span><span class="p">:</span>

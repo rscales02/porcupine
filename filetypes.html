@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>File Types &#8212; Porcupine API 0.63.3 documentation</title>
+    <title>File Types &#8212; Porcupine API 0.65.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.63.3',
+        VERSION:     '0.65.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -102,6 +102,11 @@ from <code class="docutils literal"><span class="pre">filetypes.ini</span></code
 <dd></dd></dl>
 
 <dl class="attribute">
+<dt id="porcupine.filetypes.somefiletype.shebang_regex">
+<code class="descclassname">somefiletype.</code><code class="descname">shebang_regex</code><a class="headerlink" href="#porcupine.filetypes.somefiletype.shebang_regex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="porcupine.filetypes.somefiletype.tabs2spaces">
 <code class="descclassname">somefiletype.</code><code class="descname">tabs2spaces</code><a class="headerlink" href="#porcupine.filetypes.somefiletype.tabs2spaces" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -118,8 +123,8 @@ from <code class="docutils literal"><span class="pre">filetypes.ini</span></code
 possible values are listed here:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="55%" />
-<col width="45%" />
+<col width="38%" />
+<col width="63%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">filename_patterns</span></code></td>
@@ -128,17 +133,22 @@ possible values are listed here:</p>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">mimetypes</span></code></td>
 <td>list of strings</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tabs2spaces</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">shebang_regex</span></code></td>
+<td>a regex object from <a class="reference external" href="https://docs.python.org/3/library/re.html#re.compile" title="(in Python v3.6)"><code class="xref py py-func docutils literal"><span class="pre">re.compile()</span></code></a></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">tabs2spaces</span></code></td>
 <td>True or False</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">indent_size</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">indent_size</span></code></td>
 <td>int</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">max_line_length</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">max_line_length</span></code></td>
 <td>int</td>
 </tr>
 </tbody>
 </table>
+<p>If no <code class="docutils literal"><span class="pre">shebang_regex</span></code> is given in <code class="docutils literal"><span class="pre">filetypes.ini</span></code>, <code class="docutils literal"><span class="pre">shebang_regex</span></code> is
+set to a regex object that matches nothing.</p>
 </dd></dl>
 
 <dl class="method">
