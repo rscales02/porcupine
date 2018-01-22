@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.filetypes &#8212; Porcupine API 0.65.0 documentation</title>
+    <title>porcupine.filetypes &#8212; Porcupine API 0.67.0-git-f3be676 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.65.0',
+        VERSION:     '0.67.0-git-f3be676',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -62,6 +62,8 @@
 
 <span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">utils</span>
 
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="n">_STUPID_DEFAULTS</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span><span class="se">\</span>
 <span class="s1"># This is Porcupine&#39;s filetype configuration file. You can edit this file</span>
@@ -121,7 +123,7 @@
 <span class="s1"># list before substituting in the filenames, so spaces in filenames don&#39;t cause</span>
 <span class="s1"># issues. For example, if </span><span class="si">{file}</span><span class="s1"> is &#39;hello world.txt&#39;, then this...</span>
 <span class="s1">#</span>
-<span class="s1">#   tar -cf </span><span class="si">{no_ext}</span><span class="s1">.tar </span><span class="si">{file}</span><span class="s1"></span>
+<span class="s1">#   tar cf </span><span class="si">{no_ext}</span><span class="s1">.tar </span><span class="si">{file}</span><span class="s1"></span>
 <span class="s1">#</span>
 <span class="s1"># ...is equivalent to this command:</span>
 <span class="s1">#</span>
@@ -187,7 +189,6 @@
 <span class="s1">run_command = node </span><span class="si">{file}</span><span class="s1"></span>
 
 <span class="s1">[Makefile]</span>
-<span class="s1"># python doesn&#39;t seem to support a Makefile mimetype by default</span>
 <span class="s1">filename_patterns = Makefile makefile Makefile.* makefile.*</span>
 <span class="s1">pygments_lexer = pygments.lexers.MakefileLexer</span>
 <span class="s1"># make doesn&#39;t work with spaces</span>
@@ -234,9 +235,6 @@
     <span class="s1">&#39;runexe&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;</span><span class="si">{no_ext}</span><span class="s1">.exe&#39;</span> <span class="k">if</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;Windows&#39;</span>
                <span class="k">else</span> <span class="s1">&#39;./</span><span class="si">{no_ext}</span><span class="s1">&#39;</span><span class="p">),</span>
 <span class="p">}</span>
-
-
-<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="c1"># on startup, all file types specified in the config file are loaded to</span>
 <span class="c1"># _config and _filetypes, and new filetypes are added to them if the</span>
@@ -424,15 +422,48 @@
     <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">_filetypes</span><span class="o">.</span><span class="n">values</span><span class="p">())</span></div>
 
 
-<span class="k">def</span> <span class="nf">_init</span><span class="p">():</span>
-    <span class="k">assert</span> <span class="p">(</span><span class="ow">not</span> <span class="n">_filetypes</span><span class="p">),</span> <span class="s2">&quot;cannot init() twice&quot;</span>
+<span class="k">def</span> <span class="nf">_add_missing_mimetypes</span><span class="p">():</span>
+    <span class="c1"># many of these are missing on windows</span>
+    <span class="n">need_to_know</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c1"># extension: possible_mimetype</span>
+        <span class="c1"># if the extension is detected as some other mime type it&#39;s ok</span>
+        <span class="c1"># unless this is running on windows and that other mime type is</span>
+        <span class="c1"># &#39;text/plain&#39; because by default, windows detects e.g. .py</span>
+        <span class="c1"># files as &#39;text/plain&#39;</span>
+        <span class="s1">&#39;.py&#39;</span><span class="p">:</span> <span class="s1">&#39;text/x-python&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;.c&#39;</span><span class="p">:</span> <span class="s1">&#39;text/x-csrc&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;.h&#39;</span><span class="p">:</span> <span class="s1">&#39;text/x-chdr&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;.c++&#39;</span><span class="p">:</span> <span class="s1">&#39;text/x-c++src&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;.cpp&#39;</span><span class="p">:</span> <span class="s1">&#39;text/x-c++src&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;.cxx&#39;</span><span class="p">:</span> <span class="s1">&#39;text/x-c++src&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;.cc&#39;</span><span class="p">:</span> <span class="s1">&#39;text/x-c++src&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;.h++&#39;</span><span class="p">:</span> <span class="s1">&#39;text/x-c++hdr&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;.hpp&#39;</span><span class="p">:</span> <span class="s1">&#39;text/x-c++hdr&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;.hxx&#39;</span><span class="p">:</span> <span class="s1">&#39;text/x-c++hdr&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;.hh&#39;</span><span class="p">:</span> <span class="s1">&#39;text/x-c++hdr&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;.java&#39;</span><span class="p">:</span> <span class="s1">&#39;text/x-java&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;.js&#39;</span><span class="p">:</span> <span class="s1">&#39;application/javascript&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;.sh&#39;</span><span class="p">:</span> <span class="s1">&#39;application/x-sh&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;.tcl&#39;</span><span class="p">:</span> <span class="s1">&#39;application/x-tcl&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;.json&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
 
-    <span class="c1"># rest of this code doesn&#39;t check for missing values, so everything</span>
-    <span class="c1"># must be set to something at least in DEFAULT</span>
+    <span class="k">for</span> <span class="n">extension</span><span class="p">,</span> <span class="n">mimetype</span> <span class="ow">in</span> <span class="n">need_to_know</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">guess</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">(</span><span class="s1">&#39;whatever&#39;</span> <span class="o">+</span> <span class="n">extension</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">guess</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;Windows&#39;</span> <span class="ow">and</span>
+                             <span class="n">guess</span> <span class="o">==</span> <span class="s1">&#39;text/plain&#39;</span><span class="p">):</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;adding MIME type </span><span class="si">%r</span><span class="s1"> for extension </span><span class="si">%r</span><span class="s1">&#39;</span><span class="p">,</span>
+                      <span class="n">mimetype</span><span class="p">,</span> <span class="n">extension</span><span class="p">)</span>
+            <span class="n">mimetypes</span><span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="n">mimetype</span><span class="p">,</span> <span class="n">extension</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_init</span><span class="p">():</span>
+    <span class="k">assert</span> <span class="p">(</span><span class="ow">not</span> <span class="n">_filetypes</span><span class="p">),</span> <span class="s2">&quot;cannot _init() twice&quot;</span>
+    <span class="n">_add_missing_mimetypes</span><span class="p">()</span>
     <span class="n">stupid</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
     <span class="n">stupid</span><span class="o">.</span><span class="n">read_string</span><span class="p">(</span><span class="n">_STUPID_DEFAULTS</span><span class="p">)</span>
-    <span class="n">_config</span><span class="p">[</span><span class="s1">&#39;DEFAULT&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stupid</span><span class="p">[</span><span class="s1">&#39;DEFAULT&#39;</span><span class="p">]</span>
 
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;trying to load &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span><span class="p">,</span> <span class="n">_get_ini_path</span><span class="p">())</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="c1"># config.read() suppresses exceptions</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">_get_ini_path</span><span class="p">(),</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
@@ -449,6 +480,27 @@
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;default filetypes will be used instead&quot;</span><span class="p">)</span>
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;here&#39;s the full traceback&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">_config</span><span class="o">.</span><span class="n">read_string</span><span class="p">(</span><span class="n">_STUPID_DEFAULTS</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># neither of the except things ran, everything succeeded</span>
+        <span class="c1"># old porcupines created config files that didn&#39;t have all the</span>
+        <span class="c1"># keys they need to have for this porcupine</span>
+        <span class="c1"># stupid[&#39;DEFAULT&#39;] and _config[&#39;DEFAULT&#39;] behave like dicts</span>
+        <span class="n">missing_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">stupid</span><span class="p">[</span><span class="s1">&#39;DEFAULT&#39;</span><span class="p">])</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;DEFAULT&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">missing_keys</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;the [DEFAULT] section in filetypes.ini does not &quot;</span>
+                      <span class="s2">&quot;contain </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing_keys</span><span class="p">))</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;default settings will be used for missing things&quot;</span><span class="p">)</span>
+
+            <span class="c1"># _config is already loaded from filetypes.ini, so must make</span>
+            <span class="c1"># sure anything that came from there is not overrided: read</span>
+            <span class="c1"># the stupid defaults first and override with filetypes.ini</span>
+            <span class="c1"># duck-typing: configparsers behave like dicts</span>
+            <span class="n">merger</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
+            <span class="n">merger</span><span class="o">.</span><span class="n">read_dict</span><span class="p">(</span><span class="n">stupid</span><span class="p">)</span>
+            <span class="n">merger</span><span class="o">.</span><span class="n">read_dict</span><span class="p">(</span><span class="n">_config</span><span class="p">)</span>
+            <span class="n">_config</span><span class="o">.</span><span class="n">read_dict</span><span class="p">(</span><span class="n">merger</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;loaded filetypes.ini successfully&quot;</span><span class="p">)</span>
 
     <span class="c1"># make sure that the DEFAULT section is first, its values must be</span>
     <span class="c1"># valid when validating other sections</span>
@@ -483,6 +535,7 @@
 
 <span class="c1"># unlike pygments.lexers.IniLexer, this highlights correct keys and</span>
 <span class="c1"># values in filetypes.ini specially</span>
+<span class="c1"># FIXME: this is outdated &gt;:(</span>
 <span class="k">class</span> <span class="nc">_FiletypesDotIniLexer</span><span class="p">(</span><span class="n">pygments</span><span class="o">.</span><span class="n">lexer</span><span class="o">.</span><span class="n">RegexLexer</span><span class="p">):</span>
 
     <span class="c1"># these are probably not needed</span>

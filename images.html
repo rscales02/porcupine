@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.images — Load images that come with Porcupine &#8212; Porcupine API 0.65.0 documentation</title>
+    <title>porcupine.images — Load images that come with Porcupine &#8212; Porcupine API 0.67.0-git-f3be676 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.65.0',
+        VERSION:     '0.67.0-git-f3be676',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -23,8 +23,8 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="File Types" href="filetypes.html" />
-    <link rel="prev" title="porcupine.dirs — Paths to Porcupine’s files" href="dirs.html" />
+    <link rel="next" title="porcupine.dirs — Paths to Porcupine’s files" href="dirs.html" />
+    <link rel="prev" title="porcupine.textwidget — Handy tkinter.Text subclasses" href="textwidget.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -44,6 +44,10 @@
 <span id="porcupine-images-load-images-that-come-with-porcupine"></span><h1><a class="reference internal" href="#module-porcupine.images" title="porcupine.images"><code class="xref py py-mod docutils literal"><span class="pre">porcupine.images</span></code></a> — Load images that come with Porcupine<a class="headerlink" href="#module-porcupine.images" title="Permalink to this headline">¶</a></h1>
 <p>This is a tiny Python module for loading images from <a class="reference external" href="https://github.com/Akuli/porcupine/tree/master/porcupine/images">porcupine/images</a>.
 Click that link to view available images on GitHub.</p>
+<p>Prefer <code class="docutils literal"><span class="pre">logo-200x200</span></code> over <code class="docutils literal"><span class="pre">logo</span></code> if you need to load an image when
+Porcupine starts. <code class="docutils literal"><span class="pre">images.get('logo')</span></code> seems to take about 225 milliseconds on
+this system while <code class="docutils literal"><span class="pre">images.get('logo-200x200')</span></code> returns in about 5
+milliseconds.</p>
 <dl class="function">
 <dt id="porcupine.images.get">
 <code class="descclassname">porcupine.images.</code><code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/images.html#get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.images.get" title="Permalink to this definition">¶</a></dt>
@@ -65,8 +69,8 @@ returned every time.</p>
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="dirs.html" title="previous chapter"><code class="docutils literal"><span class="pre">porcupine.dirs</span></code> — Paths to Porcupine’s files</a></li>
-      <li>Next: <a href="filetypes.html" title="next chapter">File Types</a></li>
+      <li>Previous: <a href="textwidget.html" title="previous chapter"><code class="docutils literal"><span class="pre">porcupine.textwidget</span></code> — Handy <code class="docutils literal"><span class="pre">tkinter.Text</span></code> subclasses</a></li>
+      <li>Next: <a href="dirs.html" title="next chapter"><code class="docutils literal"><span class="pre">porcupine.dirs</span></code> — Paths to Porcupine’s files</a></li>
   </ul></li>
 </ul>
 </div>

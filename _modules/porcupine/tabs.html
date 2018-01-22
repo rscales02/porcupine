@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.tabs &#8212; Porcupine API 0.65.0 documentation</title>
+    <title>porcupine.tabs &#8212; Porcupine API 0.67.0-git-f3be676 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.65.0',
+        VERSION:     '0.67.0-git-f3be676',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -57,95 +57,69 @@
 <span class="n">_flatten</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span>
 
 
-<span class="k">class</span> <span class="nc">_Pane</span><span class="p">(</span><span class="n">ttk</span><span class="o">.</span><span class="n">Notebook</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;One element of the split view.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="TabManager"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.TabManager">[docs]</a><span class="k">class</span> <span class="nc">TabManager</span><span class="p">(</span><span class="n">ttk</span><span class="o">.</span><span class="n">Notebook</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A simple but awesome tab widget.</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">manager</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">manager</span><span class="p">)</span>
+<span class="sd">    This widget inherits from ``ttk.Notebook``. All widgets added to</span>
+<span class="sd">    this should be :class:`Tab` objects.</span>
+
+<span class="sd">    .. virtualevent:: NewTab</span>
+
+<span class="sd">        This runs when a new tab has been added to the tab manager with</span>
+<span class="sd">        :meth:`add_tab`. Use :func:`~porcupine.utils.bind_with_data` and</span>
+<span class="sd">        ``event.data_widget`` to access the tab that was added.</span>
+
+<span class="sd">        Bind to the ``&lt;Destroy&gt;`` event of the tab if you want to clean</span>
+<span class="sd">        up something when the tab is closed.</span>
+
+<span class="sd">    .. virtualevent:: NotebookTabChanged</span>
+
+<span class="sd">        This runs when the user selects another tab or Porcupine does it</span>
+<span class="sd">        for some reason. Use ``event.widget.select()`` to get the</span>
+<span class="sd">        currently selected tab.</span>
+
+<span class="sd">        This virtual event has ``Notebook`` prefixed in its name because</span>
+<span class="sd">        it&#39;s inherited from ``ttk.Notebook`` and whoever created it</span>
+<span class="sd">        wanted to add some boilerplate. I think something like</span>
+<span class="sd">        ``&lt;&lt;SelectedTabChanged&gt;&gt;`` would be a better name.</span>
+
+<span class="sd">        .. seealso:: :meth:`select`</span>
+
+<span class="sd">    .. method:: add(child, **kw)</span>
+<span class="sd">    .. method:: enable_traversal()</span>
+<span class="sd">    .. method:: forget(tab_id)</span>
+<span class="sd">    .. method:: hide(tab_id)</span>
+<span class="sd">    .. method:: insert(pos, child, **kw)</span>
+<span class="sd">    .. method:: tab(tab_id, option=None, **kw)</span>
+
+<span class="sd">        Don&#39;t use these methods. They are inherited from</span>
+<span class="sd">        ``ttk.Notebook``, and :class:`TabManager` has other methods for</span>
+<span class="sd">        doing what is usually done with these methods.</span>
+
+<span class="sd">        .. seealso::</span>
+<span class="sd">            :meth:`add_tab`, :meth:`close_tab`, :attr:`Tab.title`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># These can be bound in a parent widget. This doesn&#39;t use</span>
+        <span class="c1"># enable_traversal() because we want more bindings than it</span>
+        <span class="c1"># creates.</span>
+        <span class="c1"># TODO: document these?</span>
+        <span class="n">partial</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span>     <span class="c1"># pep-8 line length</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bindings</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;&lt;Control-Prior&gt;&#39;</span><span class="p">,</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_page_updown</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)),</span>
+            <span class="p">(</span><span class="s1">&#39;&lt;Control-Next&gt;&#39;</span><span class="p">,</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_page_updown</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">+</span><span class="mi">1</span><span class="p">)),</span>
+            <span class="p">(</span><span class="s1">&#39;&lt;Control-Shift-Prior&gt;&#39;</span><span class="p">,</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_page_updown</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)),</span>
+            <span class="p">(</span><span class="s1">&#39;&lt;Control-Shift-Next&gt;&#39;</span><span class="p">,</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_page_updown</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="o">+</span><span class="mi">1</span><span class="p">)),</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">number</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
+            <span class="n">callback</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_alt_n</span><span class="p">,</span> <span class="n">number</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bindings</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s1">&#39;&lt;Alt-Key-</span><span class="si">%d</span><span class="s1">&gt;&#39;</span> <span class="o">%</span> <span class="n">number</span><span class="p">,</span> <span class="n">callback</span><span class="p">))</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Button-1&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_click</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">utils</span><span class="o">.</span><span class="n">bind_mouse_wheel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_wheel</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-    <span class="c1"># tkinter&#39;s tabs() returns widget names (strings) instead of actual</span>
-    <span class="c1"># widgets, this implementation str()&#39;s everything anyway because</span>
-    <span class="c1"># tkinter might be fixed some day</span>
-    <span class="k">def</span> <span class="nf">tabs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nametowidget</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tab</span><span class="p">))</span> <span class="k">for</span> <span class="n">tab</span> <span class="ow">in</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">tabs</span><span class="p">())</span>
-
-    <span class="c1"># similar fix</span>
-    <span class="k">def</span> <span class="nf">select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tab_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">tab_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nametowidget</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">select</span><span class="p">()))</span>
-
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">tab_id</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">None</span>
-
-    <span class="c1"># a customized version of add()</span>
-    <span class="k">def</span> <span class="nf">add_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tab</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">tab</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">tab</span><span class="o">.</span><span class="n">title</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="n">images</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;closebutton&#39;</span><span class="p">),</span>
-                 <span class="n">compound</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span>
-        <span class="n">tab</span><span class="o">.</span><span class="n">tkraise</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>      <span class="c1"># make sure it&#39;s visible</span>
-
-    <span class="c1"># this is lol</span>
-    <span class="k">def</span> <span class="nf">remove_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tab</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">forget</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;end&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="c1"># no more tabs, get rid of this pane because a pane with no tabs</span>
-            <span class="c1"># in it would suck... but first, can we select another pane?</span>
-            <span class="n">all_panes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">panes</span><span class="p">()</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_panes</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">another_pane</span> <span class="o">=</span> <span class="n">all_panes</span><span class="p">[</span><span class="n">all_panes</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
-                <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
-                    <span class="n">another_pane</span> <span class="o">=</span> <span class="n">all_panes</span><span class="p">[</span><span class="n">all_panes</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
-                <span class="n">another_pane</span><span class="o">.</span><span class="n">select</span><span class="p">()</span><span class="o">.</span><span class="n">on_focus</span><span class="p">()</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">_current_pane</span> <span class="o">=</span> <span class="n">another_pane</span>   <span class="c1"># just to be sure</span>
-                <span class="n">generate_the_event</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># no, this is the last pane in the whole tab manager</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">_current_pane</span> <span class="o">=</span> <span class="kc">None</span>
-                <span class="n">generate_the_event</span> <span class="o">=</span> <span class="kc">True</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">forget</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">generate_the_event</span><span class="p">:</span>
-                <span class="c1"># must be after telling the tab manager to forget about</span>
-                <span class="c1"># this pane, otherwise it complains that _current_pane</span>
-                <span class="c1"># was set to None even though there are panes</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">event_generate</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;CurrentTabChanged&gt;&gt;&#39;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
-
-    <span class="c1"># diff should be +1 for selecting a tab at right or -1 for left</span>
-    <span class="k">def</span> <span class="nf">select_next_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">diff</span><span class="p">):</span>
-        <span class="k">assert</span> <span class="n">diff</span> <span class="ow">in</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">},</span> <span class="nb">repr</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span>
-        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">())</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="n">diff</span><span class="p">)</span>
-            <span class="k">return</span> <span class="kc">True</span>
-        <span class="k">except</span> <span class="n">tkinter</span><span class="o">.</span><span class="n">TclError</span><span class="p">:</span>   <span class="c1"># should be &quot;Slave index n out of bounds&quot;</span>
-            <span class="k">return</span> <span class="kc">False</span>
-
-    <span class="k">def</span> <span class="nf">move_next_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">diff</span><span class="p">):</span>
-        <span class="k">assert</span> <span class="n">diff</span> <span class="ow">in</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">},</span> <span class="nb">repr</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span>
-        <span class="n">i1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">())</span>
-        <span class="n">i2</span> <span class="o">=</span> <span class="n">i1</span> <span class="o">+</span> <span class="n">diff</span>
-        <span class="k">if</span> <span class="n">i1</span> <span class="o">&gt;</span> <span class="n">i2</span><span class="p">:</span>
-            <span class="n">i1</span><span class="p">,</span> <span class="n">i2</span> <span class="o">=</span> <span class="n">i2</span><span class="p">,</span> <span class="n">i1</span>
-
-        <span class="k">if</span> <span class="n">i1</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">i2</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;end&#39;</span><span class="p">):</span>
-            <span class="k">return</span> <span class="kc">False</span>
-
-        <span class="c1"># it&#39;s important to move the second tab back instead of moving</span>
-        <span class="c1"># the other tab forward because insert(number_of_tabs, tab)</span>
-        <span class="c1"># doesn&#39;t work for some reason</span>
-        <span class="n">tab</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tabs</span><span class="p">()[</span><span class="n">i2</span><span class="p">]</span>
-        <span class="n">options</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="p">(</span><span class="n">i2</span><span class="p">)</span>
-        <span class="n">selected</span> <span class="o">=</span> <span class="p">(</span><span class="n">tab</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">())</span>    <span class="c1"># TODO: optimize-cleanup?</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">forget</span><span class="p">(</span><span class="n">i2</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">i1</span><span class="p">,</span> <span class="n">tab</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">selected</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span> <span class="nf">_on_click</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">identify</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">y</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;label&#39;</span><span class="p">:</span>
@@ -163,200 +137,55 @@
             <span class="c1"># the close button was clicked</span>
             <span class="n">tab</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tabs</span><span class="p">()[</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;@</span><span class="si">%d</span><span class="s1">,</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">y</span><span class="p">))]</span>
             <span class="k">if</span> <span class="n">tab</span><span class="o">.</span><span class="n">can_be_closed</span><span class="p">():</span>
-                <span class="c1"># self.master is the tab manager</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">close_tab</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">close_tab</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_on_wheel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direction</span><span class="p">):</span>
-        <span class="n">diffs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;up&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;down&#39;</span><span class="p">:</span> <span class="o">+</span><span class="mi">1</span><span class="p">}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">select_next_to</span><span class="p">(</span><span class="n">diffs</span><span class="p">[</span><span class="n">direction</span><span class="p">])</span>
-
-
-<div class="viewcode-block" id="TabManager"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.TabManager">[docs]</a><span class="k">class</span> <span class="nc">TabManager</span><span class="p">(</span><span class="n">ttk</span><span class="o">.</span><span class="n">PanedWindow</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A simple but awesome tab widget.</span>
-
-<span class="sd">    This widget is a lot like ``ttk.Notebook``, but this class also</span>
-<span class="sd">    implements split views and only :class:`Tab` can be added to this.</span>
-
-<span class="sd">    .. virtualevent:: NewTab</span>
-
-<span class="sd">        This runs when a new tab has been added to the tab manager with</span>
-<span class="sd">        :meth:`add_tab`. Use :func:`~porcupine.utils.bind_with_data` and</span>
-<span class="sd">        ``event.data_widget`` to access the tab that was added.</span>
-
-<span class="sd">        Bind to the ``&lt;Destroy&gt;`` event of the tab if you want to clean</span>
-<span class="sd">        up something when the tab is closed.</span>
-
-<span class="sd">    .. virtualevent:: CurrentTabChanged</span>
-
-<span class="sd">        This runs when the user selects another tab or Porcupine does it</span>
-<span class="sd">        for some reason. Use ``event.widget.current_tab`` to get or set</span>
-<span class="sd">        the currently selected tab.</span>
-
-<span class="sd">        .. seealso:: :attr:`~current_tab`</span>
-
-<span class="sd">    .. attribute:: tabs</span>
-
-<span class="sd">        List of Tab objects in the tab manager.</span>
-
-<span class="sd">        Don&#39;t modify this list yourself, use methods like</span>
-<span class="sd">        :meth:`~move_left`, :meth:`~move_right`, :meth:`~add_tab` or</span>
-<span class="sd">        :meth:`~close_tab` instead.</span>
-
-<span class="sd">    .. attribute:: current_tab</span>
-
-<span class="sd">        The tab that the user has currently selected.</span>
-
-<span class="sd">        This is None when there are no tabs. You can set this to select</span>
-<span class="sd">        a tab, like this::</span>
-
-<span class="sd">            tabmanager.current_tab = some_tab</span>
-
-<span class="sd">    .. attribute:: current_index</span>
-
-<span class="sd">        .. warning:: Don&#39;t use this attribute. I may remove it later.</span>
-
-<span class="sd">        The index of :attr:`~current_tab` in :attr:`~tabs`.</span>
-
-<span class="sd">        Setting this raises :exc:`IndexError` if the index is too big or</span>
-<span class="sd">        too small. Negative indexes are not supported.</span>
-
-<span class="sd">    .. method:: add(child, **kw)</span>
-<span class="sd">    .. method:: insert(pos, child, **kw)</span>
-<span class="sd">    .. method:: pane(pane, option=None, **kw)</span>
-<span class="sd">    .. method:: panecget(child, option)</span>
-<span class="sd">    .. method:: paneconfig(tagOrId, cnf=None, **kw)</span>
-<span class="sd">    .. method:: paneconfigure(tagOrId, cnf=None, **kw)</span>
-<span class="sd">    .. method:: panes()</span>
-<span class="sd">    .. method:: proxy(*args)</span>
-<span class="sd">    .. method:: proxy_coord()</span>
-<span class="sd">    .. method:: proxy_forget()</span>
-<span class="sd">    .. method:: proxy_place(x, y)</span>
-<span class="sd">    .. method:: remove(child)</span>
-<span class="sd">    .. method:: sash(*args)</span>
-<span class="sd">    .. method:: sash_coord(index)</span>
-<span class="sd">    .. method:: sash_mark(index)</span>
-<span class="sd">    .. method:: sash_place(index, x, y)</span>
-<span class="sd">    .. method:: sashpos(index, newpos=None)</span>
-
-<span class="sd">        Don&#39;t use these methods. Currently ``TabManager`` inherits from</span>
-<span class="sd">        ``ttk.PanedWindow``, but that may be changed later. These methods</span>
-<span class="sd">        come from ``PanedWindow``.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;orient&#39;</span><span class="p">,</span> <span class="s1">&#39;horizontal&#39;</span><span class="p">)</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_current_pane</span> <span class="o">=</span> <span class="kc">None</span>
-
-        <span class="c1"># These can be bound in a parent widget. This doesn&#39;t use</span>
-        <span class="c1"># enable_traversal() because we want more bindings than it</span>
-        <span class="c1"># creates.</span>
-        <span class="c1"># TODO: document these?</span>
-        <span class="n">partial</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span>     <span class="c1"># pep-8 line length</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">bindings</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="p">(</span><span class="s1">&#39;&lt;Control-Prior&gt;&#39;</span><span class="p">,</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_page_updown</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)),</span>
-            <span class="p">(</span><span class="s1">&#39;&lt;Control-Next&gt;&#39;</span><span class="p">,</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_page_updown</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">+</span><span class="mi">1</span><span class="p">)),</span>
-            <span class="p">(</span><span class="s1">&#39;&lt;Control-Shift-Prior&gt;&#39;</span><span class="p">,</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_page_updown</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)),</span>
-            <span class="p">(</span><span class="s1">&#39;&lt;Control-Shift-Next&gt;&#39;</span><span class="p">,</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_page_updown</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="o">+</span><span class="mi">1</span><span class="p">)),</span>
-            <span class="p">(</span><span class="s1">&#39;&lt;Alt-Left&gt;&#39;</span><span class="p">,</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_alt_arrow</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)),</span>
-            <span class="p">(</span><span class="s1">&#39;&lt;Alt-Right&gt;&#39;</span><span class="p">,</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_alt_arrow</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">+</span><span class="mi">1</span><span class="p">)),</span>
-            <span class="p">(</span><span class="s1">&#39;&lt;Shift-Alt-Left&gt;&#39;</span><span class="p">,</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_alt_arrow</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)),</span>
-            <span class="p">(</span><span class="s1">&#39;&lt;Shift-Alt-Right&gt;&#39;</span><span class="p">,</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_alt_arrow</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="o">+</span><span class="mi">1</span><span class="p">)),</span>
-        <span class="p">]</span>
-        <span class="k">for</span> <span class="n">number</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
-            <span class="n">callback</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_alt_n</span><span class="p">,</span> <span class="n">number</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">bindings</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s1">&#39;&lt;Alt-Key-</span><span class="si">%d</span><span class="s1">&gt;&#39;</span> <span class="o">%</span> <span class="n">number</span><span class="p">,</span> <span class="n">callback</span><span class="p">))</span>
-
-        <span class="c1"># this bind all &lt;FocusIn&gt; events of the window that the tab</span>
-        <span class="c1"># manager is in</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">winfo_toplevel</span><span class="p">()</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span>
-            <span class="s1">&#39;&lt;FocusIn&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_maybe_pane_selected</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">select_another_tab</span><span class="p">({</span><span class="s1">&#39;up&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;down&#39;</span><span class="p">:</span> <span class="o">+</span><span class="mi">1</span><span class="p">}[</span><span class="n">direction</span><span class="p">])</span>
 
     <span class="k">def</span> <span class="nf">_on_page_updown</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shifted</span><span class="p">,</span> <span class="n">diff</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_pane</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">shifted</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_current_pane</span><span class="o">.</span><span class="n">move_next_to</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_current_pane</span><span class="o">.</span><span class="n">select_next_to</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span>
-        <span class="k">return</span> <span class="s1">&#39;break&#39;</span>
-
-    <span class="k">def</span> <span class="nf">_on_alt_arrow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shifted</span><span class="p">,</span> <span class="n">diff</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_pane</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># no tabs</span>
-            <span class="k">assert</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">panes</span><span class="p">(),</span> <span class="s2">&quot;_current_tab wasn&#39;t set correctly&quot;</span>
-            <span class="k">return</span> <span class="s1">&#39;break&#39;</span>
-
         <span class="k">if</span> <span class="n">shifted</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_move_to_another_pane</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">move_selected_tab</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># select another pane</span>
-            <span class="n">panes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">panes</span><span class="p">()</span>    <span class="c1"># superstitious optimizations ftw</span>
-            <span class="n">current_index</span> <span class="o">=</span> <span class="n">panes</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_pane</span><span class="p">)</span>
-            <span class="n">new_index</span> <span class="o">=</span> <span class="n">current_index</span> <span class="o">+</span> <span class="n">diff</span>
-            <span class="n">panes</span><span class="p">[</span><span class="n">new_index</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">panes</span><span class="p">)]</span><span class="o">.</span><span class="n">select</span><span class="p">()</span><span class="o">.</span><span class="n">on_focus</span><span class="p">()</span>
-
+            <span class="bp">self</span><span class="o">.</span><span class="n">select_another_tab</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span>
         <span class="k">return</span> <span class="s1">&#39;break&#39;</span>
 
     <span class="k">def</span> <span class="nf">_on_alt_n</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">current_tab</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tabs</span><span class="p">[</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
             <span class="k">return</span> <span class="s1">&#39;break&#39;</span>
-        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+        <span class="k">except</span> <span class="n">tkinter</span><span class="o">.</span><span class="n">TclError</span><span class="p">:</span>        <span class="c1"># index out of bounds</span>
             <span class="k">return</span> <span class="kc">None</span>
 
-    <span class="c1"># similar fix as in _Pane</span>
-<div class="viewcode-block" id="TabManager.panes"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.TabManager.panes">[docs]</a>    <span class="k">def</span> <span class="nf">panes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nametowidget</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pane</span><span class="p">))</span> <span class="k">for</span> <span class="n">pane</span> <span class="ow">in</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">panes</span><span class="p">())</span></div>
+    <span class="c1"># fixing tkinter weirdness: some methods returns widget names as</span>
+    <span class="c1"># strings instead of widget objects, these str() everything anyway</span>
+    <span class="c1"># because tkinter might be fixed some day</span>
+<div class="viewcode-block" id="TabManager.select"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.TabManager.select">[docs]</a>    <span class="k">def</span> <span class="nf">select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tab_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Select the given tab as if the user clicked it.</span>
 
-    <span class="k">def</span> <span class="nf">_add_pane</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_tab</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="s1">&#39;end&#39;</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">where</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">panes</span><span class="p">()):</span>
-            <span class="c1"># yes, this is needed</span>
-            <span class="n">where</span> <span class="o">=</span> <span class="s1">&#39;end&#39;</span>
+<span class="sd">        If ``tab_id`` is not given, this returns the currently selected</span>
+<span class="sd">        tab or None if there are no tabs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">tab_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">selected</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">select</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">selected</span><span class="p">:</span>        <span class="c1"># no tabs, selected == &#39;&#39;</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nametowidget</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">selected</span><span class="p">))</span>
 
-        <span class="n">pane</span> <span class="o">=</span> <span class="n">_Pane</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="n">pane</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;NotebookTabChanged&gt;&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_tab_selected</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">pane</span><span class="o">.</span><span class="n">add_tab</span><span class="p">(</span><span class="n">initial_tab</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">where</span><span class="p">,</span> <span class="n">pane</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># the tab can be e.g. an index, that&#39;s why two super() calls</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">tab_id</span><span class="p">)</span>
+        <span class="n">tab</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nametowidget</span><span class="p">(</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">select</span><span class="p">())</span>
+        <span class="n">tab</span><span class="o">.</span><span class="n">on_focus</span><span class="p">()</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_pane</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_current_pane</span> <span class="o">=</span> <span class="n">pane</span>
+<div class="viewcode-block" id="TabManager.tabs"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.TabManager.tabs">[docs]</a>    <span class="k">def</span> <span class="nf">tabs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a tuple of tabs in the tab manager.</span>
 
-    <span class="k">def</span> <span class="nf">_on_maybe_pane_selected</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">pane</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">panes</span><span class="p">():</span>
-            <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">widget</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pane</span><span class="o">.</span><span class="n">select</span><span class="p">())</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span><span class="p">):</span>
-                <span class="c1"># something in the pane&#39;s current tab was selected</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_pane</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">pane</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_current_pane</span> <span class="o">=</span> <span class="n">pane</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">event_generate</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;CurrentTabChanged&gt;&gt;&#39;</span><span class="p">)</span>
-                <span class="k">break</span>
+<span class="sd">        This returns a tuple instead of a list for compatibility with</span>
+<span class="sd">        tkinter.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nametowidget</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tab</span><span class="p">))</span> <span class="k">for</span> <span class="n">tab</span> <span class="ow">in</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">tabs</span><span class="p">())</span></div>
 
-    <span class="k">def</span> <span class="nf">_on_tab_selected</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">widget</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_pane</span><span class="p">:</span>
-            <span class="n">event</span><span class="o">.</span><span class="n">widget</span><span class="o">.</span><span class="n">select</span><span class="p">()</span><span class="o">.</span><span class="n">on_focus</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">event_generate</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;CurrentTabChanged&gt;&gt;&#39;</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">tabs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">_flatten</span><span class="p">(</span><span class="n">pane</span><span class="o">.</span><span class="n">tabs</span><span class="p">()</span> <span class="k">for</span> <span class="n">pane</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">panes</span><span class="p">()))</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">current_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_pane</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">panes</span><span class="p">(),</span> <span class="s2">&quot;_current_pane wasn&#39;t set correctly&quot;</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_pane</span><span class="o">.</span><span class="n">select</span><span class="p">()</span>
-
-    <span class="nd">@current_tab</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">current_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tab</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">pane</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">panes</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">tab</span> <span class="ow">in</span> <span class="n">pane</span><span class="o">.</span><span class="n">tabs</span><span class="p">():</span>
-                <span class="n">pane</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
-                <span class="n">tab</span><span class="o">.</span><span class="n">on_focus</span><span class="p">()</span>
-                <span class="k">return</span>
-
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;unknown tab </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tab</span><span class="p">,))</span>
-
-<div class="viewcode-block" id="TabManager.add_tab"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.TabManager.add_tab">[docs]</a>    <span class="k">def</span> <span class="nf">add_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tab</span><span class="p">,</span> <span class="n">make_current</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="TabManager.add_tab"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.TabManager.add_tab">[docs]</a>    <span class="k">def</span> <span class="nf">add_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tab</span><span class="p">,</span> <span class="n">select</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Append a :class:`.Tab` to this tab manager.</span>
 
 <span class="sd">        If ``tab.equivalent(existing_tab)`` returns True for any</span>
@@ -364,27 +193,23 @@
 <span class="sd">        existing tab is returned. Otherwise *tab* is added to the tab</span>
 <span class="sd">        manager and returned.</span>
 
-<span class="sd">        If *make_current* is True, then :attr:`current_tab` is set to</span>
-<span class="sd">        the tab that is returned.</span>
+<span class="sd">        If *select* is True, then the returned tab is selected</span>
+<span class="sd">        with :meth:`~select`.</span>
 
 <span class="sd">        .. seealso::</span>
 <span class="sd">            The :meth:`.Tab.equivalent` and :meth:`~close_tab` methods.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="n">tab</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tabs</span><span class="p">,</span> <span class="s2">&quot;cannot add the same tab twice&quot;</span>
-        <span class="k">for</span> <span class="n">existing_tab</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tabs</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">tab</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tabs</span><span class="p">(),</span> <span class="s2">&quot;cannot add the same tab twice&quot;</span>
+        <span class="k">for</span> <span class="n">existing_tab</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tabs</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">tab</span><span class="o">.</span><span class="n">equivalent</span><span class="p">(</span><span class="n">existing_tab</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">make_current</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">current_tab</span> <span class="o">=</span> <span class="n">existing_tab</span>
+                <span class="k">if</span> <span class="n">select</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">existing_tab</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">existing_tab</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">panes</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_current_pane</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">panes</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_current_pane</span><span class="o">.</span><span class="n">add_tab</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_add_pane</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">make_current</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">current_tab</span> <span class="o">=</span> <span class="n">tab</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">tab</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">tab</span><span class="o">.</span><span class="n">title</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="n">images</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;closebutton&#39;</span><span class="p">),</span>
+                 <span class="n">compound</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">select</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
 
         <span class="c1"># the update() is needed in some cases because virtual events</span>
         <span class="c1"># don&#39;t run if the widget isn&#39;t visible yet</span>
@@ -399,55 +224,63 @@
 
 <span class="sd">        .. seealso:: The :meth:`.Tab.can_be_closed` method.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># which pane is this tab in?</span>
-        <span class="k">for</span> <span class="n">pane</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">panes</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">tab</span> <span class="ow">in</span> <span class="n">pane</span><span class="o">.</span><span class="n">tabs</span><span class="p">():</span>
-                <span class="k">break</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;unknown tab &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">tab</span><span class="p">))</span>
-
-        <span class="n">pane</span><span class="o">.</span><span class="n">remove_tab</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>     <span class="c1"># may get rid of the whole pane</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forget</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
         <span class="n">tab</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span></div>
 
-    <span class="c1"># moves the current tab to another pane, creating a new pane if needed</span>
-    <span class="k">def</span> <span class="nf">_move_to_another_pane</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">diff</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Move the currently selected tab to another pane.</span>
+<div class="viewcode-block" id="TabManager.select_another_tab"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.TabManager.select_another_tab">[docs]</a>    <span class="k">def</span> <span class="nf">select_another_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">diff</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Try to select another tab next to the currently selected tab.</span>
 
-<span class="sd">        The diff should be +1 for moving right or -1 for moving left.</span>
-<span class="sd">        New panes are created automatically when needed.</span>
+<span class="sd">        *diff* should be ``1`` for selecting a tab at right or ``-1``</span>
+<span class="sd">        for left. This returns True if another tab was selected and</span>
+<span class="sd">        False if the current tab is already the leftmost tab or there</span>
+<span class="sd">        are no tabs.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="n">diff</span> <span class="ow">in</span> <span class="p">{</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">},</span> <span class="nb">repr</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span>
-        <span class="n">panes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">panes</span><span class="p">()</span>    <span class="c1"># superstitious optimizations ftw</span>
-        <span class="n">current_index</span> <span class="o">=</span> <span class="n">panes</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_pane</span><span class="p">)</span>
-        <span class="n">tab</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_pane</span><span class="o">.</span><span class="n">select</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">diff</span> <span class="ow">in</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">},</span> <span class="nb">repr</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">tabs</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">False</span>
 
-        <span class="k">if</span> <span class="p">(</span><span class="n">current_index</span> <span class="o">+</span> <span class="n">diff</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">panes</span><span class="p">)):</span>
-            <span class="c1"># remove_tab() will get rid of the whole pane if it contains</span>
-            <span class="c1"># only one tab, so it&#39;s important NOT to update panes to the</span>
-            <span class="c1"># new value of self.panes() (without changing the index)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_current_pane</span><span class="o">.</span><span class="n">remove_tab</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
-            <span class="n">panes</span><span class="p">[</span><span class="n">current_index</span> <span class="o">+</span> <span class="n">diff</span><span class="p">]</span><span class="o">.</span><span class="n">add_tab</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
-            <span class="n">panes</span><span class="p">[</span><span class="n">current_index</span> <span class="o">+</span> <span class="n">diff</span><span class="p">]</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
-            <span class="n">tab</span><span class="o">.</span><span class="n">on_focus</span><span class="p">()</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">())</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="n">diff</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="n">tkinter</span><span class="o">.</span><span class="n">TclError</span><span class="p">:</span>   <span class="c1"># should be &quot;Slave index n out of bounds&quot;</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
 
-        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_pane</span><span class="o">.</span><span class="n">tabs</span><span class="p">())</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="c1"># corner case: if there&#39;s just one tab in the pane then</span>
-            <span class="c1"># moving it to a new pane would do nothing but create</span>
-            <span class="c1"># more corner cases :D yay, corner cases</span>
-            <span class="k">pass</span>
+<div class="viewcode-block" id="TabManager.move_selected_tab"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.TabManager.move_selected_tab">[docs]</a>    <span class="k">def</span> <span class="nf">move_selected_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">diff</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Try to move the currently selected tab left or right.</span>
 
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># create a new pane</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_current_pane</span><span class="o">.</span><span class="n">remove_tab</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>   <span class="c1"># FIXME !!!!</span>
-            <span class="k">if</span> <span class="n">diff</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_add_pane</span><span class="p">(</span><span class="n">tab</span><span class="p">,</span> <span class="n">current_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_add_pane</span><span class="p">(</span><span class="n">tab</span><span class="p">,</span> <span class="n">current_index</span><span class="p">)</span>
-            <span class="n">tab</span><span class="o">.</span><span class="n">on_focus</span><span class="p">()</span>    <span class="c1"># FIXME: this doesn&#39;t work 0_o very weird</span></div>
+<span class="sd">        *diff* should be ``1`` for moving to right or ``-1`` for left.</span>
+<span class="sd">        This returns True if the tab was moved and False if there was no</span>
+<span class="sd">        room for moving it or there are no tabs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">diff</span> <span class="ow">in</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">},</span> <span class="nb">repr</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">tabs</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="c1"># TODO: this can probably be simplified</span>
+        <span class="n">i1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">())</span>
+        <span class="n">i2</span> <span class="o">=</span> <span class="n">i1</span> <span class="o">+</span> <span class="n">diff</span>
+        <span class="k">if</span> <span class="n">i1</span> <span class="o">&gt;</span> <span class="n">i2</span><span class="p">:</span>
+            <span class="n">i1</span><span class="p">,</span> <span class="n">i2</span> <span class="o">=</span> <span class="n">i2</span><span class="p">,</span> <span class="n">i1</span>
+
+        <span class="k">if</span> <span class="n">i1</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">i2</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;end&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="c1"># it&#39;s important to move the second tab back instead of moving</span>
+        <span class="c1"># the other tab forward because insert(number_of_tabs, tab)</span>
+        <span class="c1"># doesn&#39;t work for some reason</span>
+        <span class="n">tab</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tabs</span><span class="p">()[</span><span class="n">i2</span><span class="p">]</span>
+        <span class="n">options</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tab</span><span class="p">(</span><span class="n">i2</span><span class="p">)</span>
+        <span class="n">selected</span> <span class="o">=</span> <span class="p">(</span><span class="n">tab</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">forget</span><span class="p">(</span><span class="n">i2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">i1</span><span class="p">,</span> <span class="n">tab</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">selected</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">True</span></div></div>
 
 
-<span class="c1"># tabs are initialized into the tab manager, but adding them to a pane</span>
-<span class="c1"># in the tab manager still works</span>
 <div class="viewcode-block" id="Tab"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.Tab">[docs]</a><span class="k">class</span> <span class="nc">Tab</span><span class="p">(</span><span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Base class for widgets that can be added to TabManager.</span>
 
@@ -548,13 +381,8 @@
     <span class="nd">@title</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">title</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_title</span> <span class="o">=</span> <span class="n">text</span>
-
-        <span class="c1"># this is here because accessing _non_public tab manager methods</span>
-        <span class="c1"># from here wouldn&#39;t be good style (lol)</span>
-        <span class="k">for</span> <span class="n">pane</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">panes</span><span class="p">():</span>
-            <span class="k">if</span> <span class="bp">self</span> <span class="ow">in</span> <span class="n">pane</span><span class="o">.</span><span class="n">tabs</span><span class="p">():</span>
-                <span class="n">pane</span><span class="o">.</span><span class="n">tab</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">)</span>
-                <span class="k">break</span>
+        <span class="k">if</span> <span class="bp">self</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">tabs</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">tab</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Tab.can_be_closed"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.Tab.can_be_closed">[docs]</a>    <span class="k">def</span> <span class="nf">can_be_closed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -938,13 +766,13 @@
     <span class="n">tabmgr</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;NewTab&gt;&gt;&#39;</span><span class="p">,</span>
                 <span class="k">lambda</span> <span class="n">event</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;added tab&quot;</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">data_widget</span><span class="o">.</span><span class="n">i</span><span class="p">),</span>
                 <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">tabmgr</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;CurrentTabChanged&gt;&gt;&#39;</span><span class="p">,</span>
-                <span class="k">lambda</span> <span class="n">event</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;selected&quot;</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">widget</span><span class="o">.</span><span class="n">current_tab</span><span class="o">.</span><span class="n">i</span><span class="p">),</span>
+    <span class="n">tabmgr</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;NotebookTabChanged&gt;&gt;&#39;</span><span class="p">,</span>
+                <span class="k">lambda</span> <span class="n">event</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;selected&quot;</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">widget</span><span class="o">.</span><span class="n">select</span><span class="p">()</span><span class="o">.</span><span class="n">i</span><span class="p">),</span>
                 <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">on_ctrl_w</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">tabmgr</span><span class="o">.</span><span class="n">tabs</span><span class="p">:</span>    <span class="c1"># current_tab is not None</span>
-            <span class="n">tabmgr</span><span class="o">.</span><span class="n">close_tab</span><span class="p">(</span><span class="n">tabmgr</span><span class="o">.</span><span class="n">current_tab</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tabmgr</span><span class="o">.</span><span class="n">tabs</span><span class="p">():</span>
+            <span class="n">tabmgr</span><span class="o">.</span><span class="n">close_tab</span><span class="p">(</span><span class="n">tabmgr</span><span class="o">.</span><span class="n">select</span><span class="p">())</span>
 
     <span class="n">root</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Control-w&gt;&#39;</span><span class="p">,</span> <span class="n">on_ctrl_w</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">keysym</span><span class="p">,</span> <span class="n">callback</span> <span class="ow">in</span> <span class="n">tabmgr</span><span class="o">.</span><span class="n">bindings</span><span class="p">:</span>
