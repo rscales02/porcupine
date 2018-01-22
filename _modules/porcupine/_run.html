@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine._run &#8212; Porcupine API 0.67.0-git-f3be676 documentation</title>
+    <title>porcupine._run &#8212; Porcupine API 0.67.0-git-e9b1a3f documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.67.0-git-f3be676',
+        VERSION:     '0.67.0-git-e9b1a3f',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -48,7 +48,7 @@
 <span class="kn">import</span> <span class="nn">traceback</span>
 <span class="kn">import</span> <span class="nn">webbrowser</span>
 
-<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="p">(</span><span class="n">_dialogs</span><span class="p">,</span> <span class="n">_ipc</span><span class="p">,</span> <span class="n">_logs</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">filetypes</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="p">(</span><span class="n">_dialogs</span><span class="p">,</span> <span class="n">_logs</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">filetypes</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span>
                        <span class="n">settings</span><span class="p">,</span> <span class="n">tabs</span><span class="p">,</span> <span class="n">utils</span><span class="p">)</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -216,50 +216,16 @@
             <span class="k">break</span>
 
 
-<span class="k">def</span> <span class="nf">_open_file</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">content</span><span class="p">):</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="n">_tab_manager</span><span class="o">.</span><span class="n">add_tab</span><span class="p">(</span><span class="n">tabs</span><span class="o">.</span><span class="n">FileTab</span><span class="p">(</span><span class="n">_tab_manager</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">path</span><span class="p">))</span>
-
-
-<span class="k">def</span> <span class="nf">_queue_opener</span><span class="p">(</span><span class="n">queue</span><span class="p">):</span>
-    <span class="n">gonna_focus</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">content</span> <span class="ow">in</span> <span class="n">_iter_queue</span><span class="p">(</span><span class="n">queue</span><span class="p">):</span>
-        <span class="c1"># if porcupine is running and the user runs it again without any</span>
-        <span class="c1"># arguments, then path and content are None and we just focus</span>
-        <span class="c1"># the window</span>
-        <span class="n">gonna_focus</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="n">_open_file</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">gonna_focus</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">_root</span><span class="o">.</span><span class="n">tk</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s1">&#39;tk&#39;</span><span class="p">,</span> <span class="s1">&#39;windowingsystem&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;win32&#39;</span><span class="p">:</span>
-            <span class="n">_root</span><span class="o">.</span><span class="n">deiconify</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># this isn&#39;t as easy as you might think it is... focus_force</span>
-            <span class="c1"># focuses the window but doesn&#39;t move it to the front, and</span>
-            <span class="c1"># the -topmost wm attribute only works for lifting the</span>
-            <span class="c1"># window temporarily</span>
-            <span class="c1"># if you know how to do this without flashing the window</span>
-            <span class="c1"># like this then please let me know</span>
-            <span class="n">geometry</span> <span class="o">=</span> <span class="n">_root</span><span class="o">.</span><span class="n">geometry</span><span class="p">()</span>
-            <span class="n">_root</span><span class="o">.</span><span class="n">withdraw</span><span class="p">()</span>
-            <span class="n">_root</span><span class="o">.</span><span class="n">deiconify</span><span class="p">()</span>
-            <span class="n">_root</span><span class="o">.</span><span class="n">geometry</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span>
-
-    <span class="n">_root</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="n">_queue_opener</span><span class="p">,</span> <span class="n">queue</span><span class="p">)</span>
-
-
 <div class="viewcode-block" id="run"><a class="viewcode-back" href="../../porcupine.html#porcupine.run">[docs]</a><span class="k">def</span> <span class="nf">run</span><span class="p">():</span>
     <span class="k">if</span> <span class="n">_root</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;init() wasn&#39;t called&quot;</span><span class="p">)</span>
 
     <span class="c1"># the user can change the settings only if we get here, so there&#39;s</span>
     <span class="c1"># no need to wrap the whole thing in try/with/finally/whatever</span>
-    <span class="k">with</span> <span class="n">_ipc</span><span class="o">.</span><span class="n">session</span><span class="p">()</span> <span class="k">as</span> <span class="n">queue</span><span class="p">:</span>
-        <span class="n">_root</span><span class="o">.</span><span class="n">after_idle</span><span class="p">(</span><span class="n">_queue_opener</span><span class="p">,</span> <span class="n">queue</span><span class="p">)</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">_root</span><span class="o">.</span><span class="n">mainloop</span><span class="p">()</span>
-        <span class="k">finally</span><span class="p">:</span>
-            <span class="n">settings</span><span class="o">.</span><span class="n">save</span><span class="p">()</span></div>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">_root</span><span class="o">.</span><span class="n">mainloop</span><span class="p">()</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">save</span><span class="p">()</span></div>
 </pre></div>
 
           </div>
