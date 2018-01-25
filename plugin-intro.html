@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Introduction to Writing Plugins &#8212; Porcupine API 0.67.0-git-e9b1a3f documentation</title>
+    <title>Introduction to Writing Plugins &#8212; Porcupine API 0.67.0-git-b933450 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.67.0-git-e9b1a3f',
+        VERSION:     '0.67.0-git-b933450',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -211,8 +211,8 @@ like this:</p>
 <p><strong>This code is bad!</strong> Now <code class="docutils literal"><span class="pre">callback1</span></code> doesn’t run at all because binding
 <code class="docutils literal"><span class="pre">callback2</span></code> discarded the old binding. Everything would be fine
 if we had done this instead:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">some_widget</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Control-Return&gt;&#39;</span><span class="p">,</span> <span class="n">callback1</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">some_widget</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Control-Return&gt;&#39;</span><span class="p">,</span> <span class="n">callback2</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">some_widget</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Button-1&gt;&#39;</span><span class="p">,</span> <span class="n">callback1</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">some_widget</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Button-1&gt;&#39;</span><span class="p">,</span> <span class="n">callback2</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="c1"># now they&#39;re both bound</span>
 </pre></div>
 </div>

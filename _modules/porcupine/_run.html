@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine._run &#8212; Porcupine API 0.67.0-git-e9b1a3f documentation</title>
+    <title>porcupine._run &#8212; Porcupine API 0.67.0-git-b933450 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.67.0-git-e9b1a3f',
+        VERSION:     '0.67.0-git-b933450',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -56,6 +56,7 @@
 <span class="c1"># global state makes some things a lot easier</span>
 <span class="n">_root</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="n">_tab_manager</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">_init_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
 
 
 <span class="c1"># get_main_window() and get_tab_manager() work only if this has been called</span>
@@ -65,6 +66,8 @@
 <span class="sd">    The *verbose_logging* option corresponds to the ``--verbose``</span>
 <span class="sd">    argument. Run ``porcu --help`` for more information about it.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_init_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">locals</span><span class="p">())</span>   <span class="c1"># not too hacky IMO</span>
+
     <span class="k">global</span> <span class="n">_root</span>
     <span class="k">global</span> <span class="n">_tab_manager</span>
     <span class="k">if</span> <span class="n">_root</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">_tab_manager</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -82,6 +85,18 @@
         <span class="n">_root</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">binding</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="n">_setup_actions</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="get_init_kwargs"><a class="viewcode-back" href="../../porcupine.html#porcupine.get_init_kwargs">[docs]</a><span class="k">def</span> <span class="nf">get_init_kwargs</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Return a dictionary of the keyword arguments that were passed to :func:\</span>
+<span class="sd">`init`.</span>
+
+<span class="sd">    This is useful for invoking :func:`init` again in exactly the same</span>
+<span class="sd">    way.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_init_kwargs</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;init() wasn&#39;t called&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_init_kwargs</span></div>
 
 
 <div class="viewcode-block" id="get_main_window"><a class="viewcode-back" href="../../porcupine.html#porcupine.get_main_window">[docs]</a><span class="k">def</span> <span class="nf">get_main_window</span><span class="p">():</span>
@@ -160,9 +175,7 @@
     <span class="n">actions</span><span class="o">.</span><span class="n">add_command</span><span class="p">(</span><span class="s2">&quot;File/Quit&quot;</span><span class="p">,</span> <span class="n">quit</span><span class="p">,</span> <span class="s1">&#39;&lt;Control-q&gt;&#39;</span><span class="p">)</span>
 
     <span class="c1"># TODO: is Edit the best possible place for this?</span>
-    <span class="n">actions</span><span class="o">.</span><span class="n">add_command</span><span class="p">(</span>
-        <span class="s2">&quot;Edit/Porcupine Settings...&quot;</span><span class="p">,</span>
-        <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">show_dialog</span><span class="p">,</span> <span class="n">_root</span><span class="p">))</span>
+    <span class="n">actions</span><span class="o">.</span><span class="n">add_command</span><span class="p">(</span><span class="s2">&quot;Edit/Porcupine Settings...&quot;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">show_dialog</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">change_font_size</span><span class="p">(</span><span class="n">how</span><span class="p">):</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get_section</span><span class="p">(</span><span class="s1">&#39;General&#39;</span><span class="p">)</span>
