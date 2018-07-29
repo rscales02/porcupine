@@ -4,20 +4,12 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.tabs &#8212; Porcupine API 0.67.0-git-c2879f3 documentation</title>
+    <title>porcupine.tabs &#8212; Porcupine API 0.70.0-git-806ba03 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '0.67.0-git-c2879f3',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
@@ -29,13 +21,14 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body>
+  </head><body>
   
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <h1>Source code for porcupine.tabs</h1><div class="highlight"><pre>
@@ -168,8 +161,9 @@
 <div class="viewcode-block" id="TabManager.select"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.TabManager.select">[docs]</a>    <span class="k">def</span> <span class="nf">select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tab_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Select the given tab as if the user clicked it.</span>
 
-<span class="sd">        If ``tab_id`` is not given, this returns the currently selected</span>
-<span class="sd">        tab or None if there are no tabs.</span>
+<span class="sd">        Usually the ``tab_id`` should be a :class:`.Tab` widget. If it is not</span>
+<span class="sd">        given, this returns the currently selected tab or None if there are no</span>
+<span class="sd">        tabs.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">tab_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">selected</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">select</span><span class="p">()</span>
@@ -187,6 +181,10 @@
 <span class="sd">        This returns a tuple instead of a list for compatibility with</span>
 <span class="sd">        tkinter.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># tkinter has a bug that makes the original tabs() return widget name</span>
+        <span class="c1"># strings instead of widget objects, and this str()&#39;s the tabs just in</span>
+        <span class="c1"># case it is fixed later: str(widget object) and str(widget name) both</span>
+        <span class="c1"># give the widget name consistently</span>
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nametowidget</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tab</span><span class="p">))</span> <span class="k">for</span> <span class="n">tab</span> <span class="ow">in</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">tabs</span><span class="p">())</span></div>
 
 <div class="viewcode-block" id="TabManager.add_tab"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.TabManager.add_tab">[docs]</a>    <span class="k">def</span> <span class="nf">add_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tab</span><span class="p">,</span> <span class="n">select</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
@@ -512,12 +510,10 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_save_hash</span> <span class="o">=</span> <span class="kc">None</span>
 
-        <span class="c1"># path and filetype are set correctly below</span>
-        <span class="c1"># TODO: try to guess the filetype from the content when path is None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_path</span> <span class="o">=</span> <span class="n">path</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_guess_filetype</span><span class="p">()</span>          <span class="c1"># this sets self._filetype</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_guess_filetype</span><span class="p">()</span>          <span class="c1"># sets self._filetype</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;PathChanged&gt;&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_title</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;PathChanged&gt;&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_guess_filetype</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;PathChanged&gt;&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_guess_filetype_if_needed</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="c1"># we need to set width and height to 1 to make sure it&#39;s never too</span>
         <span class="c1"># large for seeing other widgets</span>
@@ -637,17 +633,36 @@
     <span class="k">def</span> <span class="nf">filetype</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filetype</span>
 
+    <span class="c1"># weird things might happen if filetype is of the wrong type</span>
     <span class="nd">@filetype</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">filetype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filetype</span><span class="p">):</span>
-        <span class="c1"># hopefully it&#39;s a real filetype object</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># it&#39;s easier to write code that don&#39;t recurse infinitely if</span>
+            <span class="c1"># &#39;tab.filetype = tab.filetype&#39; does nothing</span>
+            <span class="k">if</span> <span class="n">filetype</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filetype</span><span class="p">:</span>
+                <span class="k">return</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="c1"># this happens when called from _guess_filetype, and self._filetype</span>
+            <span class="c1"># hasn&#39;t been set yet</span>
+            <span class="k">pass</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_filetype</span> <span class="o">=</span> <span class="n">filetype</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">event_generate</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;FiletypeChanged&gt;&gt;&#39;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_guess_filetype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">junk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_guess_filetype</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">filetype</span> <span class="o">=</span> <span class="n">filetypes</span><span class="o">.</span><span class="n">get_filetype_by_name</span><span class="p">(</span><span class="s1">&#39;DEFAULT&#39;</span><span class="p">)</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">get_section</span><span class="p">(</span><span class="s1">&#39;File Types&#39;</span><span class="p">)[</span><span class="s1">&#39;default_filetype&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">filetype</span> <span class="o">=</span> <span class="n">filetypes</span><span class="o">.</span><span class="n">get_filetype_by_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># FIXME: this may read the shebang from the file, but the file</span>
+            <span class="c1">#        might not be saved yet because save_as() sets self.path</span>
+            <span class="c1">#        before saving, and that&#39;s when this runs</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">filetype</span> <span class="o">=</span> <span class="n">filetypes</span><span class="o">.</span><span class="n">guess_filetype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_guess_filetype_if_needed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">junk_event</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filetype</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;Plain Text&#39;</span><span class="p">:</span>
+            <span class="c1"># the user probably hasn&#39;t set the filetype</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_guess_filetype</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_update_title</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">junk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">text</span> <span class="o">=</span> <span class="s1">&#39;New File&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
@@ -659,16 +674,14 @@
 
     <span class="k">def</span> <span class="nf">_update_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">junk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">part1</span> <span class="o">=</span> <span class="s2">&quot;New file&quot;</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;New file&quot;</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">part1</span> <span class="o">=</span> <span class="s2">&quot;File &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filetype</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;DEFAULT&#39;</span><span class="p">:</span>
-            <span class="n">part1</span> <span class="o">+=</span> <span class="s2">&quot;, &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filetype</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;File &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span>
+        <span class="n">line</span><span class="p">,</span> <span class="n">column</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">textwidget</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;insert&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
 
-        <span class="n">part2</span> <span class="o">=</span> <span class="s2">&quot;Line </span><span class="si">%s</span><span class="s2">, column </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">textwidget</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;insert&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">))</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">part1</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">part2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="se">\t</span><span class="s2">Line </span><span class="si">%s</span><span class="s2">, column </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">prefix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filetype</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">line</span><span class="p">,</span> <span class="n">column</span><span class="p">)</span>
 
 <div class="viewcode-block" id="FileTab.can_be_closed"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.FileTab.can_be_closed">[docs]</a>    <span class="k">def</span> <span class="nf">can_be_closed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -699,8 +712,8 @@
         <span class="k">return</span> <span class="kc">True</span></div>
 
     <span class="c1"># TODO: document the overriding</span>
-    <span class="k">def</span> <span class="nf">on_focus</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">textwidget</span><span class="o">.</span><span class="n">focus</span><span class="p">()</span>
+<div class="viewcode-block" id="FileTab.on_focus"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.FileTab.on_focus">[docs]</a>    <span class="k">def</span> <span class="nf">on_focus</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">textwidget</span><span class="o">.</span><span class="n">focus</span><span class="p">()</span></div>
 
     <span class="c1"># TODO: returning None on errors kinda sucks</span>
 <div class="viewcode-block" id="FileTab.save"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.FileTab.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -746,7 +759,7 @@
         <span class="k">return</span> <span class="kc">True</span></div>
 
     <span class="c1"># FIXME: don&#39;t ignore undo history :/</span>
-    <span class="k">def</span> <span class="nf">get_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="FileTab.get_state"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.FileTab.get_state">[docs]</a>    <span class="k">def</span> <span class="nf">get_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># e.g. &quot;New File&quot; tabs are saved even though the .path is None</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_saved</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># this is really saved</span>
@@ -755,9 +768,9 @@
             <span class="n">content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">textwidget</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span> <span class="s1">&#39;end - 1 char&#39;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_save_hash</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">textwidget</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;insert&#39;</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">textwidget</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;insert&#39;</span><span class="p">))</span></div>
 
-    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="FileTab.from_state"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.FileTab.from_state">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_state</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">manager</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="n">path</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">save_hash</span><span class="p">,</span> <span class="n">cursor_pos</span> <span class="o">=</span> <span class="n">state</span>
         <span class="k">if</span> <span class="n">content</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -775,7 +788,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">textwidget</span><span class="o">.</span><span class="n">see</span><span class="p">(</span><span class="s1">&#39;insert linestart&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">textwidget</span><span class="o">.</span><span class="n">see</span><span class="p">(</span><span class="s1">&#39;insert linestart + 5 lines&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">textwidget</span><span class="o">.</span><span class="n">see</span><span class="p">(</span><span class="s1">&#39;insert linestart - 5 lines&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span></div>
+        <span class="k">return</span> <span class="bp">self</span></div></div>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
@@ -818,10 +831,38 @@
 </pre></div>
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper"><div class="relations">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">Porcupine API</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../plugin-intro.html">Introduction to Writing Plugins</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../porcupine.html"><code class="docutils literal notranslate"><span class="pre">porcupine</span></code> — The top level Porcupine package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../actions.html"><code class="docutils literal notranslate"><span class="pre">porcupine.actions</span></code> — Add stuff to the menubar</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tabs.html"><code class="docutils literal notranslate"><span class="pre">porcupine.tabs</span></code> — The tab manager and tabs in it</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../textwidget.html"><code class="docutils literal notranslate"><span class="pre">porcupine.textwidget</span></code> — Handy <code class="docutils literal notranslate"><span class="pre">tkinter.Text</span></code> subclasses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../images.html"><code class="docutils literal notranslate"><span class="pre">porcupine.images</span></code> — Load images that come with Porcupine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../dirs.html"><code class="docutils literal notranslate"><span class="pre">porcupine.dirs</span></code> — Paths to Porcupine’s files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../filetypes.html">File Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../settings.html"><code class="docutils literal notranslate"><span class="pre">porcupine.settings</span></code> — Porcupine’s setting manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pluginloader.html"><code class="docutils literal notranslate"><span class="pre">porcupine.pluginloader</span></code> — The module that loads plugins on startup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utils.html"><code class="docutils literal notranslate"><span class="pre">porcupine.utils</span></code> — Handy utility functions and classes</a></li>
+</ul>
+
+<div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="../../index.html">Documentation overview</a><ul>
@@ -832,12 +873,14 @@
 </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -848,8 +891,8 @@
       &copy;2017, Akuli.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
       
     </div>
 

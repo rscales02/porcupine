@@ -4,20 +4,12 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.settings &#8212; Porcupine API 0.67.0-git-c2879f3 documentation</title>
+    <title>porcupine.settings &#8212; Porcupine API 0.70.0-git-806ba03 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '0.67.0-git-c2879f3',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
@@ -29,13 +21,14 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body>
+  </head><body>
   
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <h1>Source code for porcupine.settings</h1><div class="highlight"><pre>
@@ -63,7 +56,7 @@
 <span class="c1"># that&#39;s why &quot;import porcupine&quot;</span>
 <span class="kn">import</span> <span class="nn">porcupine</span>
 <span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">images</span><span class="p">,</span> <span class="n">utils</span>
-
+<span class="kn">from</span> <span class="nn">porcupine.filetypes</span> <span class="k">import</span> <span class="n">get_all_filetypes</span>
 
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -510,15 +503,20 @@
     <span class="n">general</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;pygments_style&#39;</span><span class="p">,</span> <span class="n">_validate_pygments_style_name</span><span class="p">)</span>
 
     <span class="n">filetypes</span> <span class="o">=</span> <span class="n">get_section</span><span class="p">(</span><span class="s1">&#39;File Types&#39;</span><span class="p">)</span>
-    <span class="n">label</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">filetypes</span><span class="o">.</span><span class="n">content_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
-        <span class="s2">&quot;Currently there&#39;s no GUI for changing filetype specific &quot;</span>
-        <span class="s2">&quot;settings, but they&#39;re stored in filetypes.ini and you can &quot;</span>
-        <span class="s2">&quot;edit it yourself.&quot;</span><span class="p">))</span>
-    <span class="n">label</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+    <span class="n">label1</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">filetypes</span><span class="o">.</span><span class="n">content_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
+        <span class="s2">&quot;Currently there&#39;s no GUI for changing filetype specific settings, &quot;</span>
+        <span class="s2">&quot;but they&#39;re stored in filetypes.ini and you can edit it yourself.&quot;</span><span class="p">))</span>
+    <span class="n">label2</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">filetypes</span><span class="o">.</span><span class="n">content_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
+        <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">You can use the following option to choose which filetype &quot;</span>
+        <span class="s2">&quot;Porcupine should use when you create a new file in Porcupine. You &quot;</span>
+        <span class="s2">&quot;can change the filetype after creating the file clicking Filetypes &quot;</span>
+        <span class="s2">&quot;in the menu bar.&quot;</span><span class="p">))</span>
     <span class="n">filetypes</span><span class="o">.</span><span class="n">content_frame</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span>      <span class="c1"># automatic wrapping</span>
         <span class="s1">&#39;&lt;Configure&gt;&#39;</span><span class="p">,</span>
-        <span class="k">lambda</span> <span class="n">event</span><span class="p">:</span> <span class="n">label</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">wraplength</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">width</span><span class="p">),</span>
-        <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">lambda</span> <span class="n">event</span><span class="p">:</span> <span class="p">{</span>   <span class="c1"># have fun figuring out why javascripty { } works</span>
+            <span class="n">label1</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">wraplength</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">width</span><span class="p">),</span>
+            <span class="n">label2</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">wraplength</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">width</span><span class="p">),</span>
+        <span class="p">},</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">edit_it</span><span class="p">():</span>
         <span class="c1"># porcupine/tabs.py imports this file</span>
@@ -530,8 +528,15 @@
         <span class="n">manager</span><span class="o">.</span><span class="n">add_tab</span><span class="p">(</span><span class="n">tabs</span><span class="o">.</span><span class="n">FileTab</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="n">manager</span><span class="p">,</span> <span class="n">path</span><span class="p">))</span>
         <span class="n">_dialog</span><span class="o">.</span><span class="n">withdraw</span><span class="p">()</span>
 
+    <span class="n">label1</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
     <span class="n">ttk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">filetypes</span><span class="o">.</span><span class="n">content_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Edit filetypes.ini&quot;</span><span class="p">,</span>
                <span class="n">command</span><span class="o">=</span><span class="n">edit_it</span><span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">anchor</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>
+    <span class="n">label2</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+
+    <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">filetype</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">filetype</span> <span class="ow">in</span> <span class="n">get_all_filetypes</span><span class="p">()]</span>
+    <span class="n">filetypes</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s1">&#39;default_filetype&#39;</span><span class="p">,</span> <span class="s1">&#39;Plain Text&#39;</span><span class="p">)</span>
+    <span class="n">filetypes</span><span class="o">.</span><span class="n">add_combobox</span><span class="p">(</span><span class="s1">&#39;default_filetype&#39;</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span>
+                           <span class="s2">&quot;Default filetype for new files:&quot;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="show_dialog"><a class="viewcode-back" href="../../settings.html#porcupine.settings.show_dialog">[docs]</a><span class="k">def</span> <span class="nf">show_dialog</span><span class="p">():</span>
@@ -575,10 +580,38 @@
 </pre></div>
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper"><div class="relations">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">Porcupine API</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../plugin-intro.html">Introduction to Writing Plugins</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../porcupine.html"><code class="docutils literal notranslate"><span class="pre">porcupine</span></code> — The top level Porcupine package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../actions.html"><code class="docutils literal notranslate"><span class="pre">porcupine.actions</span></code> — Add stuff to the menubar</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tabs.html"><code class="docutils literal notranslate"><span class="pre">porcupine.tabs</span></code> — The tab manager and tabs in it</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../textwidget.html"><code class="docutils literal notranslate"><span class="pre">porcupine.textwidget</span></code> — Handy <code class="docutils literal notranslate"><span class="pre">tkinter.Text</span></code> subclasses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../images.html"><code class="docutils literal notranslate"><span class="pre">porcupine.images</span></code> — Load images that come with Porcupine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../dirs.html"><code class="docutils literal notranslate"><span class="pre">porcupine.dirs</span></code> — Paths to Porcupine’s files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../filetypes.html">File Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../settings.html"><code class="docutils literal notranslate"><span class="pre">porcupine.settings</span></code> — Porcupine’s setting manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pluginloader.html"><code class="docutils literal notranslate"><span class="pre">porcupine.pluginloader</span></code> — The module that loads plugins on startup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utils.html"><code class="docutils literal notranslate"><span class="pre">porcupine.utils</span></code> — Handy utility functions and classes</a></li>
+</ul>
+
+<div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="../../index.html">Documentation overview</a><ul>
@@ -589,12 +622,14 @@
 </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -605,8 +640,8 @@
       &copy;2017, Akuli.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
       
     </div>
 

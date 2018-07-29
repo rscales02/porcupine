@@ -4,20 +4,12 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.textwidget — Handy tkinter.Text subclasses &#8212; Porcupine API 0.67.0-git-c2879f3 documentation</title>
+    <title>porcupine.textwidget — Handy tkinter.Text subclasses &#8212; Porcupine API 0.70.0-git-806ba03 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.67.0-git-c2879f3',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -31,37 +23,38 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body>
+  </head><body>
   
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="module-porcupine.textwidget">
-<span id="porcupine-textwidget-handy-tkinter-text-subclasses"></span><h1><a class="reference internal" href="#module-porcupine.textwidget" title="porcupine.textwidget"><code class="xref py py-mod docutils literal"><span class="pre">porcupine.textwidget</span></code></a> — Handy <code class="docutils literal"><span class="pre">tkinter.Text</span></code> subclasses<a class="headerlink" href="#module-porcupine.textwidget" title="Permalink to this headline">¶</a></h1>
-<p>This module contains handy <code class="docutils literal"><span class="pre">tkinter.Text</span></code> subclasses.</p>
+<span id="porcupine-textwidget-handy-tkinter-text-subclasses"></span><h1><a class="reference internal" href="#module-porcupine.textwidget" title="porcupine.textwidget"><code class="xref py py-mod docutils literal notranslate"><span class="pre">porcupine.textwidget</span></code></a> — Handy <code class="docutils literal notranslate"><span class="pre">tkinter.Text</span></code> subclasses<a class="headerlink" href="#module-porcupine.textwidget" title="Permalink to this headline">¶</a></h1>
+<p>This module contains handy <code class="docutils literal notranslate"><span class="pre">tkinter.Text</span></code> subclasses.</p>
 <dl class="class">
 <dt id="porcupine.textwidget.HandyText">
 <em class="property">class </em><code class="descclassname">porcupine.textwidget.</code><code class="descname">HandyText</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/textwidget.html#HandyText"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.textwidget.HandyText" title="Permalink to this definition">¶</a></dt>
-<dd><p>Like <code class="docutils literal"><span class="pre">tkinter.Text</span></code>, but with some handy features.</p>
-<p>All arguments are passed to <code class="docutils literal"><span class="pre">tkinter.Text</span></code>.</p>
+<dd><p>Like <code class="docutils literal notranslate"><span class="pre">tkinter.Text</span></code>, but with some handy features.</p>
+<p>All arguments are passed to <code class="docutils literal notranslate"><span class="pre">tkinter.Text</span></code>.</p>
 <dl class="virtualevent">
 <dt id="porcupine.textwidget.HandyText.ContentChanged">
 <em class="property">virtual event </em><code class="descname">&lt;&lt;ContentChanged&gt;&gt;</code><a class="headerlink" href="#porcupine.textwidget.HandyText.ContentChanged" title="Permalink to this definition">¶</a></dt>
 <dd><p>This event is generated when the text in the widget is modified
-in any way, and it’s implemented with <code class="docutils literal"><span class="pre">&lt;&lt;Modified&gt;&gt;</span></code>. Unlike
-<code class="docutils literal"><span class="pre">&lt;&lt;Modified&gt;&gt;</span></code>, this event is simply generated every time the
+in any way, and it’s implemented with <code class="docutils literal notranslate"><span class="pre">&lt;&lt;Modified&gt;&gt;</span></code>. Unlike
+<code class="docutils literal notranslate"><span class="pre">&lt;&lt;Modified&gt;&gt;</span></code>, this event is simply generated every time the
 content changes, and there’s no need to unset a flag like
-<code class="docutils literal"><span class="pre">textwidget.edit_modified(False)</span></code> or anything like that.</p>
+<code class="docutils literal notranslate"><span class="pre">textwidget.edit_modified(False)</span></code> or anything like that.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Don’t use <code class="docutils literal"><span class="pre">&lt;&lt;Modified&gt;&gt;</span></code> or <code class="docutils literal"><span class="pre">edit_modified()</span></code> with
+<p class="last">Don’t use <code class="docutils literal notranslate"><span class="pre">&lt;&lt;Modified&gt;&gt;</span></code> or <code class="docutils literal notranslate"><span class="pre">edit_modified()</span></code> with
 HandyText. They would conflict with the
-<code class="docutils literal"><span class="pre">&lt;&lt;ContentChanged&gt;&gt;</span></code> implementation, and
-<code class="docutils literal"><span class="pre">&lt;&lt;ContentChanged&gt;&gt;</span></code> is easier to use in general.</p>
+<code class="docutils literal notranslate"><span class="pre">&lt;&lt;ContentChanged&gt;&gt;</span></code> implementation, and
+<code class="docutils literal notranslate"><span class="pre">&lt;&lt;ContentChanged&gt;&gt;</span></code> is easier to use in general.</p>
 </div>
 </dd></dl>
 
@@ -70,7 +63,7 @@ HandyText. They would conflict with the
 <em class="property">virtual event </em><code class="descname">&lt;&lt;CursorMoved&gt;&gt;</code><a class="headerlink" href="#porcupine.textwidget.HandyText.CursorMoved" title="Permalink to this definition">¶</a></dt>
 <dd><p>This event is generated every time the user moves the cursor or
 it’s moved with a method of the text widget. Use
-<code class="docutils literal"><span class="pre">textwidget.index('insert')</span></code> to find the current cursor
+<code class="docutils literal notranslate"><span class="pre">textwidget.index('insert')</span></code> to find the current cursor
 position.</p>
 </dd></dl>
 
@@ -81,15 +74,15 @@ position.</p>
 hasn’t noticed it for some reason.</p>
 <p>This does nothing if the cursor hasn’t actually moved, so you
 don’t need to worry about calling this too often.</p>
-<p>You may need to use <code class="docutils literal"><span class="pre">after_idle</span></code> if you are calling this from
+<p>You may need to use <code class="docutils literal notranslate"><span class="pre">after_idle</span></code> if you are calling this from
 an event handler:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">the_bind_callback</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">the_bind_callback</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
     <span class="o">...</span>
     <span class="n">handytext</span><span class="o">.</span><span class="n">after_idle</span><span class="p">(</span><span class="n">handytext</span><span class="o">.</span><span class="n">cursor_has_moved</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Event handlers are ran before anything happens, and this way
-<code class="docutils literal"><span class="pre">handytext.cursor_has_moved()</span></code> runs <em>after</em> the event has been
+<code class="docutils literal notranslate"><span class="pre">handytext.cursor_has_moved()</span></code> runs <em>after</em> the event has been
 processed and the cursor has actually moved.</p>
 </dd></dl>
 
@@ -97,8 +90,8 @@ processed and the cursor has actually moved.</p>
 <dt id="porcupine.textwidget.HandyText.iter_chunks">
 <code class="descname">iter_chunks</code><span class="sig-paren">(</span><em>n=100</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/textwidget.html#HandyText.iter_chunks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.textwidget.HandyText.iter_chunks" title="Permalink to this definition">¶</a></dt>
 <dd><p>Iterate over the content as chunks of <em>n</em> lines.</p>
-<p>Each yielded line ends with a <code class="docutils literal"><span class="pre">\n</span></code> character. Lines are not
-broken down the middle, and <code class="docutils literal"><span class="pre">''</span></code> is never yielded.</p>
+<p>Each yielded line ends with a <code class="docutils literal notranslate"><span class="pre">\n</span></code> character. Lines are not
+broken down the middle, and <code class="docutils literal notranslate"><span class="pre">''</span></code> is never yielded.</p>
 <p>Note that the last chunk is less than <em>n</em> lines long unless the
 total number of lines is divisible by <em>n</em>.</p>
 </dd></dl>
@@ -107,7 +100,7 @@ total number of lines is divisible by <em>n</em>.</p>
 <dt id="porcupine.textwidget.HandyText.iter_lines">
 <code class="descname">iter_lines</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/textwidget.html#HandyText.iter_lines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.textwidget.HandyText.iter_lines" title="Permalink to this definition">¶</a></dt>
 <dd><p>Iterate over the content as lines.</p>
-<p>The trailing <code class="docutils literal"><span class="pre">\n</span></code> characters of each line are included.</p>
+<p>The trailing <code class="docutils literal notranslate"><span class="pre">\n</span></code> characters of each line are included.</p>
 </dd></dl>
 
 </dd></dl>
@@ -115,8 +108,8 @@ total number of lines is divisible by <em>n</em>.</p>
 <dl class="class">
 <dt id="porcupine.textwidget.ThemedText">
 <em class="property">class </em><code class="descclassname">porcupine.textwidget.</code><code class="descname">ThemedText</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/textwidget.html#ThemedText"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.textwidget.ThemedText" title="Permalink to this definition">¶</a></dt>
-<dd><p>A <a class="reference internal" href="#porcupine.textwidget.HandyText" title="porcupine.textwidget.HandyText"><code class="xref py py-class docutils literal"><span class="pre">HandyText</span></code></a> subclass that uses the Pygments style’s colors.</p>
-<p>You can use this class just like <a class="reference internal" href="#porcupine.textwidget.HandyText" title="porcupine.textwidget.HandyText"><code class="xref py py-class docutils literal"><span class="pre">HandyText</span></code></a>, it takes care
+<dd><p>A <a class="reference internal" href="#porcupine.textwidget.HandyText" title="porcupine.textwidget.HandyText"><code class="xref py py-class docutils literal notranslate"><span class="pre">HandyText</span></code></a> subclass that uses the Pygments style’s colors.</p>
+<p>You can use this class just like <a class="reference internal" href="#porcupine.textwidget.HandyText" title="porcupine.textwidget.HandyText"><code class="xref py py-class docutils literal notranslate"><span class="pre">HandyText</span></code></a>, it takes care
 of switching the colors by itself. This is useful for things like
 <a class="reference external" href="https://github.com/Akuli/porcupine/tree/master/porcupine/plugins/linenumbers.py">porcupine/plugins/linenumbers.py</a>.</p>
 <div class="admonition seealso">
@@ -136,33 +129,56 @@ of switching the colors by itself. This is useful for things like
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper"><div class="relations">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Porcupine API</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="plugin-intro.html">Introduction to Writing Plugins</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="porcupine.html"><code class="docutils literal notranslate"><span class="pre">porcupine</span></code> — The top level Porcupine package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="actions.html"><code class="docutils literal notranslate"><span class="pre">porcupine.actions</span></code> — Add stuff to the menubar</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tabs.html"><code class="docutils literal notranslate"><span class="pre">porcupine.tabs</span></code> — The tab manager and tabs in it</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">porcupine.textwidget</span></code> — Handy <code class="docutils literal notranslate"><span class="pre">tkinter.Text</span></code> subclasses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="images.html"><code class="docutils literal notranslate"><span class="pre">porcupine.images</span></code> — Load images that come with Porcupine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dirs.html"><code class="docutils literal notranslate"><span class="pre">porcupine.dirs</span></code> — Paths to Porcupine’s files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filetypes.html">File Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="settings.html"><code class="docutils literal notranslate"><span class="pre">porcupine.settings</span></code> — Porcupine’s setting manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pluginloader.html"><code class="docutils literal notranslate"><span class="pre">porcupine.pluginloader</span></code> — The module that loads plugins on startup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html"><code class="docutils literal notranslate"><span class="pre">porcupine.utils</span></code> — Handy utility functions and classes</a></li>
+</ul>
+
+<div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="tabs.html" title="previous chapter"><code class="docutils literal"><span class="pre">porcupine.tabs</span></code> — The tab manager and tabs in it</a></li>
-      <li>Next: <a href="images.html" title="next chapter"><code class="docutils literal"><span class="pre">porcupine.images</span></code> — Load images that come with Porcupine</a></li>
+      <li>Previous: <a href="tabs.html" title="previous chapter"><code class="docutils literal notranslate"><span class="pre">porcupine.tabs</span></code> — The tab manager and tabs in it</a></li>
+      <li>Next: <a href="images.html" title="next chapter"><code class="docutils literal notranslate"><span class="pre">porcupine.images</span></code> — Load images that come with Porcupine</a></li>
   </ul></li>
 </ul>
 </div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/textwidget.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -173,8 +189,8 @@ of switching the colors by itself. This is useful for things like
       &copy;2017, Akuli.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
       
       |
       <a href="_sources/textwidget.rst.txt"
