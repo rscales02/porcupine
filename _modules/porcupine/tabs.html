@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.tabs &#8212; Porcupine API 0.70.0-git-806ba03 documentation</title>
+    <title>porcupine.tabs &#8212; Porcupine API 0.70.0-git-91b3c90 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -40,11 +40,11 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">tkinter</span>
-<span class="kn">from</span> <span class="nn">tkinter</span> <span class="k">import</span> <span class="n">ttk</span><span class="p">,</span> <span class="n">messagebox</span>
+<span class="kn">from</span> <span class="nn">tkinter</span> <span class="k">import</span> <span class="n">ttk</span><span class="p">,</span> <span class="n">messagebox</span><span class="p">,</span> <span class="n">filedialog</span>
 <span class="kn">import</span> <span class="nn">traceback</span>
 
 <span class="kn">import</span> <span class="nn">porcupine</span>
-<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">_dialogs</span><span class="p">,</span> <span class="n">filetypes</span><span class="p">,</span> <span class="n">images</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">textwidget</span><span class="p">,</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">filetypes</span><span class="p">,</span> <span class="n">images</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">textwidget</span><span class="p">,</span> <span class="n">utils</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 <span class="n">_flatten</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span>
@@ -99,7 +99,7 @@
         <span class="c1"># These can be bound in a parent widget. This doesn&#39;t use</span>
         <span class="c1"># enable_traversal() because we want more bindings than it</span>
         <span class="c1"># creates.</span>
-        <span class="c1"># TODO: document these?</span>
+        <span class="c1"># TODO: document self.bindings?</span>
         <span class="n">partial</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span>     <span class="c1"># pep-8 line length</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bindings</span> <span class="o">=</span> <span class="p">[</span>
             <span class="p">(</span><span class="s1">&#39;&lt;Control-Prior&gt;&#39;</span><span class="p">,</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_page_updown</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)),</span>
@@ -248,6 +248,7 @@
         <span class="k">except</span> <span class="n">tkinter</span><span class="o">.</span><span class="n">TclError</span><span class="p">:</span>   <span class="c1"># should be &quot;Slave index n out of bounds&quot;</span>
             <span class="k">return</span> <span class="kc">False</span></div>
 
+    <span class="c1"># TODO: test this</span>
 <div class="viewcode-block" id="TabManager.move_selected_tab"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.TabManager.move_selected_tab">[docs]</a>    <span class="k">def</span> <span class="nf">move_selected_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">diff</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Try to move the currently selected tab left or right.</span>
 
@@ -259,7 +260,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">tabs</span><span class="p">():</span>
             <span class="k">return</span> <span class="kc">False</span>
 
-        <span class="c1"># TODO: this can probably be simplified</span>
+        <span class="c1"># this could be simplified, but it&#39;s nice and readable now</span>
         <span class="n">i1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">())</span>
         <span class="n">i2</span> <span class="o">=</span> <span class="n">i1</span> <span class="o">+</span> <span class="n">diff</span>
         <span class="k">if</span> <span class="n">i1</span> <span class="o">&gt;</span> <span class="n">i2</span><span class="p">:</span>
@@ -517,7 +518,6 @@
 
         <span class="c1"># we need to set width and height to 1 to make sure it&#39;s never too</span>
         <span class="c1"># large for seeing other widgets</span>
-        <span class="c1"># TODO: document this</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">textwidget</span> <span class="o">=</span> <span class="n">textwidget</span><span class="o">.</span><span class="n">MainText</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filetype</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">wrap</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">undo</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">textwidget</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -534,11 +534,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;PathChanged&gt;&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_status</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;FiletypeChanged&gt;&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_status</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">textwidget</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;CursorMoved&gt;&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_status</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-        <span class="c1"># everything seems to work ok without this except that e.g.</span>
-        <span class="c1"># pressing Ctrl+O in the text widget opens a file AND inserts a</span>
-        <span class="c1"># newline (Tk inserts a newline by default)</span>
-        <span class="n">utils</span><span class="o">.</span><span class="n">copy_bindings</span><span class="p">(</span><span class="n">porcupine</span><span class="o">.</span><span class="n">get_main_window</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">textwidget</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">scrollbar</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Scrollbar</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scrollbar</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
@@ -600,7 +595,7 @@
 <div class="viewcode-block" id="FileTab.mark_saved"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.FileTab.mark_saved">[docs]</a>    <span class="k">def</span> <span class="nf">mark_saved</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Make :meth:`is_saved` return True.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_save_hash</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_hash</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_update_title</span><span class="p">()</span>      <span class="c1"># TODO: add a virtual event for this?</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_title</span><span class="p">()</span>     <span class="c1"># TODO: add a virtual event for this if needed</span></div>
 
 <div class="viewcode-block" id="FileTab.is_saved"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.FileTab.is_saved">[docs]</a>    <span class="k">def</span> <span class="nf">is_saved</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return False if the text has changed since previous save.</span>
@@ -668,7 +663,7 @@
         <span class="n">text</span> <span class="o">=</span> <span class="s1">&#39;New File&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_saved</span><span class="p">():</span>
             <span class="c1"># TODO: figure out how to make the label red in ttk instead</span>
-            <span class="c1"># of stupid stars</span>
+            <span class="c1">#       of stupid stars</span>
             <span class="n">text</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span> <span class="o">+</span> <span class="n">text</span> <span class="o">+</span> <span class="s1">&#39;*&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="n">text</span>
 
@@ -711,11 +706,12 @@
         <span class="c1"># no was clicked, can be closed</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
-    <span class="c1"># TODO: document the overriding</span>
 <div class="viewcode-block" id="FileTab.on_focus"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.FileTab.on_focus">[docs]</a>    <span class="k">def</span> <span class="nf">on_focus</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;This override of :meth:`Tab.on_focus` focuses the :attr:`textwidget\</span>
+<span class="sd">`.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">textwidget</span><span class="o">.</span><span class="n">focus</span><span class="p">()</span></div>
 
-    <span class="c1"># TODO: returning None on errors kinda sucks</span>
+    <span class="c1"># TODO: returning None on errors kinda sucks, maybe a handle_errors kwarg?</span>
 <div class="viewcode-block" id="FileTab.save"><a class="viewcode-back" href="../../tabs.html#porcupine.tabs.FileTab.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Save the file to the current :attr:`path`.</span>
 
@@ -751,9 +747,11 @@
 <span class="sd">        Returns True if the file was saved, and False if the user</span>
 <span class="sd">        cancelled the dialog.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">save_as</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">filedialog</span><span class="o">.</span><span class="n">asksaveasfilename</span><span class="p">(</span>
+            <span class="o">**</span><span class="n">filetypes</span><span class="o">.</span><span class="n">get_filedialog_kwargs</span><span class="p">())</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="p">:</span>     <span class="c1"># it may be &#39;&#39; because tkinter</span>
             <span class="k">return</span> <span class="kc">False</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
         <span class="k">return</span> <span class="kc">True</span></div>
@@ -891,7 +889,7 @@
       &copy;2017, Akuli.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.7</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
       
     </div>

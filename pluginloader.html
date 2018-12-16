@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>porcupine.pluginloader — The module that loads plugins on startup &#8212; Porcupine API 0.70.0-git-806ba03 documentation</title>
+    <title>porcupine.pluginloader — The module that loads plugins on startup &#8212; Porcupine API 0.70.0-git-91b3c90 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -38,7 +38,7 @@
 <p>On startup, Porcupine loads plugins roughly like this (after calling
 <a class="reference internal" href="porcupine.html#porcupine.init" title="porcupine.init"><code class="xref py py-func docutils literal notranslate"><span class="pre">porcupine.init()</span></code></a>):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">porcupine</span> <span class="k">import</span> <span class="n">pluginloader</span>
-<span class="n">pluginloader</span><span class="o">.</span><span class="n">load_plugins</span><span class="p">(</span><span class="n">pluginloader</span><span class="o">.</span><span class="n">find_plugins</span><span class="p">())</span>
+<span class="n">pluginloader</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">pluginloader</span><span class="o">.</span><span class="n">find_plugins</span><span class="p">())</span>
 </pre></div>
 </div>
 <p><a class="reference external" href="https://github.com/Akuli/porcupine/tree/master/porcupine/__main__.py">The real code</a> is a little more complicated
@@ -66,15 +66,18 @@ things like menu items are always in the same order. Setting
 <code class="docutils literal notranslate"><span class="pre">shuffle=True</span></code> means that a random order is used instead; this is
 useful for making sure that the plugins don’t rely on the sorting.</p>
 <p>Any exceptions from the plugins are caught and logged, so there’s no
-need to wrap calls to this function in <code class="docutils literal notranslate"><span class="pre">try</span></code>,``except``.</p>
+need to wrap calls to this function in <code class="docutils literal notranslate"><span class="pre">try,except</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="porcupine.pluginloader.get_loaded_plugins">
 <code class="descclassname">porcupine.pluginloader.</code><code class="descname">get_loaded_plugins</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/porcupine/pluginloader.html#get_loaded_plugins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#porcupine.pluginloader.get_loaded_plugins" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a list of plugin names that have been loaded in their loading order.</p>
-<p>This is useful for plugins that need to start a new Porcupine
-process and load plugins in that.</p>
+<dd><p>Return a list of plugin names that have been loaded successfully.</p>
+<p>This is useful for writing plugins that need to start a new Porcupine
+process and load the same plugins in the new process. See
+<a class="reference external" href="https://github.com/Akuli/porcupine/tree/master/porcupine/plugins/poppingtabs.py">porcupine/plugins/poppingtabs.py</a> for an example.</p>
+<p>The returned list is in loading order, and mutating the returned list
+doesn’t break anything.</p>
 </dd></dl>
 
 </div>
@@ -141,7 +144,7 @@ process and load plugins in that.</p>
       &copy;2017, Akuli.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.7</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
       
       |
