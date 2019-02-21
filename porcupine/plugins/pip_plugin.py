@@ -37,7 +37,9 @@ class PipGui:
         self.scrollbar = ttk.Scrollbar(self.big_frame, orient='vertical')
         self.search_results = []
         # listbox for search results
-        self.listbox = tk.Listbox(self.big_frame, selectmode='browse', yscrollcommand=self.scrollbar.set)
+        self.listbox = tk.Listbox(self.big_frame, selectmode='browse')
+        self.listbox.config(width=60)
+        self.listbox.grid(row=1, column=0, columnspan=5)
         # global / user checkbox
         self.check_button_state = tk.IntVar()
         self.check_button = ttk.Checkbutton(self.big_frame, text='Global Install', variable=self.check_button_state)
@@ -71,11 +73,8 @@ class PipGui:
     def display_search_results(self):
         assert isinstance(self.search_results, list)
         self.listbox.delete(0, tk.END)
-        self.listbox.config(width=60)
-        self.scrollbar.grid_anchor('e')
         for item in self.search_results:
             self.listbox.insert(tk.END, item)
-        self.listbox.grid(row=1, columnspan=4)
         self.listbox.bind("<Double-Button-1>", self.pip_install)
 
     def pip_install(self, e=None):
@@ -102,8 +101,8 @@ class PipGui:
 
 
 def setup():
-    pip = PipGui()
-    actions.add_command('Pip/Pip Search', pip.run_gui)
+    pip_gui = PipGui()
+    actions.add_command('Pip/Pip Search', pip_gui.run_gui)
 
 
 if __name__ == '__main__':
