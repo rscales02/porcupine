@@ -5,13 +5,17 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import subprocess
 import sys
+import threading
 import os
 
 
 class PipGui:
+    """
+    A graphic user interface for interacting with the pip command
+    """
     def __init__(self):
         # create root window
-        self.root = tk.Tk()
+        self.root = tk.Toplevel()
         self.root.title('Pip GUI')
         self.root.geometry("500x300+250+100")
         # replace with ttk for aesthetics
@@ -45,6 +49,7 @@ class PipGui:
         self.check_button = ttk.Checkbutton(self.big_frame, text='Global Install', variable=self.check_button_state)
         self.check_button_state.set(1)
         self.check_button.grid(row=2, column=4)
+        self.thread = threading.Thread(target=self.thread_pip_uninstall)
 
     def pip_search(self, list_or_search=0, e=None):
         self.search_results = []
@@ -64,7 +69,7 @@ class PipGui:
         for item in search:
             if 'INSTALLED' in item:
                 self.search_results.insert(0, item)
-            elif item:
+            elif item:  # removes items with Falsey values (i.e. "")
                 self.search_results.append(item)
         if not search:
             self.search_results = (['No Search Results'])
@@ -82,7 +87,7 @@ class PipGui:
             package = self.search_term.get()
         else:
             package = self.listbox.get('active')
-            package = package.split(' ')
+            self.root.tk.splitlist(package)
             package = package[0]
         if not self.check_button_state.get():
             subprocess.run([sys.executable, '-m', 'pip', 'install', '--user', '{0}'.format(package)], input=b'y')
@@ -90,21 +95,44 @@ class PipGui:
             subprocess.run([sys.executable, '-m', 'pip', 'install', '{0}'.format(package)], input=b'y')
 
     def pip_uninstall(self):
+        self.thread.start()
+        self.root.after(200, self.is_thread_live)
+
+    def is_thread_live(self):
+        if self.thread.is_alive():
+            print('its alive!!')
+        else:
+            print('dead')
+
+    def thread_pip_uninstall(self):
+        print('hello')
         package = self.search_term.get()
-        subprocess.run([sys.executable, '-m', 'pip', 'uninstall', '{0}'.format(package)], input=b'y')
+        try:
+            sp = subprocess.Popen([sys.executable, '-m', 'pip', 'uninstall', '{0}'.format(package)], stdout=subprocess.PIPE)
+            for stdout in iter(sp.stdout.readline()):
+                yield print(stdout)
+            print(sp.communicate())
+        except subprocess.SubprocessError as err:
+            print(err)
 
     def pip_list(self):
         self.pip_search(list_or_search=1)
 
     def run_gui(self):
-        self.root.mainloop()
+        self.root.wait_window()
+
+
+def create_gui():
+    return PipGui()
 
 
 def setup():
-    pip_gui = PipGui()
-    actions.add_command('Pip/Pip Search', pip_gui.run_gui)
+    actions.add_command('Pip/Pip Search', create_gui)
 
 
 if __name__ == '__main__':
+    main = tk.Tk()
+    main.withdraw()
+
     pip = PipGui()
     pip.run_gui()
