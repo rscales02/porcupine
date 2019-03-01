@@ -58,7 +58,7 @@ def get_frozen_requirements_in_a_crazy_way():
     info("Creating a temporary virtualenv and installing everything into it "
          "in order to get output from 'pip freeze' to figure out which "
          "dependencies to bundle...")
-    subprocess.check_call([sys.executable, '-m', 'venv', 'temp_env'])
+    subprocess.check_call([sys.executable, '-m', 'env', 'temp_env'])
 
     try:
         subprocess.check_call([
