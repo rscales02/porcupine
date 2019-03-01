@@ -7,6 +7,7 @@ import subprocess
 import sys
 import threading
 import os
+import queue
 
 
 class PipGui:
@@ -50,6 +51,7 @@ class PipGui:
         self.check_button_state.set(1)
         self.check_button.grid(row=2, column=4)
         self.thread = threading.Thread(target=self.thread_pip_uninstall)
+        self.the_queue = queue.Queue()
 
     def pip_search(self, list_or_search=0, e=None):
         self.search_results = []
@@ -95,6 +97,9 @@ class PipGui:
             subprocess.run([sys.executable, '-m', 'pip', 'install', '{0}'.format(package)], input=b'y')
 
     def pip_uninstall(self):
+        package = self.search_term.get()
+        print(type(package))
+        self.the_queue.put(package)
         self.thread.start()
         self.root.after(200, self.is_thread_live)
 
@@ -106,11 +111,13 @@ class PipGui:
 
     def thread_pip_uninstall(self):
         print('hello')
-        package = self.search_term.get()
+        try:
+            package = self.the_queue.get(block=False)
+        except queue.Empty:
+            print('empty queue')
+
         try:
             sp = subprocess.Popen([sys.executable, '-m', 'pip', 'uninstall', '{0}'.format(package)], stdout=subprocess.PIPE)
-            for stdout in iter(sp.stdout.readline()):
-                yield print(stdout)
             print(sp.communicate())
         except subprocess.SubprocessError as err:
             print(err)
