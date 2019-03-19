@@ -1,5 +1,5 @@
 # encoding='utf-8'
-from porcupine import actions
+from porcupine import actions, utils
 
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -50,6 +50,7 @@ class PipGui:
         self.check_button.grid(row=2, column=4)
         # thread for async response out of main loop
         self.thread = threading.Thread(target=self.pip_thread)
+        self.sp = None
         # queue for communication between mainloop and thread
         self.the_queue = queue.Queue()
         # dictionary for pip options
@@ -83,40 +84,48 @@ class PipGui:
             self.pip_dict['global'] = ''
         self.the_queue.put(self.pip_dict)
         self.thread.start()
-        self.root.after(200, self.is_thread_live)
 
     def pip_thread(self):
+        self.is_thread_live()
         try:
             pip_dict = self.the_queue.get(block=False)
         except queue.Empty:
             print('empty queue')
 
         try:
-            sp = subprocess.Popen([sys.executable, '-m', 'pip', pip_dict['process'], pip_dict['global'],
-                                   pip_dict['package']], stdout=subprocess.PIPE)
-            response = sp.communicate()
+            if not pip_dict['global'] and pip_dict['process'] == 'install':
+                print('user')
+                self.sp = subprocess.Popen([sys.executable, '-m', 'pip', pip_dict['process'], '--user',
+                                       pip_dict['package']], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+            else:
+                self.sp = subprocess.Popen([sys.executable, '-m', 'pip', pip_dict['process'], pip_dict['package']],
+                                      stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+            response = self.sp.communicate()
         except subprocess.SubprocessError as err:
             print(err)
         self.the_queue.put(response)
+        return response
 
     def is_thread_live(self):
         if self.thread.is_alive():
             print('its alive!!')
-            self.root.after(2000, self.is_thread_live())
-        elif self.pip_dict['process'] is 'search' or 'list':
-            self.display_search_results()
+            print(self.sp.communicate())
+            return self.root.after(200, self.is_thread_live)
+        # elif self.pip_dict['process'] is 'search' or 'list':
+        #     self.display_search_results()
         else:
             print('dead')
 
-    def display_search_results(self):
-        self.is_thread_live()
+    def display_search_results(self, a, b):
         try:
-            search_results = self.the_queue.get(block=False)
-            self.root.tk.splitlist(search_results)
+            search_results = list(self.the_queue.get(block=False))
+            search_results = search_results[0].decode('utf-8')
+            search_results = search_results.splitlines()
         except subprocess.SubprocessError as er:
             print('display_search_results error', er)
         self.listbox.delete(0, tk.END)
         for item in search_results:
+            item.strip()
             self.listbox.insert(tk.END, item)
         self.listbox.bind("<Double-Button-1>", self.pip_install)
 
