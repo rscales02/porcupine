@@ -50,6 +50,7 @@ class PipGui:
         self.check_button.grid(row=2, column=4)
         # thread for async response out of main loop
         self.thread = threading.Thread(target=self.pip_thread)
+        self.thread_list = []
         self.sp = None
         # queue for communication between mainloop and thread
         self.the_queue = queue.Queue()
@@ -61,32 +62,83 @@ class PipGui:
         }
 
     def pip_search(self, e=None):
+        """
+        update pip_dict and start thread for 'search'
+        :param e:
+        :return:
+        """
         self.pip_dict['process'] = 'search'
         self.start_pip_thread()
 
     def pip_list(self):
+        """
+        update pip_dict and start thread for 'list'
+        :return:
+        """
         self.pip_dict['process'] = 'list'
         self.start_pip_thread()
 
     def pip_install(self, e=None):
+        """
+        update pip_dict and start thread for 'install'
+        :param e:
+        :return:
+        """
         self.pip_dict['process'] = 'install'
         self.start_pip_thread()
 
     def pip_uninstall(self):
+        """
+        update pip_dict and start thread for 'uninstall'
+        :return:
+        """
         self.pip_dict['process'] = 'uninstall'
         self.start_pip_thread()
 
-    def start_pip_thread(self):
-        self.pip_dict['package'] = self.search_term.get()
+    def get_package_name(self):
+        """
+        update pip_dict with package name or empty string if using 'pip list'
+        :return:
+        """
+        if self.pip_dict['process'] == list:
+            self.pip_dict['package'] = ''
+        else:
+            self.pip_dict['package'] = self.search_term.get()
+
+    def get_global_checkbox(self):
+        """
+        update pip_dict with global/user option
+        :return:
+        """
         if not self.check_button_state.get():
             self.pip_dict['global'] = '--user'
         else:
             self.pip_dict['global'] = ''
+
+    def start_pip_thread(self):
+        """
+        populates the pip_dict and places it into the Queue for access from the thread
+        append newest thread to thread_list
+        start thread at the last position in the thread_list
+        begins the recursive function to test whether or not the current thread is still active
+        :return:
+        """
+        self.get_package_name()
+        self.get_global_checkbox()
         self.the_queue.put(self.pip_dict)
-        self.thread.start()
+        self.thread_list.append(threading.Thread(target=self.pip_thread))
+        try:
+            self.thread_list[-1].start()
+        except RuntimeError as e:
+            print(e)
+        self.is_thread_live()
 
     def pip_thread(self):
-        self.is_thread_live()
+        """
+        pull pip_dict from queue
+        begin the PIP subprocess
+        :return: None
+        """
         try:
             pip_dict = self.the_queue.get(block=False)
         except queue.Empty:
@@ -96,32 +148,41 @@ class PipGui:
             if not pip_dict['global'] and pip_dict['process'] == 'install':
                 print('user')
                 self.sp = subprocess.Popen([sys.executable, '-m', 'pip', pip_dict['process'], '--user',
-                                       pip_dict['package']], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+                                            pip_dict['package']], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
             else:
                 self.sp = subprocess.Popen([sys.executable, '-m', 'pip', pip_dict['process'], pip_dict['package']],
-                                      stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+                                           stdout=subprocess.PIPE, stdin=subprocess.PIPE)
             response = self.sp.communicate()
+            print(response)
         except subprocess.SubprocessError as err:
             print(err)
+        print('responded')
         self.the_queue.put(response)
-        return response
+        return
 
     def is_thread_live(self):
-        if self.thread.is_alive():
-            print('its alive!!')
-            print(self.sp.communicate())
-            return self.root.after(200, self.is_thread_live)
-        # elif self.pip_dict['process'] is 'search' or 'list':
-        #     self.display_search_results()
+        """
+        tests the last object in thread_list to check its activity state
+        :return:
+        """
+        if self.thread_list[-1].is_alive():
+            return self.root.after(100, self.is_thread_live)
         else:
+            self.display_search_results()
             print('dead')
 
-    def display_search_results(self, a, b):
+    def display_search_results(self):
+        """
+        pull subprocess response from the queue
+        make response readable and ordered
+        display response
+        :return:
+        """
         try:
             search_results = list(self.the_queue.get(block=False))
             search_results = search_results[0].decode('utf-8')
             search_results = search_results.splitlines()
-        except subprocess.SubprocessError as er:
+        except Exception as er:
             print('display_search_results error', er)
         self.listbox.delete(0, tk.END)
         for item in search_results:
