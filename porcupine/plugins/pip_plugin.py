@@ -143,7 +143,6 @@ class PipGui:
             pip_dict = self.the_queue.get(block=False)
         except queue.Empty:
             print('empty queue')
-
         try:
             if not pip_dict['global'] and pip_dict['process'] == 'install':
                 print('user')
@@ -152,12 +151,26 @@ class PipGui:
             else:
                 self.sp = subprocess.Popen([sys.executable, '-m', 'pip', pip_dict['process'], pip_dict['package']],
                                            stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-            response = self.sp.communicate()
-            print(response)
         except subprocess.SubprocessError as err:
             print(err)
-        print('responded')
-        self.the_queue.put(response)
+        if pip_dict['process'] == 'uninstall' or pip_dict['process'] == 'install':
+            x=0
+            while True:
+                try:
+                    stdout = self.sp.stdout.read(len('proceed'))
+                    if stdout == b'd (y/n)':
+                        try:
+                            print('attempting response')
+                            self.sp.stdin.write(b'y')
+                        except:
+                            print('stdin write failed')
+                except:
+                    print('you fucked up')
+                    break
+        else:
+            response = self.sp.communicate()
+            print('responded')
+            self.the_queue.put(response)
         return
 
     def is_thread_live(self):
@@ -171,7 +184,7 @@ class PipGui:
             self.display_search_results()
             print('dead')
 
-    def display_search_results(self):
+    def display_search_results(self, search_results=[]):
         """
         pull subprocess response from the queue
         make response readable and ordered
@@ -184,7 +197,9 @@ class PipGui:
             search_results = search_results.splitlines()
         except Exception as er:
             print('display_search_results error', er)
+            return
         self.listbox.delete(0, tk.END)
+        print(search_results)
         for item in search_results:
             item.strip()
             self.listbox.insert(tk.END, item)
