@@ -64,7 +64,9 @@ class PipGui:
         # initialize byte string to receive stdout response
         self.stdout = b''
         # initialize tmp directory in same file system as pip is trying to access
-        self.tmp = tempfile.TemporaryDirectory()
+        self.tmp = tempfile.TemporaryDirectory(dir='./')
+        os.environ['TMPDIR'] = self.tmp
+        print(tempfile.gettempdir())
 
     def pip_search(self, e=None):
         """
