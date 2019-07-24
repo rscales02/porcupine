@@ -8,6 +8,7 @@ import sys
 import threading
 import os
 import queue
+import tempfile
 
 
 class PipGui:
@@ -60,6 +61,10 @@ class PipGui:
             'global': '',
             'package': ''
         }
+        # initialize byte string to receive stdout response
+        self.stdout = b''
+        # initialize tmp directory in same file system as pip is trying to access
+        self.tmp = tempfile.TemporaryDirectory()
 
     def pip_search(self, e=None):
         """
@@ -139,36 +144,47 @@ class PipGui:
         begin the PIP subprocess
         :return: None
         """
+        response = None
         try:
             pip_dict = self.the_queue.get(block=False)
         except queue.Empty:
             print('empty queue')
         try:
-            if not pip_dict['global'] and pip_dict['process'] == 'install':
-                print('user')
-                self.sp = subprocess.Popen([sys.executable, '-m', 'pip', pip_dict['process'], '--user',
-                                            pip_dict['package']], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-            else:
-                self.sp = subprocess.Popen([sys.executable, '-m', 'pip', pip_dict['process'], pip_dict['package']],
-                                           stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+            self.sp = subprocess.Popen([sys.executable, '-m', 'pip', pip_dict['process'], pip_dict['package']],
+                                       stdout=subprocess.PIPE, stdin=subprocess.PIPE, cwd=self.tmp.name)
+            # if not pip_dict['global'] and pip_dict['process'] == 'install':
+            #     print('user')
+            # else:
+            #     self.sp = subprocess.Popen([sys.executable, '-m', 'pip', pip_dict['process'], pip_dict['package']],
+            #                                stdout=subprocess.PIPE, stdin=subprocess.PIPE)
         except subprocess.SubprocessError as err:
             print(err)
         if pip_dict['process'] == 'uninstall' or pip_dict['process'] == 'install':
             x=0
             while True:
+                x += 1
+                # if x > 30:
+                #     break
                 try:
-                    stdout = self.sp.stdout.read(len('proceed'))
-                    if stdout == b'd (y/n)':
+                    stdout = self.sp.stdout.read(1)
+                    self.stdout += stdout
+                    print(self.stdout)
+                    if b'Proceed (y/n)?' in self.stdout:
                         try:
                             print('attempting response')
-                            self.sp.stdin.write(b'y')
+                            self.sp.stdin.write(b'y\n')
+                            self.sp.stdin.flush()
+                            break
                         except:
                             print('stdin write failed')
                 except:
                     print('you fucked up')
                     break
         else:
-            response = self.sp.communicate()
+            if response:
+                pass
+            else:
+                response = self.sp.communicate()
             print('responded')
             self.the_queue.put(response)
         return
