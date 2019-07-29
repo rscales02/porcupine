@@ -63,10 +63,6 @@ class PipGui:
         }
         # initialize byte string to receive stdout response
         self.stdout = b''
-        # initialize tmp directory in same file system as pip is trying to access
-        self.tmp = tempfile.TemporaryDirectory(dir='./')
-        os.environ['TMPDIR'] = self.tmp
-        print(tempfile.gettempdir())
 
     def pip_search(self, e=None):
         """
@@ -152,8 +148,8 @@ class PipGui:
         except queue.Empty:
             print('empty queue')
         try:
-            self.sp = subprocess.Popen([sys.executable, '-m', 'pip', pip_dict['process'], pip_dict['package']],
-                                       stdout=subprocess.PIPE, stdin=subprocess.PIPE, cwd=self.tmp.name)
+            self.sp = subprocess.Popen([sys.executable, '-u', '-m', 'pip', pip_dict['process'], '--no-cache',
+                                        pip_dict['package']], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
             # if not pip_dict['global'] and pip_dict['process'] == 'install':
             #     print('user')
             # else:
@@ -164,8 +160,9 @@ class PipGui:
         if pip_dict['process'] == 'uninstall' or pip_dict['process'] == 'install':
             x=0
             while True:
-                x += 1
-                # if x > 30:
+                # x += 1
+                # print(x)
+                # if x > 100:
                 #     break
                 try:
                     stdout = self.sp.stdout.read(1)
